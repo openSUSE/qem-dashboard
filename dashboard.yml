@@ -2,7 +2,7 @@
 secrets:
   - this_is_not_secure
 pg: postgresql:///dashboard
-rabbitmq: amqp://user:password@rabbit.suse.de:5672
+rabbitmq: amqps://opensuse:opensuse@rabbit.opensuse.org
 tokens:
   - s3cret
 status: 0

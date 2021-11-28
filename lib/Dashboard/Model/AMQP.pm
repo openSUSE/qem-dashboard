@@ -18,7 +18,17 @@ use Mojo::Base -base, -signatures;
 
 has [qw(log jobs)];
 
-sub handle ($self, $key, $data) {
+# called from startup in AMQP watcher to catch up with jobs started/ended while the watcher wasn't alive
+sub fetch_old ($self) {
+  my $db = $self->pg->db;
+  my $id = $db->query("SELECT min(job_id) from openqa_jobs where status='waiting'")->hash->{min};
+  if (!$id) {
+    $id = $db->query("SELECT max(job_id) from openqa_jobs")->hash->{max};
+  }
+  $self->_fetch_old_chunk($id);
+}
+
+sub process_event ($self, $key, $data) {
   my (undef, undef, $object, $type) = split(/\./, $key);
   return unless $object ne 'jobs';
   $self->log->debug("HANDLE $key " . Mojo::Util::dumper($data));
@@ -29,14 +39,16 @@ sub handle ($self, $key, $data) {
     $self->jobs->update_result($data->{id}, 'user_cancelled');
   }
   elsif ($type eq 'delete') {
-
-    # TODO deleting on openqa should also delete here
+    $self->jobs->delete_job($data->{id});
   }
   elsif ($type eq 'restart') {
     my $restart_map = $data->{result};
     for my $old_id (keys %$restart_map) {
       $self->jobs->restart_job($old_id, $restart_map->{$old_id});
     }
+  }
+  elsif ($type eq 'create') {
+    $self->jobs->update_or_insert_job($data);
   }
 }
 

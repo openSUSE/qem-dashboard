@@ -41,7 +41,7 @@ sub _set_default() {
 
 subtest 'Handle done job' => sub {
   _set_default();
-  $t->app->amqp->handle(
+  $t->app->amqp->process_event(
     'suse.openqa.job.done',
     {
       "ARCH"      => "x86_64",
@@ -64,7 +64,7 @@ subtest 'Handle done job' => sub {
 
 subtest 'Handle cancel job' => sub {
   _set_default();
-  $t->app->amqp->handle(
+  $t->app->amqp->process_event(
     'suse.openqa.job.cancel',
     {
       "ARCH"      => "x86_64",
@@ -83,7 +83,7 @@ subtest 'Handle cancel job' => sub {
 
 subtest 'Handle restart job' => sub {
   _set_default();
-  $t->app->amqp->handle(
+  $t->app->amqp->process_event(
     'suse.openqa.job.restart',
     {
       "ARCH"      => "x86_64",
