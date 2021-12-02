@@ -128,7 +128,7 @@ sub repos ($self) {
 
       # only calculate for the latest build
       $incidents ||= my $incs = $db->query(
-        'SELECT i.number, i.id FROM incidents i JOIN incident_in_update iu ON iu.incident = i.id
+        'SELECT i.number, i.id, i.packages FROM incidents i JOIN incident_in_update iu ON iu.incident = i.id
            WHERE settings = ? ORDER BY i.number', $id->{id}
       )->hashes->to_array;
 

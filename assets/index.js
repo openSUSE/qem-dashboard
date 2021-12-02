@@ -1,20 +1,23 @@
 import './sass/app.scss';
 import 'bootstrap';
-import 'bootstrap/dist/css/bootstrap.min.css';
+import 'bootstrap/dist/css/bootstrap.css';
+import router from './router.js';
+import App from './vue/App.vue';
 import $ from 'jquery';
+import Vue from 'vue';
 
 window.$ = $;
 
 import 'timeago';
 
-function fromNow() {
+const fromNow = function () {
   $('.from-now').each(function () {
-    var date = $(this);
+    const date = $(this);
     date.text($.timeago(new Date(date.text() * 1000)));
   });
-}
+};
 
-function backToTop() {
+const backToTop = function () {
   $(window).scroll(function () {
     if ($(this).scrollTop() > 50) {
       $('#back-to-top').fadeIn();
@@ -22,13 +25,26 @@ function backToTop() {
       $('#back-to-top').fadeOut();
     }
   });
-  $('#back-to-top').click(function () {
+  $('#back-to-top').click(() => {
     $('body, html').animate({scrollTop: 0}, 800);
     return false;
   });
-}
+};
 
-window.addEventListener('load', function () {
+window.addEventListener('load', () => {
+  /* global globalOpenqaUrl, globalConfigStatus, globalMojoStatusUrl, globalObsUrl, globalSmeltUrl */
+  /* eslint no-undef: "error"*/
+  Vue.prototype.$openqaUrl = globalOpenqaUrl;
+  Vue.prototype.$smeltUrl = globalSmeltUrl;
+  Vue.prototype.$obsUrl = globalObsUrl;
+  Vue.prototype.$configStatus = globalConfigStatus;
+  if (Vue.prototype.$configStatus) Vue.prototype.$mojoStatusUrl = globalMojoStatusUrl;
+  const vm = new Vue({
+    router,
+    render: h => h(App),
+    components: {App}
+  });
+  vm.$mount('#app');
   fromNow();
   backToTop();
   $('[data-toggle="tooltip"]').tooltip({trigger: 'hover'});

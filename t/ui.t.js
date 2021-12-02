@@ -3,6 +3,7 @@ import ServerStarter from '@mojolicious/server-starter';
 import {chromium} from 'playwright';
 import t from 'tap';
 
+// eslint-disable-next-line no-undefined
 const skip = process.env.TEST_ONLINE === undefined ? {skip: 'set TEST_ONLINE to enable this test'} : {};
 
 // Wrapper script with fixtures can be found in "t/wrappers/ui.pl"
@@ -19,11 +20,11 @@ t.test('Test dashboard ui', skip, async t => {
     t.equal(await page.innerText('title'), 'Active Incidents');
     await page.click('text=Blocked');
 
-    t.equal(page.url(), url + '/blocked');
+    t.equal(page.url(), `${url}/blocked`);
     t.equal(await page.innerText('title'), 'Blocked by Tests');
     await page.click('text=Repos');
 
-    t.equal(page.url(), url + '/repos');
+    t.equal(page.url(), `${url}/repos`);
     t.equal(await page.innerText('title'), 'Test Repos');
   });
 
@@ -35,6 +36,20 @@ t.test('Test dashboard ui', skip, async t => {
     t.match(await page.innerText('tbody tr:nth-of-type(2) td:nth-of-type(2) span'), /staged/);
     t.match(await page.innerText('tbody tr:nth-of-type(3) td:nth-of-type(1) a'), /16862:curl/);
     t.match(await page.innerText('tbody tr:nth-of-type(3) td:nth-of-type(2) span'), /approved/);
+
+    await page.click('text=16860:perl-Mojolicious');
+    t.equal(page.url(), `${url}/incident/16860`);
+    t.equal(
+      await page.locator('text=openqa').getAttribute('href'),
+      'https://openqa.suse.de/tests/overview?build=%3A17063%3Aperl-Mojolicious'
+    );
+  });
+
+  await t.test('Incident popup', async t => {
+    await page.goto(`${url}/repos`);
+    await page.click('text=2 Incidents');
+    await page.click('text=16860:perl-Mojolicious');
+    t.equal(page.url(), `${url}/incident/16860`);
   });
 
   await context.close();
