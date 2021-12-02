@@ -21,7 +21,7 @@ sub blocked ($self) {
   my $blocked   = $incidents->blocked;
 
   $self->respond_to(
-    json => {json => {blocked => $blocked}},
+    json => {json => $blocked},
     any  => sub {
       $self->render(blocked => $blocked);
     }
@@ -73,6 +73,9 @@ sub repos ($self) {
     }
   );
 
+}
+
+sub vue ($self) {
 }
 
 1;

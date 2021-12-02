@@ -103,6 +103,7 @@ sub startup ($self) {
   $public->get('/blocked')->to('overview#blocked')->name('blocked');
   $public->get('/repos')->to('overview#repos')->name('repos');
   $public->get('/incident/<incident:num>')->to('overview#incident')->name('incident');
+  $public->get('/vue')->to('overview#vue');
 
   # API
   my $api = $token->any('/api');

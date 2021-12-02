@@ -24,3 +24,7 @@
 < https://cdn.datatables.net/1.10.19/js/dataTables.bootstrap4.min.js
 < http://timeago.yarp.com/jquery.timeago.js
 < app.js
+
+! vue.js
+< https://unpkg.com/vue/dist/vue.js
+< https://unpkg.com/axios/dist/axios.js
