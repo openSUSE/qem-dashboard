@@ -1,43 +1,40 @@
-% layout 'default', title => 'Active Incidents';
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<div class="row">
-  <div class="col-md-12">
-    <table class="table">
-      <thead>
-        <tr>
-          <th>Incident</th>
-          <th>State</th>
-        </tr>
-      </thead>
-      <tbody>
-      % if ($results) {
-        % for my $inc (@{$incidents->{testing}}) {
-          <tr>
-            <td><%= link_to_incident($inc) %></td>
-            <td>
-              <a href="<%= url_for('blocked')->fragment($inc->{number}) %>">
-                <span class="badge badge-primary">testing</span>
-              </a>
-            </td>
-          </tr>
-        % }
-        % for my $inc (@{$incidents->{staged}}) {
-          <tr>
-            <td><%= link_to_incident($inc) %></td>
-            <td><span class="badge badge-secondary">staged</span></td>
-          </tr>
-        % }
-        % for my $inc (@{$incidents->{approved}}) {
-          <tr>
-            <td><%= link_to_incident($inc) %></td>
-            <td><span class="badge badge-success">approved</span></td>
-          </tr>
-        % }
+    <title>Needs javascript</title>
+
+    %= asset 'qem-dashboard.js'
+    %= asset 'qem-dashboard.css'
+
+    %= javascript begin
+
+      var globalOpenqaUrl = "<%= $c->openqa_url->path('/tests/overview') %>";
+      var globalObsUrl = "<%= $c->app->config->{obs}{url} %>";
+      var globalSmeltUrl = "<%= $c->app->config->{smelt}{url} %>";
+      % if (config 'status') {
+        var globalConfigStatus = true;
+        var globalMojoStatusUrl = "<%= url_for 'mojo_status' %>";
+      % } else {
+        var globalConfigStatus = false;
       % }
-      % else {
-        <tr><td colspan="2">No incidents!</td></tr>
-      % }
-      </tbody>
-    </table>
-  </div>
-</div>
+    % end
+  </head>
+  <body>
+    <div id="app">
+      We need javascript
+    </div>
+
+    <footer class='footer'>
+      <div class='container'>
+        <div id='footer-legal' class="text-center">
+          QEM Dashboard is maintained on
+          <a href="https://github.com/openSUSE/qem-dashboard">
+            GitHub.
+          </a>&copy; <a href="https://suse.com">SUSE</a>.
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

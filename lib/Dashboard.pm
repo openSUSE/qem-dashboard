@@ -95,11 +95,17 @@ sub startup ($self) {
   # Authentication
   my $token = $public->under('/')->to('Auth::Token#check');
 
-  # Dashboard UI
-  $public->get('/')->to('overview#index')->name('incidents');
-  $public->get('/blocked')->to('overview#blocked')->name('blocked');
-  $public->get('/repos')->to('overview#repos')->name('repos');
-  $public->get('/incident/<incident:num>')->to('overview#incident')->name('incident');
+  # Dashboard JSON API for UI
+  my $json = $public->any('/secret/api' => [format => ['json']])->to(format => undef);
+  $json->get('/list')->to('overview#list');
+  $json->get('/blocked')->to('overview#blocked');
+  $json->get('/repos')->to('overview#repos');
+  $json->get('/incident/<incident:num>')->to('overview#incident');
+
+  # Catch all for delivering the webpack UI
+  $public->get('/')->to('overview#index')->name('index');
+  $public->get('/:name' => [name => ['repos', 'blocked']])->to('overview#index');
+  $public->get('/incident/<incident:num>')->to('overview#index');
 
   # API
   my $api = $token->any('/api');
