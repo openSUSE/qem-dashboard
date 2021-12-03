@@ -149,12 +149,13 @@ var app = new Vue({
   el: '#app',
   created: function() {
     this.getBlocked();
+    this.timer = setInterval(this.getBlocked, 10 * 60000);
   },
   data: {  
      incidents: []
-   },
+  },
   methods: {
-    getBlocked: function(area) {
+    getBlocked: function() {
       var self = this;
       axios.get('/blocked').then(
         function(response) {
@@ -162,6 +163,12 @@ var app = new Vue({
         }
       );
     },
+    cancelAutoUpdate () {
+      clearInterval(this.timer);
+    }
+  },
+  beforeDestroy () {
+    this.cancelAutoUpdate();
   }
 });
 % end
