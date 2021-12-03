@@ -11,13 +11,23 @@
     $ sudo zypper in -C perl-Mojolicious perl-Mojolicious-Plugin-AssetPack \
       perl-Mojo-Pg perl-Cpanel-JSON-XS perl-JSON-Validator perl-IO-Socket-SSL
 
-  Update the config file `dashboard.yml` to point to your PostgreSQL database:
+  Update the config file `dashboard.yml` to point to your PostgreSQL database (and other services where appropriate):
 
-    pg: postgresql://postgres@127.0.0.1:5432/postgres
+    ---
     secrets:
       - some_secret_to_protect_sessions
+    pg: postgresql://postgres@127.0.0.1:5432/postgres
+    rabbitmq: amqp://user:password@rabbit.suse.de:5672
     tokens:
       - a_secret_token_openQABot_will_use
+    status: 0
+    openqa:
+      url: https://openqa.opensuse.org
+    obs:
+      url: https://build.opensuse.org
+    smelt:
+      url: https://smelt.suse.de
+
 
   And finally use the `morbo` development web server to make the web application available under
   `http://127.0.0.1:3000`.
