@@ -135,7 +135,7 @@ Vue.component('blocked-incident-upd-result', {
   props: ['result', 'group_id'],
   computed: {
     title: function() {
-      return "Aggregate: $result->{linkinfo}{flavor}-$result->{linkinfo}{version}";
+      return "Aggregate: " + this.result.linkinfo.flavor + "-" + this.result.linkinfo.version;
     },
   }
 })
