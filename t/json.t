@@ -87,7 +87,7 @@ subtest 'List incidents' => sub {
 subtest 'Blocked by Tests' => sub {
 
   $t->get_ok('/blocked' => {Accept => 'application/json'})->status_is(200)->json_is(
-    '/blocked' => [
+    [
       {
         incident => {
           "active"     => 1,
