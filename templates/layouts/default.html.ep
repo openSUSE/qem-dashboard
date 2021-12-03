@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title><%= title() || 'QEM Dashboard' %></title>
+
+    %= asset 'app.css'
+    %= asset 'app.js'
+
+    %= content_for 'head'
+
+    %= javascript begin
+      %= content_for 'head_javascript'
+      $(function() {
+        fromNow();
+        backToTop();
+        %= content_for 'ready_function'
+      } );
+    % end
+
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light mb-3 border-bottom">
+      <div class="container-fluid">
+        %= link_to '/' => (class => 'navbar-brand') => begin
+          <i class="fab fa-suse" style="color: green"></i>
+          <i class="fas fa-vial" style="color: purple"></i>
+        % end
+        <button class="navbar-toggler" type="button" data-toggle="collapse"
+          data-target="#navbarSupportedContent"
+          aria-controls="navbarSupportedContent" aria-expanded="false"
+          aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+          <ul class="navbar-nav mr-auto">
+            <li class="nav-item">
+              %= link_to 'Active' => url_for('incidents'), class => 'nav-link'
+            </li>
+            <li class="nav-item">
+              %= link_to 'Blocked' => url_for('blocked'), class => 'nav-link'
+            </li>
+            <li class="nav-item">
+              %= link_to 'Repos' => url_for('repos'), class => 'nav-link'
+            </li>
+          </ul>
+          <ul class="navbar-nav">
+            % if (config 'status') {
+              <li class="nav-item">
+                <a class="nav-link" href="<%= url_for 'mojo_status' %>" target="_blank">Status</a>
+              </li>
+            % }
+            <li class="nav-item">
+              <a class="nav-link" href="https://github.com/openSUSE/qem-dashboard/blob/main/API.md"
+                target="_blank">
+                API
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container" id="content">
+        <div class="row">
+          <div class="col-md-12 title">
+            <h2><%= title %></h2>
+            % if (my $epoch = latest_update) {
+            Last updated <span class="from-now"><%= $epoch %></span>
+            % }
+          </div>
+        </div>
+      %= content
+      <a id="back-to-top" href="#" class="btn btn-primary btn-lg back-to-top" role="button"
+        title="Click to return to the top">
+        <i class="fas fa-angle-up"></i>
+      </a>
+    </div>
+
+    <footer class='footer'>
+      <div class='container'>
+        <div id='footer-legal' class="text-center">
+          QEM Dashboard is maintained on
+          <a href="https://github.com/openSUSE/qem-dashboard">
+            GitHub.
+          </a>&copy; <a href="https://suse.com">SUSE</a>.
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

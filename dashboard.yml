@@ -1,0 +1,14 @@
+---
+secrets:
+  - this_is_not_secure
+pg: postgresql:///dashboard
+rabbitmq: amqp://user:password@rabbit.suse.de:5672
+tokens:
+  - s3cret
+status: 0
+openqa:
+  url: https://openqa.opensuse.org
+obs:
+  url: https://build.opensuse.org
+smelt:
+  url: https://smelt.suse.de

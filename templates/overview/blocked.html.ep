@@ -1,0 +1,50 @@
+% layout 'default', title => 'Blocked by Tests';
+
+<div class="row">
+  <div class="col-md-12">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Incident</th>
+          <th>Groups</th>
+        </tr>
+      </thead>
+      <tbody>
+      % if (@$blocked) {
+        % for my $row (@$blocked) {
+          % my $inc = $row->{incident};
+          % my $incident_results = $row->{incident_results};
+          % my $update_results = $row->{update_results};
+          <tr>
+            <td>
+              <a name="<%= $inc->{number} %>" />
+              %= link_to_incident $inc
+            </td>
+            <td>
+              <ul class="summary-list">
+                % if (keys %$incident_results || keys %$update_results) {
+                  % for my $group (sort keys %$incident_results) {
+                    % my $result = $incident_results->{$group};
+                    <li><%= summary $result %></li>
+                  % }
+                  % for my $group (sort keys %$update_results) {
+                    % my $result = $update_results->{$group};
+                    % my $title = "Aggregate: $result->{linkinfo}{flavor}-$result->{linkinfo}{version}";
+                    <li data-toggle="tooltip" data-placement="left" title="<%= $title %>"><%= summary $result %></li>
+                  % }
+                % }
+                % else {
+                  No data yet
+                % }
+              </ul>
+            </td>
+          </tr>
+        % }
+      % }
+      % else {
+        <tr><td colspan="2">No blocked incidents!</td></tr>
+      % }
+      </tbody>
+    </table>
+  </div>
+</div>
