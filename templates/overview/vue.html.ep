@@ -30,14 +30,12 @@
 
 
 <script type="text/x-template" id="blocked-incident-inc-result-template">
-<li v-bind:data-group-id="group_id" 
-    v-bind:data-total="total" 
-    v-bind:data-failed="result_failed"
-    v-bind:data-stopped="result_stopped"
-    v-bind:data-passed="result_passed"
-    v-bind:data-waiting="result_waiting"
-    >
-  
+  <li v-bind:data-group-id="group_id" >
+    <result-summary v-bind:result="result"></result-summary>
+  </li>
+</script>
+
+<script type="text/x-template" id="result-summary-template">
   <a v-if="result_failed > 0" v-bind:href="result_link" class="btn btn-danger" target="_blank">
      {{ result.name }} <span class="badge badge-light">{{ result_failed }}/{{ total }}</span>
      <span class="sr-only">failed jobs</span>
@@ -57,35 +55,14 @@
   <a v-else>
      {{ result.name }} is problematic
   </a>
-</li>
 </script>
 
 <script type="text/x-template" id="blocked-incident-upd-result-template">
 <li v-bind:group-id="group_id"
     data-toggle="tooltip"
     data-placement="left"
-    v-bind:title="title"
-> 
-  <a v-if="result_failed > 0" v-bind:href="result_link" class="btn btn-danger" target="_blank">
-     {{ result.name }} <span class="badge badge-light">{{ result_failed }}/{{ total }}</span>
-     <span class="sr-only">failed jobs</span>
-  </a>
-  <a v-else-if="result_stopped > 0" v-bind:href="result_link" class="btn btn-secondary" target="_blank">
-    {{ result.name }} <span class="badge badge-light">{{ result_stopped }}/{{ total }}</span>
-    <span class="sr-only">stopped jobs</span>
-  </a>
-  <a v-else-if="result_waiting > 0" v-bind:href="result_link" class="btn btn-info" target="_blank">
-    {{ result.name }} <span class="badge badge-light">{{ result_waiting }}/{{ total }}</span>
-    <span class="sr-only">stopped jobs</span>
-  </a>
-  <a v-else-if="result_passed == total" v-bind:href="result_link" class="btn btn-success" target="_blank">
-    {{ result.name }} <span class="badge badge-light">{{ total }}</span>
-    <span class="sr-only">passed jobs</span>
-  </a>
-  <a v-else>
-     {{ result.name }} is problematic
-  </a>
-
+    v-bind:title="title">
+  <result-summary v-bind:result="result"></result-summary>
 </li>
 </script>
 
@@ -124,6 +101,11 @@
 Vue.component('blocked-incident-inc-result', {
   template: '#blocked-incident-inc-result-template',
   props: ['result', 'group_id'],
+})
+
+Vue.component('result-summary', {
+  template: '#result-summary-template',
+  props: ['result'],
   computed: {
     result_link: function() {
       var url = "<%= $c->openqa_url->path('/tests/overview') %>";
@@ -152,29 +134,9 @@ Vue.component('blocked-incident-upd-result', {
   template: '#blocked-incident-upd-result-template',
   props: ['result', 'group_id'],
   computed: {
-    result_link: function() {
-      var url = "<%= $c->openqa_url->path('/tests/overview') %>";
-      const searchParams = new URLSearchParams(this.result.linkinfo);
-      return url + "?" + searchParams.toString();
-    },
     title: function() {
       return "Aggregate: $result->{linkinfo}{flavor}-$result->{linkinfo}{version}";
     },
-    result_stopped: function() {
-      return this.result.stopped || 0;
-    },
-    result_passed: function() {
-      return this.result.passed || 0;
-    },
-    result_waiting: function() {
-      return this.result.waiting || 0;
-    },
-    result_failed: function() {
-      return this.result.failed || 0;
-    },
-    total: function() {
-      return this.result_stopped + this.result_failed + this.result_waiting + this.result_passed;
-    }
   }
 })
 
