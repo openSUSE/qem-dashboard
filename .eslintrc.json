@@ -1,0 +1,25 @@
+{
+  "env": {
+    "node": true,
+    "es2021": true
+  },
+  "parserOptions": {
+    "sourceType": "module"
+  },
+  "extends": ["eslint:recommended", "prettier"],
+  "plugins": ["import", "prettier"],
+  "rules": {
+    "prettier/prettier": "error",
+    "import/order": [
+      "error",
+      {
+        "groups": ["type", "builtin", ["sibling", "parent"], "index", "object"],
+        "newlines-between": "never",
+        "alphabetize": {
+          "order": "asc",
+          "caseInsensitive": true
+        }
+      }
+    ]
+  }
+}
