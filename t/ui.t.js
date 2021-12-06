@@ -7,7 +7,7 @@ import t from 'tap';
 t.test('Test dashboard ui', async t => {
   const server = await ServerStarter.newServer();
   await server.launch('perl', ['t/wrappers/ui.pl']);
-  const browser = await chromium.launch();
+  const browser = await chromium.launch(process.env.TEST_HEADLESS === '0' ? {headless: false, slowMo: 500} : {});
   const context = await browser.newContext();
   const page = await context.newPage();
   const url = server.url();
