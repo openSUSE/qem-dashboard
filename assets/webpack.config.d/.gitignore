@@ -1,0 +1,3 @@
+# Mojolicious::Plugin::WebPack will put here generated files we don't need
+# We moved their content into webpack.config.js manually
+*.js

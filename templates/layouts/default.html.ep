@@ -5,19 +5,8 @@
 
     <title><%= title() || 'QEM Dashboard' %></title>
 
-    %= asset 'app.css'
-    %= asset 'app.js'
-
-    %= content_for 'head'
-
-    %= javascript begin
-      %= content_for 'head_javascript'
-      $(function() {
-        fromNow();
-        backToTop();
-        %= content_for 'ready_function'
-      } );
-    % end
+    %= asset 'qem-dashboard.js'
+    %= asset 'qem-dashboard.css'
 
   </head>
   <body>
