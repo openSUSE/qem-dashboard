@@ -9,8 +9,6 @@ use Mojo::File qw(curfile);
 use Test::Mojo;
 use Dashboard::Test;
 
-die 'set TEST_ONLINE to enable this test' unless $ENV{TEST_ONLINE};
-
 my $dashboard_test = Dashboard::Test->new(online => $ENV{TEST_ONLINE}, schema => 'js_ui_test');
 my $daemon         = Mojo::Server::Daemon->new(listen => ['http://*?fd=3']);
 
