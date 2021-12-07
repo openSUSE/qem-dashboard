@@ -3,7 +3,6 @@ import 'bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import $ from 'jquery';
 
-window.jQuery = $;
 window.$ = $;
 
 import 'timeago';
@@ -11,7 +10,7 @@ import 'timeago';
 function fromNow() {
   $('.from-now').each(function () {
     var date = $(this);
-    date.text(jQuery.timeago(new Date(date.text() * 1000)));
+    date.text($.timeago(new Date(date.text() * 1000)));
   });
 }
 

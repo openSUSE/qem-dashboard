@@ -6,7 +6,7 @@
     "lib": "lib"
   },
   "scripts": {
-    "lint": "eslint \"t/*.js\"",
+    "lint": "eslint \"**/*.js\" --ignore-pattern assets/webpack.config.d",
     "lint:fix": "npm run lint -- --fix"
   },
   "engines": {
