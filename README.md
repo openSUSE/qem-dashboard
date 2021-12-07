@@ -8,8 +8,9 @@
   To get started all you need is an empty PostgreSQL database and the following dependencies:
 
     $ sudo zypper in -C postgresql-server postgresql-contrib
-    $ sudo zypper in -C perl-Mojolicious perl-Mojolicious-Plugin-AssetPack \
-      perl-Mojo-Pg perl-Cpanel-JSON-XS perl-JSON-Validator perl-IO-Socket-SSL
+    $ sudo zypper in -C perl-Mojolicious perl-Mojolicious-Plugin-Webpack \
+      perl-Mojo-Pg perl-Cpanel-JSON-XS perl-JSON-Validator perl-IO-Socket-SSL nodejs16
+    $ npm install
 
   Update the config file `dashboard.yml` to point to your PostgreSQL database (and other services where appropriate):
 
@@ -29,8 +30,8 @@
       url: https://smelt.suse.de
 
 
-  And finally use the `morbo` development web server to make the web application available under
+  And finally use the `mojo webpack` development web server to make the web application available under
   `http://127.0.0.1:3000`.
 
-    $ morbo script/dashboard
+    $ mojo webpack script/dashboard
     Web application available at http://127.0.0.1:3000
