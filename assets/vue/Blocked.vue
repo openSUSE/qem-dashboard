@@ -3,6 +3,7 @@
     <div class="float-right">
       <input type="checkbox" id="checkbox" v-model="groupFlavors" />
       <label for="checkbox">Group Flavors</label>
+      <input v-model="matchText" placeholder="Search for Incident/Package" />
     </div>
     <table class="table">
       <thead>
@@ -14,7 +15,7 @@
       <tbody>
         <tr
           is="blocked-incident"
-          v-for="incident in incidents"
+          v-for="incident in matchedIncidents"
           :key="incident.incident.number"
           :incident="incident.incident"
           :incident-results="incident.incident_results"
@@ -37,8 +38,23 @@ export default {
   data() {
     return {
       incidents: null,
-      groupFlavors: true
+      groupFlavors: true,
+      matchText: ''
     };
+  },
+  computed: {
+    matchedIncidents() {
+      if (this.matchText) {
+        return this.incidents.filter(incident => {
+          if (String(incident.incident.number).includes(this.matchText)) return true;
+          for (const pack of incident.incident.packages) {
+            if (pack.includes(this.matchText)) return true;
+          }
+          return false;
+        });
+      }
+      return this.incidents;
+    }
   },
   created() {
     this.loadData();

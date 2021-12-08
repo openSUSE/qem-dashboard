@@ -52,6 +52,17 @@ t.test('Test dashboard ui', skip, async t => {
     );
   });
 
+  await t.test('Filter blocked', async t => {
+    await page.goto(`${url}/blocked`);
+    const list = page.locator('tbody > tr');
+    t.equal(await list.count(), 1);
+    t.match(await page.innerText('tbody tr:nth-of-type(1) td:nth-of-type(1) a'), /16860:perl-Mojolicious/);
+    t.match(await page.innerText('tbody tr:nth-of-type(1) td:nth-of-type(2)'), /SLE 12 SP5 1/);
+
+    await page.fill('[placeholder="Search for Incident/Package"]', 'curl');
+    t.equal(await list.count(), 0);
+  });
+
   await t.test('Incident popup', async t => {
     await page.goto(`${url}/repos`);
     await page.click('text=2 Incidents');
@@ -60,6 +71,7 @@ t.test('Test dashboard ui', skip, async t => {
   });
 
   t.same(errorLogs, []);
+
   await context.close();
   await browser.close();
   await server.close();
