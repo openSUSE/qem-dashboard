@@ -15,6 +15,13 @@ t.test('Test dashboard ui', skip, async t => {
   const page = await context.newPage();
   const url = server.url();
 
+  const errorLogs = [];
+  page.on('console', message => {
+    if (message.type() === 'error') {
+      errorLogs.push(message.text());
+    }
+  });
+
   await t.test('Navigation', async t => {
     await page.goto(url);
     t.equal(await page.innerText('title'), 'Active Incidents');
@@ -52,6 +59,7 @@ t.test('Test dashboard ui', skip, async t => {
     t.equal(page.url(), `${url}/incident/16860`);
   });
 
+  t.same(errorLogs, []);
   await context.close();
   await browser.close();
   await server.close();
