@@ -65,7 +65,7 @@ sub run ($self, @args) {
   # Heartbeats are sent every 60 seconds (this is a fallback in case the disconnect has not been detected)
   $client->on(
     connect => sub ($client, $stream) {
-      Mojo::IOLoop->timer(0 => sub { $self->app->jobs->fetch_old; $stream->timeout(120) });
+      Mojo::IOLoop->timer(0 => sub { $stream->timeout(120); $self->app->jobs->fetch_old; });
     }
   );
 

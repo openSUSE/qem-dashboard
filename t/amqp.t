@@ -105,4 +105,28 @@ subtest 'Handle restart job' => sub {
   _is_field('job_id', 7764022);
 };
 
+subtest 'Handle create job' => sub {
+  _set_default();
+  my $jobs_count = $db->query("select count(id) from openqa_jobs")->hash->{count};
+  $t->app->amqp->process_event(
+    'suse.openqa.job.create',
+    {
+      "ARCH"      => "x86_64",
+      "BUILD"     => ":22060:tboot",
+      "FLAVOR"    => "Server-DVD-Incidents-Install",
+      "HDD_1"     => "SLES-15-SP3-x86_64-Installtest.qcow2",
+      "ISO"       => "SLE-15-SP3-Full-x86_64-GM-Media1.iso",
+      "MACHINE"   => "64bit",
+      "TEST"      => "qam-incidentinstall",
+      "group_id"  => 367,
+      "id"        => 4953204,
+      "remaining" => 34
+    }
+  );
+  my $new_jobs_count = $db->query("select count(id) from openqa_jobs")->hash->{count};
+  is($new_jobs_count, $jobs_count, "unrelated jobs are ignored");
+  print Mojo::Util::dumper($db->query('select * from update_openqa_settings')->hashes->to_array);
+
+};
+
 done_testing();

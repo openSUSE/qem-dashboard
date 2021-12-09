@@ -20,6 +20,18 @@ use Mojo::URL;
 
 has [qw(pg log ua)];
 
+sub details ($self, $id) {
+  $self->log->info("Fetching job $id");
+
+  my $url = $self->_openqa_url->path("/api/v1/jobs/$id");
+  my $res = $self->ua->get($url => {Accept => 'application/json'})->result;
+  if ($res->is_error) {
+    $self->log->error(Mojo::Util::dumper($res));
+    return undef;
+  }
+  return $res->json->{job};
+}
+
 sub fetch_old_chunk ($self, $id, $job_model) {
   my $delta = $self->_delta;
   $self->log->info("Fetching $delta jobs starting $id");
@@ -34,10 +46,6 @@ sub fetch_old_chunk ($self, $id, $job_model) {
         return;
       }
       my $json = $tx->result->json;
-      if (!@{$json->{jobs}}) {
-        $self->log->info("All old jobs fetched");
-        return;
-      }
       for my $job (@{$json->{jobs}}) {
         $job_model->update_or_insert_job($job);
         $seen_jobs{$job->{id}} = 1;
@@ -49,7 +57,10 @@ sub fetch_old_chunk ($self, $id, $job_model) {
           $self->pg->db->query("update openqa_jobs set status='failed' where status='waiting' and job_id=?", $i);
         }
       }
-
+      if (!@{$json->{jobs}}) {
+        $self->log->info("All old jobs fetched");
+        return;
+      }
       $self->fetch_old_chunk($id + $delta + 1, $job_model);
     }
   );

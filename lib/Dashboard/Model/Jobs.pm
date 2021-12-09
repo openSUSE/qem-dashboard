@@ -41,6 +41,10 @@ sub fetch_old ($self) {
   my $id = $db->query("SELECT min(job_id) from openqa_jobs where status='waiting'")->hash->{min};
   if (!$id) {
     $id = $db->query("SELECT max(job_id) from openqa_jobs")->hash->{max};
+    $self->log->debug("Newest known job: $id");
+  }
+  else {
+    $self->log->debug("Oldest job waiting: $id");
   }
 
   # passing $self to avoid cyclic dependencies between models
