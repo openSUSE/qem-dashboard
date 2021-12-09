@@ -21,6 +21,7 @@ use Dashboard::Model::Incidents;
 use Dashboard::Model::Jobs;
 use Dashboard::Model::Settings;
 use Dashboard::Model::AMQP;
+use Dashboard::Model::OpenQA;
 
 # This method will run once at server start
 sub startup ($self) {
@@ -70,9 +71,13 @@ sub startup ($self) {
   # Model
   $self->helper(pg        => sub { state $pg        = Mojo::Pg->new($config->{pg})->max_connections(1) });
   $self->helper(incidents => sub { state $incidents = Dashboard::Model::Incidents->new(pg => shift->pg) });
-  $self->helper(jobs      => sub { state $jobs     = Dashboard::Model::Jobs->new(pg => shift->pg, log => $self->log) });
-  $self->helper(settings  => sub { state $settings = Dashboard::Model::Settings->new(pg => shift->pg) });
-  $self->helper(amqp      => sub { state $amqp = Dashboard::Model::AMQP->new(log => $self->log, jobs => shift->jobs) });
+  $self->helper(
+    openqa => sub { state $openqa = Dashboard::Model::OpenQA->new(log => $self->log, pg => $self->pg, ua => $self->ua) }
+  );
+  $self->helper(jobs =>
+      sub { state $jobs = Dashboard::Model::Jobs->new(pg => shift->pg, log => $self->log, openqa => $self->openqa) });
+  $self->helper(settings => sub { state $settings = Dashboard::Model::Settings->new(pg => shift->pg) });
+  $self->helper(amqp     => sub { state $amqp = Dashboard::Model::AMQP->new(log => $self->log, jobs => shift->jobs) });
 
   # Status plugin
   my $public = $self->routes;
