@@ -49,8 +49,7 @@ sub process_event ($self, $key, $data) {
   }
   elsif ($type eq 'create') {
     my $data = $self->jobs->openqa->details($data->{id});
-    $self->log->debug("CREATED JOB " . Mojo::Util::dumper($data));
-    $self->jobs->update_or_insert_job($data);
+    $self->jobs->update_or_insert_job($data) if $data;
   }
   else {
     $self->log->debug("Unhandled event $key " . Mojo::Util::dumper($data));

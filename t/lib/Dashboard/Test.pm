@@ -182,8 +182,14 @@ sub minimal_fixtures ($self, $app) {
       arch      => 'x86_64',
       build     => '20201107-1',
       repohash  => 'd5815a9f8aa482ec8288508da27a9d36',
-      settings  =>
-        {DISTRI => 'sle', VERSION => '12-SP5', BUILD => '20201107-1', REPOHASH => 'd5815a9f8aa482ec8288508da27a9d36'}
+      settings  => {
+        ARCH     => 'x86_64',
+        DISTRI   => 'sle',
+        VERSION  => '12-SP5',
+        BUILD    => '20201107-1',
+        FLAVOR   => 'Server-DVD-Updates',
+        REPOHASH => 'd5815a9f8aa482ec8288508da27a9d36'
+      }
     }
   );
   $jobs->add(
@@ -212,8 +218,14 @@ sub minimal_fixtures ($self, $app) {
       arch      => 'x86_64',
       build     => '20201107-2',
       repohash  => 'd5815a9f8aa482ec8288508da27a9d37',
-      settings  =>
-        {DISTRI => 'sle', VERSION => '12-SP5', BUILD => '20201107-2', REPOHASH => 'd5815a9f8aa482ec8288508da27a9d37'}
+      settings  => {
+        ARCH     => 'x86_64',
+        DISTRI   => 'sle',
+        VERSION  => '12-SP5',
+        BUILD    => '20201107-2',
+        FLAVOR   => 'Server-DVD-Updates',
+        REPOHASH => 'd5815a9f8aa482ec8288508da27a9d37'
+      }
     }
   );
   $jobs->add(
@@ -258,8 +270,14 @@ sub minimal_fixtures ($self, $app) {
       arch      => 'x86_64',
       build     => '20201108-1',
       repohash  => 'd5815a9f8aa482ec8288508da27a9d38',
-      settings  =>
-        {DISTRI => 'sle', VERSION => '12-SP5', BUILD => '20201108-1', REPOHASH => 'd5815a9f8aa482ec8288508da27a9d38'}
+      settings  => {
+        ARCH     => 'x86_64',
+        DISTRI   => 'sle',
+        VERSION  => '12-SP5',
+        BUILD    => '20201108-1',
+        FLAVOR   => 'Server-DVD-Updates',
+        REPOHASH => 'd5815a9f8aa482ec8288508da27a9d38'
+      }
     }
   );
   $jobs->add(

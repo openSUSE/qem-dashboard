@@ -18,8 +18,10 @@ use Mojo::Base -strict, -signatures;
 use FindBin;
 use lib "$FindBin::Bin/lib";
 
+use Mojolicious::Lite -signatures;
 use Test::More;
 use Test::Mojo;
+use Test::MockModule;
 use Dashboard::Test;
 use Mojo::JSON qw(false true);
 
@@ -30,6 +32,137 @@ my $config         = $dashboard_test->default_config;
 my $t              = Test::Mojo->new(Dashboard => $config);
 $dashboard_test->minimal_fixtures($t->app);
 my $db = $t->app->pg->db;
+
+get(
+  '/api/v1/jobs/4953204' => sub ($c) {
+    $c->render(
+      json => {
+        job => {
+          assets => {
+            hdd => [
+              "SLES-15-SP3-x86_64-mru-install-minimal-with-addons-Build:21715:virt-manager-Server-DVD-Incidents-64bit.qcow2",
+            ],
+            iso => ["SLE-15-SP3-Full-x86_64-GM-Media1.iso"],
+          },
+          blocked_by_id => undef,
+          children      => {"Chained" => [], "Directly chained" => [], "Parallel" => []},
+          clone_id      => undef,
+          group         => "Maintenance: SLE 15 SP3 Incidents",
+          group_id      => 367,
+          has_parents   => 1,
+          id            => 4953204,
+          name          =>
+            "sle-15-SP3-Server-DVD-Incidents-x86_64-Build:21715:virt-manager-mau-sles-sys-param-check\@64bit-2gbram",
+          origin_id       => 7636821,
+          parent_group    => "Maintenance: Single Incidents",
+          parent_group_id => 8,
+          parents         => {"Chained" => [], "Directly chained" => [], "Parallel" => []},
+          parents_ok      => "",
+          priority        => 50,
+          result          => "skipped",
+          settings        => {
+            ARCH    => "x86_64",
+            BACKEND => "qemu",
+            BUILD   => ":21715:virt-manager",
+            DISTRI  => "sle",
+            FLAVOR  => "Server-DVD-Incidents",
+            HDD_1   =>
+              "SLES-15-SP3-x86_64-mru-install-minimal-with-addons-Build:21715:virt-manager-Server-DVD-Incidents-64bit.qcow2",
+            HDDSIZEGB   => 20,
+            INCIDENT_ID => 21715,
+            ISO         => "SLE-15-SP3-Full-x86_64-GM-Media1.iso",
+            MACHINE     => "64bit-2gbram",
+            NAME        =>
+              "04953204-sle-15-SP3-Server-DVD-Incidents-x86_64-Build:21715:virt-manager-mau-sles-sys-param-check\@64bit-2gbram",
+            REPOHASH                   => 1636453551,
+            TEST                       => "mau-sles-sys-param-check",
+            TEST_SUITE_NAME            => "-",
+            VERSION                    => "15-SP3",
+            VIRTIO_CONSOLE             => 1,
+            WORKER_CLASS               => "qemu_x86_64",
+            YAML_SCHEDULE              => "schedule/qam/common/sys_param_check.yaml",
+            ZYPPER_ORPHANED_CHECK_ONLY => 1,
+          },
+          state      => "cancelled",
+          t_finished => "2021-12-08T14:18:28",
+          t_started  => undef,
+          test       => "mau-sles-sys-param-check",
+        }
+      }
+    );
+  }
+);
+
+get(
+  '/api/v1/jobs/4953207' => sub ($c) {
+    $c->render(
+      json => {
+        job => {
+          assets => {
+            hdd => [
+              "SLES-15-SP3-x86_64-mru-install-minimal-with-addons-Build:21715:virt-manager-Server-DVD-Incidents-64bit.qcow2",
+            ],
+            iso => ["SLE-15-SP3-Full-x86_64-GM-Media1.iso"],
+          },
+          blocked_by_id => undef,
+          children      => {"Chained" => [], "Directly chained" => [], "Parallel" => []},
+          clone_id      => undef,
+          group         => "Maintenance: SLE 15 SP3 Incidents",
+          group_id      => 367,
+          has_parents   => 1,
+          id            => 4953207,
+          name          =>
+            "sle-15-SP3-Server-DVD-Incidents-x86_64-Build:21715:virt-manager-mau-sles-sys-param-check\@64bit-2gbram",
+          origin_id       => undef,
+          parent_group    => "Maintenance: Single Incidents",
+          parent_group_id => 8,
+          parents         => {"Chained" => [], "Directly chained" => [], "Parallel" => []},
+          parents_ok      => "",
+          priority        => 50,
+          result          => "none",
+          settings        => {
+            ARCH    => "x86_64",
+            BACKEND => "qemu",
+            BUILD   => "20201108-1",
+            DISTRI  => "sle",
+            FLAVOR  => "Server-DVD-Updates",
+            HDD_1   =>
+              "SLES-15-SP3-x86_64-mru-install-minimal-with-addons-Build:21715:virt-manager-Server-DVD-Incidents-64bit.qcow2",
+            HDDSIZEGB   => 20,
+            INCIDENT_ID => 21715,
+            ISO         => "SLE-12-SP5-Full-x86_64-GM-Media1.iso",
+            MACHINE     => "64bit-2gbram",
+            NAME        =>
+              "04953207-sle-15-SP3-Server-DVD-Incidents-x86_64-Build:21715:virt-manager-mau-sles-sys-param-check\@64bit-2gbram",
+            REPOHASH                   => "d5815a9f8aa482ec8288508da27a9d38",
+            TEST                       => "mau-sles-sys-param-check",
+            TEST_SUITE_NAME            => "-",
+            VERSION                    => "12-SP5",
+            VIRTIO_CONSOLE             => 1,
+            WORKER_CLASS               => "qemu_x86_64",
+            YAML_SCHEDULE              => "schedule/qam/common/sys_param_check.yaml",
+            ZYPPER_ORPHANED_CHECK_ONLY => 1,
+          },
+          state      => "scheduled",
+          t_finished => "2021-12-08T14:18:28",
+          t_started  => undef,
+          test       => "mau-sles-sys-param-check",
+        }
+      }
+    );
+  }
+);
+
+any(
+  '/*whatever' => {whatever => ''} => sub ($c) {
+    my $whatever = $c->param('whatever');
+    $c->render(text => "/$whatever did not match.", status => 404);
+  }
+);
+
+my $fake_openqa_url = 'http://127.0.0.1:' . $t->app->ua->server->app(app)->url->port;
+my $openqa_mock     = Test::MockModule->new('Dashboard::Model::OpenQA');
+$openqa_mock->redefine(_openqa_url => sub { return Mojo::URL->new($fake_openqa_url) });
 
 sub _is_field ($field, $expected) {
   is($db->query("select $field from openqa_jobs where id=7")->hash->{$field}, $expected);
@@ -125,8 +258,23 @@ subtest 'Handle create job' => sub {
   );
   my $new_jobs_count = $db->query("select count(id) from openqa_jobs")->hash->{count};
   is($new_jobs_count, $jobs_count, "unrelated jobs are ignored");
-  print Mojo::Util::dumper($db->query('select * from update_openqa_settings')->hashes->to_array);
-
+  $t->app->amqp->process_event(
+    'suse.openqa.job.create',
+    {
+      "ARCH"      => "x86_64",
+      "BUILD"     => ":22060:tboot",
+      "FLAVOR"    => "Server-DVD-Incidents-Install",
+      "HDD_1"     => "SLES-15-SP3-x86_64-Installtest.qcow2",
+      "ISO"       => "SLE-15-SP3-Full-x86_64-GM-Media1.iso",
+      "MACHINE"   => "64bit",
+      "TEST"      => "qam-incidentinstall",
+      "group_id"  => 367,
+      "id"        => 4953207,
+      "remaining" => 34
+    }
+  );
+  $new_jobs_count = $db->query("select count(id) from openqa_jobs")->hash->{count};
+  is($new_jobs_count, $jobs_count + 1, "new job is created");
 };
 
 done_testing();

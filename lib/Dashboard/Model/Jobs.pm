@@ -115,7 +115,6 @@ sub update_or_insert_job ($self, $job_hash) {
     $incident_settings = $self->_find_settings('incident_openqa_settings', $settings);
     return unless $incident_settings;
   }
-
   if (!$db_job) {
     $self->add(
       {

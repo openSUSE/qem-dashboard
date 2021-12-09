@@ -26,7 +26,7 @@ sub details ($self, $id) {
   my $url = $self->_openqa_url->path("/api/v1/jobs/$id");
   my $res = $self->ua->get($url => {Accept => 'application/json'})->result;
   if ($res->is_error) {
-    $self->log->error(Mojo::Util::dumper($res));
+    $self->log->error($res->message);
     return undef;
   }
   return $res->json->{job};
