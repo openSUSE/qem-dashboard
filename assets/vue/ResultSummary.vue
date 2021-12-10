@@ -25,6 +25,13 @@ export default {
   computed: {
     link() {
       const searchParams = new URLSearchParams(this.result.linkinfo);
+      // Arrays are handled incompatible to how openQA expects it
+      if (Array.isArray(this.result.linkinfo.flavor)) {
+        searchParams.delete('flavor');
+        this.result.linkinfo.flavor.forEach(flavor => {
+          searchParams.append('flavor', flavor);
+        });
+      }
       return `${this.$openqaUrl}?${searchParams.toString()}`;
     },
     stopped() {
