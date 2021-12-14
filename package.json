@@ -36,6 +36,7 @@
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^5.15.4",
+    "@mojojs/path": "^1.1.10",
     "@mojolicious/server-starter": "^2.0.0",
     "bootstrap": "^4.6.1",
     "copy-webpack-plugin": "^10.0.0",

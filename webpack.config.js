@@ -1,19 +1,19 @@
-import path from 'path';
+import Path from '@mojojs/path';
 import CopyWebpackPlugin from 'copy-webpack-plugin';
 import OptimizeCSSAssetsPlugin from 'css-minimizer-webpack-plugin';
 import MiniCssExtractPlugin from 'mini-css-extract-plugin';
 import TerserPlugin from 'terser-webpack-plugin';
 // import VueLoaderPlugin from 'vue-loader';
 
-const assetsDir = process.env.WEBPACK_ASSETS_DIR || path.resolve(__dirname, 'assets');
+const assetsDir = process.env.WEBPACK_ASSETS_DIR || Path.currentFile().sibling('assets').toString();
 const isDev = process.env.NODE_ENV !== 'production';
 
 const output = new Object();
 output.filename = isDev ? '[name].development.js' : '[name].[chunkhash].js';
-output.path = process.env.WEBPACK_OUT_DIR || path.resolve(__dirname, 'dist');
+output.path = process.env.WEBPACK_OUT_DIR || Path.currentFile().sibling('dist').toString();
 output.publicPath = '';
 
-const entry = path.resolve(assetsDir, 'index.js');
+const entry = new Path(assetsDir, 'index.js').toString();
 
 const minimizer = [];
 if (!isDev) {
@@ -51,7 +51,7 @@ rules.push({
   ]
 });
 
-export default {
+const config = {
   entry: {'qem-dashboard': entry},
   mode: isDev ? 'development' : 'production',
   module: {rules: rules},
@@ -65,3 +65,5 @@ export default {
     //new VueLoaderPlugin()
   ]
 };
+
+export default config;
