@@ -54,6 +54,7 @@ t.test('Test dashboard ui', skip, async t => {
 
   await t.test('Filter blocked', async t => {
     await page.goto(`${url}/blocked`);
+    await page.waitForSelector('tbody');
     const list = page.locator('tbody > tr');
     t.equal(await list.count(), 1);
     t.match(await page.innerText('tbody tr:nth-of-type(1) td:nth-of-type(1) a'), /16860:perl-Mojolicious/);
