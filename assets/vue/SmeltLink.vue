@@ -13,10 +13,10 @@ export default {
   props: {incident: {type: Object, required: true}},
   computed: {
     obsLink() {
-      return `${this.$obs_url}/request/show/${this.incident.rr_number}`;
+      return `${this.appConfig.obsUrl}/request/show/${this.incident.rr_number}`;
     },
     smeltLink() {
-      return `${this.$smelt_url}/incident/${this.incident.number}`;
+      return `${this.appConfig.smeltUrl}/incident/${this.incident.number}`;
     },
     packageName() {
       return this.incident.packages[0];

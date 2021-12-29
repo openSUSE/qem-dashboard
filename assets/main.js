@@ -32,18 +32,23 @@ const backToTop = function () {
 };
 
 window.addEventListener('load', () => {
-  /* global globalOpenqaUrl, globalObsUrl, globalSmeltUrl */
-  /* eslint no-undef: "error"*/
-  Vue.prototype.$openqaUrl = globalOpenqaUrl;
-  Vue.prototype.$smeltUrl = globalSmeltUrl;
-  Vue.prototype.$obsUrl = globalObsUrl;
-  const vm = new Vue({
-    router,
-    render: h => h(App),
-    components: {App}
-  });
-  vm.$mount('#app');
-  fromNow();
-  backToTop();
-  $('[data-toggle="tooltip"]').tooltip({trigger: 'hover'});
+  const url = new URL(window.location.href);
+  url.pathname = '/app-config';
+
+  fetch(url)
+    .then(res => res.json())
+    .then(config => {
+      Vue.prototype.appConfig = config;
+
+      const vm = new Vue({
+        router,
+        render: h => h(App),
+        components: {App}
+      });
+      vm.$mount('#app');
+
+      fromNow();
+      backToTop();
+      $('[data-toggle="tooltip"]').tooltip({trigger: 'hover'});
+    });
 });

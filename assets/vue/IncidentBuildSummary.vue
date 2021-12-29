@@ -47,7 +47,7 @@ export default {
           summary.push(`${value} ${key}`);
         }
         const searchParams = new URLSearchParams(links.get(build));
-        ret.push({build, link: `${this.$openqaUrl}?${searchParams.toString()}`, summary: summary.sort()});
+        ret.push({build, link: `${this.appConfig.openqaUrl}?${searchParams.toString()}`, summary: summary.sort()});
       }
       return ret.sort((a, b) => a.build.localeCompare(b.build));
     }

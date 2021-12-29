@@ -52,7 +52,7 @@ export default {
     },
     openqaLink() {
       const searchParams = new URLSearchParams({build: this.incident.buildNr});
-      return `${this.$openqaUrl}?${searchParams.toString()}`;
+      return `${this.appConfig.openqaUrl}?${searchParams.toString()}`;
     },
     sortedBuilds() {
       return Object.keys(this.jobs).sort().reverse();

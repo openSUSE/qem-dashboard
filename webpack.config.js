@@ -13,7 +13,7 @@ output.filename = isDev ? '[name].development.js' : '[name].[chunkhash].js';
 output.path = process.env.WEBPACK_OUT_DIR || Path.currentFile().sibling('dist').toString();
 output.publicPath = '';
 
-const entry = new Path(assetsDir, 'index.js').toString();
+const entry = new Path(assetsDir, 'main.js').toString();
 
 const minimizer = [];
 if (!isDev) {

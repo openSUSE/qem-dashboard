@@ -32,7 +32,7 @@ export default {
           searchParams.append('flavor', flavor);
         });
       }
-      return `${this.$openqaUrl}?${searchParams.toString()}`;
+      return `${this.appConfig.openqaUrl}?${searchParams.toString()}`;
     },
     stopped() {
       return this.result.stopped || 0;

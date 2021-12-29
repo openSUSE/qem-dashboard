@@ -1,6 +1,6 @@
 {
   "name": "qem-dashboard",
-  "main": "index.js",
+  "main": "assets/main.js",
   "type": "module",
   "directories": {
     "lib": "lib"

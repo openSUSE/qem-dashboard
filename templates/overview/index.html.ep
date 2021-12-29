@@ -8,12 +8,6 @@
     %= asset 'qem-dashboard.js'
     %= asset 'qem-dashboard.css'
 
-    %= javascript begin
-
-      var globalOpenqaUrl = "<%= $c->openqa_url->path('/tests/overview') %>";
-      var globalObsUrl = "<%= $c->app->config->{obs}{url} %>";
-      var globalSmeltUrl = "<%= $c->app->config->{smelt}{url} %>";
-    % end
   </head>
   <body>
     <div id="app">

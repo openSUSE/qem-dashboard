@@ -80,7 +80,21 @@ sub startup ($self) {
 
   # Authentication
   my $public = $self->routes;
-  my $token = $public->under('/')->to('Auth::Token#check');
+  my $token  = $public->under('/')->to('Auth::Token#check');
+
+  # Single page app
+  $public->get(
+    '/app-config' => sub ($c) {
+      my $config = $c->app->config;
+      $c->render(
+        json => {
+          openqaUrl => $c->openqa_url->path('/tests/overview'),
+          obsUrl    => $config->{obs}{url},
+          smeltUrl  => $config->{smelt}{url}
+        }
+      );
+    }
+  );
 
   # Dashboard JSON API for UI
   my $json = $public->any('/secret/api' => [format => ['json']])->to(format => undef);
