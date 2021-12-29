@@ -30,9 +30,6 @@
             </li>
           </ul>
           <ul class="navbar-nav">
-            <li class="nav-item" v-if="$configStatus">
-              <a class="nav-link" :href="$mojoStatusUrl" target="_blank">Status</a>
-            </li>
             <li class="nav-item">
               <a class="nav-link" href="https://github.com/openSUSE/qem-dashboard/blob/main/API.md" target="_blank">
                 API

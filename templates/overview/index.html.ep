@@ -3,7 +3,7 @@
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>Needs javascript</title>
+    <title>This application requires JavaScript!</title>
 
     %= asset 'qem-dashboard.js'
     %= asset 'qem-dashboard.css'
@@ -13,17 +13,11 @@
       var globalOpenqaUrl = "<%= $c->openqa_url->path('/tests/overview') %>";
       var globalObsUrl = "<%= $c->app->config->{obs}{url} %>";
       var globalSmeltUrl = "<%= $c->app->config->{smelt}{url} %>";
-      % if (config 'status') {
-        var globalConfigStatus = true;
-        var globalMojoStatusUrl = "<%= url_for 'mojo_status' %>";
-      % } else {
-        var globalConfigStatus = false;
-      % }
     % end
   </head>
   <body>
     <div id="app">
-      We need javascript
+      This application requires JavaScript!
     </div>
 
     <footer class='footer'>

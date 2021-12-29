@@ -32,13 +32,11 @@ const backToTop = function () {
 };
 
 window.addEventListener('load', () => {
-  /* global globalOpenqaUrl, globalConfigStatus, globalMojoStatusUrl, globalObsUrl, globalSmeltUrl */
+  /* global globalOpenqaUrl, globalObsUrl, globalSmeltUrl */
   /* eslint no-undef: "error"*/
   Vue.prototype.$openqaUrl = globalOpenqaUrl;
   Vue.prototype.$smeltUrl = globalSmeltUrl;
   Vue.prototype.$obsUrl = globalObsUrl;
-  Vue.prototype.$configStatus = globalConfigStatus;
-  if (Vue.prototype.$configStatus) Vue.prototype.$mojoStatusUrl = globalMojoStatusUrl;
   const vm = new Vue({
     router,
     render: h => h(App),

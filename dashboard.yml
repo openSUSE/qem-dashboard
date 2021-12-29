@@ -1,11 +1,10 @@
 ---
 secrets:
   - this_is_not_secure
-pg: postgresql:///dashboard
+pg: postgresql:///dashboard_live
 rabbitmq: amqp://user:password@rabbit.suse.de:5672
 tokens:
   - s3cret
-status: 0
 openqa:
   url: https://openqa.opensuse.org
 obs:

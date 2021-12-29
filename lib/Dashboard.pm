@@ -74,25 +74,12 @@ sub startup ($self) {
   $self->helper(settings  => sub { state $settings = Dashboard::Model::Settings->new(pg => shift->pg) });
   $self->helper(amqp      => sub { state $amqp = Dashboard::Model::AMQP->new(log => $self->log, jobs => shift->jobs) });
 
-  # Status plugin
-  my $public = $self->routes;
-  if (my $status = $config->{status}) {
-    my $admin = $public->under(
-      '/status' => sub ($c) {
-        return 1 if $c->req->url->to_abs->userinfo eq "admin:$status";
-        $c->res->headers->www_authenticate('Basic');
-        $c->render(text => 'Authentication required!', status => 401);
-        return undef;
-      }
-    );
-    $self->plugin('Status' => {route => $admin});
-  }
-
   # Migrations
   my $path = $self->home->child('migrations', 'dashboard.sql');
   $self->pg->auto_migrate(1)->migrations->name('dashboard')->from_file($path);
 
   # Authentication
+  my $public = $self->routes;
   my $token = $public->under('/')->to('Auth::Token#check');
 
   # Dashboard JSON API for UI
