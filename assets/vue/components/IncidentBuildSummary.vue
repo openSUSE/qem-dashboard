@@ -16,7 +16,7 @@
 
 <script>
 export default {
-  name: 'IncidentBuildSummaryComponent',
+  name: 'IncidentBuildSummary',
   props: {build: {type: String, required: true}, jobs: {type: Array, required: true}},
   computed: {
     NumberOfPassed() {

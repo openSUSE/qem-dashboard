@@ -1,15 +1,15 @@
 <template>
   <li :group-id="groupId" data-toggle="tooltip" data-placement="left" :title="title">
-    <result-summary :result="result" />
+    <ResultSummary :result="result" />
   </li>
 </template>
 
 <script>
-import ResultSummaryComponent from './ResultSummary.vue';
+import ResultSummary from './ResultSummary.vue';
 
 export default {
-  name: 'BlockedIncidentUpdResultComponent',
-  components: {'result-summary': ResultSummaryComponent},
+  name: 'BlockedIncidentUpdResult',
+  components: {ResultSummary},
   props: {result: {type: Object, required: true}, groupId: {type: String, required: true}, groupFlavors: Boolean},
   computed: {
     title() {

@@ -1,14 +1,15 @@
 <template>
   <li :data-group-id="groupId">
-    <result-summary :result="result" />
+    <ResultSummary :result="result" />
   </li>
 </template>
 
 <script>
-import ResultSummaryComponent from './ResultSummary.vue';
+import ResultSummary from './ResultSummary.vue';
+
 export default {
-  name: 'BlockedIncidentIncResultComponent',
-  components: {'result-summary': ResultSummaryComponent},
+  name: 'BlockedIncidentIncResult',
+  components: {ResultSummary},
   props: {result: {type: Object, required: true}, groupId: {type: String, required: true}}
 };
 </script>

@@ -18,7 +18,7 @@
         <div class="modal-body">
           <ul>
             <li v-for="incident in incidents" :key="incident.number">
-              <incident-link :incident="incident" />
+              <IncidentLink :incident="incident" />
             </li>
           </ul>
         </div>
@@ -31,11 +31,11 @@
 </template>
 
 <script>
-import IncidentLinkComponent from './IncidentLink.vue';
+import IncidentLink from './IncidentLink.vue';
 
 export default {
-  name: 'RepoIncidentDialogComponent',
-  components: {'incident-link': IncidentLinkComponent},
+  name: 'RepoIncidentDialog',
+  components: {IncidentLink},
   data() {
     return {
       incidents: [],

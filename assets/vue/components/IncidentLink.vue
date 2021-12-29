@@ -8,7 +8,7 @@
 
 <script>
 export default {
-  name: 'IncidentLinkComponent',
+  name: 'IncidentLink',
   props: {incident: {type: Object, required: true}},
   computed: {
     packageName() {

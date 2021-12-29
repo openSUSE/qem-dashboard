@@ -8,22 +8,22 @@
         </tr>
       </thead>
       <tbody>
-        <repo-line v-for="(repo, name) in repos" :repo="repo" :name="name" :key="name" />
+        <RepoLine v-for="(repo, name) in repos" :repo="repo" :name="name" :key="name" />
       </tbody>
     </table>
     <div v-else>Loading repos...</div>
-    <repo-incidents-dialog ref="incidentsDialog"></repo-incidents-dialog>
+    <RepoIncidentDialog ref="incidentsDialog"></RepoIncidentDialog>
   </div>
 </template>
 
 <script>
-import RepoIncidentDialogComponent from './RepoIncidentDialog.vue';
-import RepoLineComponent from './RepoLine.vue';
+import RepoIncidentDialog from './RepoIncidentDialog.vue';
+import RepoLine from './RepoLine.vue';
 import axios from 'axios';
 
 export default {
-  name: 'ReposComponent',
-  components: {'repo-incidents-dialog': RepoIncidentDialogComponent, 'repo-line': RepoLineComponent},
+  name: 'PageRepos',
+  components: {RepoIncidentDialog, RepoLine},
   created() {
     this.loadData();
   },

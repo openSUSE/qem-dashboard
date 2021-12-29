@@ -9,7 +9,7 @@
 
 <script>
 export default {
-  name: 'SmeltLinkComponent',
+  name: 'SmeltLink',
   props: {incident: {type: Object, required: true}},
   computed: {
     obsLink() {

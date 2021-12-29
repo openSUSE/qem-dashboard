@@ -20,7 +20,7 @@
 
 <script>
 export default {
-  name: 'ResultSummaryComponent',
+  name: 'ResultSummary',
   props: {result: {type: Object, required: true}},
   computed: {
     link() {

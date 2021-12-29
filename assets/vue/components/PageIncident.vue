@@ -3,7 +3,7 @@
     <div class="smelt-link">
       <h2>Link to smelt</h2>
       <p>
-        <smelt-link :incident="incident" v-if="incident" />
+        <SmeltLink :incident="incident" v-if="incident" />
       </p>
     </div>
 
@@ -15,18 +15,18 @@
 
     <h2 class="mb-3 mt-3">Aggregate runs including this incident</h2>
     <div class="container">
-      <incident-build-summary v-for="build in sortedBuilds" :key="build" :build="build" :jobs="jobs[build]" />
+      <IncidentBuildSummary v-for="build in sortedBuilds" :key="build" :build="build" :jobs="jobs[build]" />
     </div>
   </div>
 </template>
 
 <script>
-import IncidentBuildSummaryComponent from './IncidentBuildSummary.vue';
-import SmeltLinkComponent from './SmeltLink.vue';
+import IncidentBuildSummary from './IncidentBuildSummary.vue';
+import SmeltLink from './SmeltLink.vue';
 import axios from 'axios';
 
 export default {
-  name: 'IncidentComponent',
+  name: 'PageIncident',
   data() {
     return {
       incident: null,
@@ -34,7 +34,7 @@ export default {
       jobs: []
     };
   },
-  components: {'smelt-link': SmeltLinkComponent, 'incident-build-summary': IncidentBuildSummaryComponent},
+  components: {SmeltLink, IncidentBuildSummary},
   computed: {
     results() {
       let str = '';

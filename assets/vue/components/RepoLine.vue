@@ -14,7 +14,7 @@
     <td>
       <ul class="summary-list">
         <li v-for="result in repo.summaries" :result="result" :key="result.name">
-          <result-summary :result="result" />
+          <ResultSummary :result="result" />
         </li>
       </ul>
     </td>
@@ -22,12 +22,12 @@
 </template>
 
 <script>
-import ResultSummaryComponent from './ResultSummary.vue';
+import ResultSummary from './ResultSummary.vue';
 import jQuery from 'jquery';
 
 export default {
-  name: 'RepoLineComponent',
-  components: {'result-summary': ResultSummaryComponent},
+  name: 'RepoLine',
+  components: {ResultSummary},
   props: {repo: {type: Object, required: true}, name: {type: String, required: true}},
   computed: {
     incidentNumber() {

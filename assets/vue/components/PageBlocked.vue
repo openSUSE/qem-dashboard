@@ -13,7 +13,7 @@
         </tr>
       </thead>
       <tbody>
-        <blocked-incident
+        <BlockedIncident
           v-for="incident in matchedIncidents"
           :key="incident.incident.number"
           :incident="incident.incident"
@@ -28,12 +28,12 @@
 </template>
 
 <script>
-import BlockedIncidentComponent from './BlockedIncident.vue';
+import BlockedIncident from './BlockedIncident.vue';
 import axios from 'axios';
 
 export default {
-  name: 'BlockedComponent',
-  components: {'blocked-incident': BlockedIncidentComponent},
+  name: 'PageBlocked',
+  components: {BlockedIncident},
   data() {
     return {
       incidents: null,

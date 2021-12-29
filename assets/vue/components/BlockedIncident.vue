@@ -1,18 +1,18 @@
 <template>
   <tr>
     <td>
-      <incident-link :incident="incident" />
+      <IncidentLink :incident="incident" />
     </td>
     <td>
       <div v-if="Object.keys(incidentResults).length + Object.keys(updateResults).length === 0">No data yet</div>
       <ul v-else class="summary-list">
-        <blocked-incident-inc-result
+        <BlockedIncidentIncResult
           v-for="(result, group_id) in incidentResults"
           :key="group_id"
           :group-id="group_id"
           :result="result"
         />
-        <blocked-incident-upd-result
+        <BlockedIncidentUpdResult
           v-for="(result, groupId) in updateResultsGrouped"
           :key="groupId"
           :group-id="groupId"
@@ -25,16 +25,16 @@
 </template>
 
 <script>
-import BlockedIncidentIncResultComponent from './BlockedIncidentIncResult.vue';
-import BlockedIncidentUpdResultComponent from './BlockedIncidentUpdResult.vue';
-import IncidentLinkComponent from './IncidentLink.vue';
+import BlockedIncidentIncResult from './BlockedIncidentIncResult.vue';
+import BlockedIncidentUpdResult from './BlockedIncidentUpdResult.vue';
+import IncidentLink from './IncidentLink.vue';
 
 export default {
-  name: 'BlockedIncidentComponent',
+  name: 'BlockedIncident',
   components: {
-    'incident-link': IncidentLinkComponent,
-    'blocked-incident-inc-result': BlockedIncidentIncResultComponent,
-    'blocked-incident-upd-result': BlockedIncidentUpdResultComponent
+    IncidentLink,
+    BlockedIncidentIncResult,
+    BlockedIncidentUpdResult
   },
   props: {
     incident: {type: Object, required: true},

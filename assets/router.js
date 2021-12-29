@@ -1,7 +1,7 @@
-import ActiveComponent from './vue/components/Active.vue';
-import BlockedComponent from './vue/components/Blocked.vue';
-import IncidentComponent from './vue/components/Incident.vue';
-import ReposComponent from './vue/components/Repos.vue';
+import PageActive from './vue/components/PageActive.vue';
+import PageBlocked from './vue/components/PageBlocked.vue';
+import PageIncident from './vue/components/PageIncident.vue';
+import PageRepos from './vue/components/PageRepos.vue';
 import jQuery from 'jquery';
 import {createRouter, createWebHistory} from 'vue-router';
 
@@ -9,25 +9,25 @@ const routes = [
   {
     path: '/',
     name: 'home',
-    component: ActiveComponent,
+    component: PageActive,
     meta: {title: 'Active Incidents'}
   },
   {
     path: '/blocked',
     name: 'blocked',
-    component: BlockedComponent,
+    component: PageBlocked,
     meta: {title: 'Blocked by Tests'}
   },
   {
     path: '/repos',
     name: 'repos',
-    component: ReposComponent,
+    component: PageRepos,
     meta: {title: 'Test Repos'}
   },
   {
     path: '/incident/:id',
     name: 'incident',
-    component: IncidentComponent,
+    component: PageIncident,
     meta: {title: 'Details for Incident'}
   }
 ];

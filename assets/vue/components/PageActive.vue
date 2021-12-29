@@ -8,7 +8,7 @@
     </thead>
     <tbody>
       <tr v-for="incident in testingIncidents" :key="incident.number">
-        <td><incident-link :incident="incident" /></td>
+        <td><IncidentLink :incident="incident" /></td>
         <td>
           <a :href="'/blocked#' + incident.number">
             <span class="badge badge-primary">testing</span>
@@ -16,11 +16,11 @@
         </td>
       </tr>
       <tr v-for="incident in stagedIncidents" :key="incident.number">
-        <td><incident-link :incident="incident" /></td>
+        <td><IncidentLink :incident="incident" /></td>
         <td><span class="badge badge-secondary">staged</span></td>
       </tr>
       <tr v-for="incident in approvedIncidents" :key="incident.number">
-        <td><incident-link :incident="incident" /></td>
+        <td><IncidentLink :incident="incident" /></td>
         <td><span class="badge badge-success">approved</span></td>
       </tr>
     </tbody>
@@ -29,17 +29,17 @@
 </template>
 
 <script>
-import IncidentLinkComponent from './IncidentLink.vue';
+import IncidentLink from './IncidentLink.vue';
 import axios from 'axios';
 
 export default {
-  name: 'ActiveComponent',
+  name: 'PageActive',
   data() {
     return {
       incidents: null
     };
   },
-  components: {'incident-link': IncidentLinkComponent},
+  components: {IncidentLink},
   computed: {
     testingIncidents() {
       return this.incidents.filter(incident => incident.rr_number > 0 && !incident.approved);
