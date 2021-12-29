@@ -6,15 +6,13 @@
     <td>
       <div v-if="Object.keys(incidentResults).length + Object.keys(updateResults).length === 0">No data yet</div>
       <ul v-else class="summary-list">
-        <li
-          is="blocked-incident-inc-result"
+        <blocked-incident-inc-result
           v-for="(result, group_id) in incidentResults"
           :key="group_id"
           :group-id="group_id"
           :result="result"
         />
-        <li
-          is="blocked-incident-upd-result"
+        <blocked-incident-upd-result
           v-for="(result, groupId) in updateResultsGrouped"
           :key="groupId"
           :group-id="groupId"

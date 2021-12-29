@@ -13,8 +13,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr
-          is="blocked-incident"
+        <blocked-incident
           v-for="incident in matchedIncidents"
           :key="incident.incident.number"
           :incident="incident.incident"
@@ -58,9 +57,6 @@ export default {
   },
   created() {
     this.loadData();
-  },
-  watch: {
-    $route: 'loadData'
   },
   methods: {
     loadData() {

@@ -4,7 +4,7 @@ import 'bootstrap/dist/css/bootstrap.css';
 import router from './router.js';
 import App from './vue/App.vue';
 import $ from 'jquery';
-import Vue from 'vue';
+import {createApp} from 'vue';
 
 window.$ = $;
 
@@ -38,14 +38,9 @@ window.addEventListener('load', () => {
   fetch(url)
     .then(res => res.json())
     .then(config => {
-      Vue.prototype.appConfig = config;
-
-      const vm = new Vue({
-        router,
-        render: h => h(App),
-        components: {App}
-      });
-      vm.$mount('#app');
+      const app = createApp(App);
+      app.config.globalProperties.appConfig = config;
+      app.use(router).mount('#app');
 
       fromNow();
       backToTop();

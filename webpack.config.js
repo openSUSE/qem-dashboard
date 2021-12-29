@@ -3,7 +3,7 @@ import CopyWebpackPlugin from 'copy-webpack-plugin';
 import OptimizeCSSAssetsPlugin from 'css-minimizer-webpack-plugin';
 import MiniCssExtractPlugin from 'mini-css-extract-plugin';
 import TerserPlugin from 'terser-webpack-plugin';
-import VueLoaderPlugin from 'vue-loader/lib/plugin.js';
+import {VueLoaderPlugin} from 'vue-loader';
 
 const assetsDir = process.env.WEBPACK_ASSETS_DIR || Path.currentFile().sibling('assets').toString();
 const isDev = process.env.NODE_ENV !== 'production';
