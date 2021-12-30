@@ -56,15 +56,22 @@ export default {
     }
   },
   created() {
-    this.loadData();
+    this.refreshData();
+    this.timer = setInterval(this.refreshData, 30000);
+  },
+  beforeDestroy() {
+    this.cancelRefresh();
   },
   methods: {
-    loadData() {
+    refreshData() {
       axios.get('/secret/api/blocked').then(response => {
         const {data} = response;
         this.incidents = data.blocked;
         this.$emit('last-updated', data.last_updated);
       });
+    },
+    cancelRefresh() {
+      clearInterval(this.timer);
     }
   }
 };
