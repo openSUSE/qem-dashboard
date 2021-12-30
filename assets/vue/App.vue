@@ -44,13 +44,13 @@
       <div class="row">
         <div class="col-md-12 title">
           <h2>{{ title }}</h2>
-          Last updated <span class="from-now">{{ lastUpdated }}</span>
+          {{ lastUpdatedText }}
         </div>
       </div>
 
       <div class="row">
         <div class="col-md-12">
-          <router-view />
+          <router-view @last-updated="update" />
         </div>
       </div>
 
@@ -68,15 +68,36 @@
 </template>
 
 <script>
+import moment from 'moment';
+
 export default {
   name: 'App',
   data() {
-    return {lastUpdated: 0};
+    return {
+      lastUpdated: 0,
+      timer: null
+    };
+  },
+  created() {
+    // Refresh relative last updated time
+    this.timer = setInterval(() => {
+      this.lastUpdated += 1;
+    }, 60000);
   },
   computed: {
     title() {
       document.title = this.$route.meta.title;
       return this.$route.meta.title;
+    },
+    lastUpdatedText() {
+      const last = this.lastUpdated;
+      if (last === 0) return 'Updating...';
+      return `Last updated ${moment(this.lastUpdated).fromNow()}`;
+    }
+  },
+  methods: {
+    update(epoch) {
+      this.lastUpdated = epoch;
     }
   }
 };

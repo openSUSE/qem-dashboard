@@ -33,7 +33,9 @@ export default {
   methods: {
     loadData() {
       axios.get('/secret/api/repos').then(response => {
-        this.repos = response.data;
+        const {data} = response;
+        this.repos = data.repos;
+        this.$emit('last-updated', data.last_updated);
       });
     }
   }

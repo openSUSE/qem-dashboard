@@ -56,7 +56,11 @@ export default {
   },
   methods: {
     loadData() {
-      axios.get('/secret/api/list').then(response => (this.incidents = response.data));
+      axios.get('/secret/api/list').then(response => {
+        const {data} = response;
+        this.incidents = data.incidents;
+        this.$emit('last-updated', data.last_updated);
+      });
     }
   }
 };

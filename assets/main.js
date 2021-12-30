@@ -8,15 +8,6 @@ import {createApp} from 'vue';
 
 window.$ = $;
 
-import 'timeago';
-
-const fromNow = function () {
-  $('.from-now').each(function () {
-    const date = $(this);
-    date.text($.timeago(new Date(date.text() * 1000)));
-  });
-};
-
 const backToTop = function () {
   $(window).scroll(function () {
     if ($(this).scrollTop() > 50) {
@@ -42,7 +33,6 @@ window.addEventListener('load', () => {
       app.config.globalProperties.appConfig = config;
       app.use(router).mount('#app');
 
-      fromNow();
       backToTop();
       $('[data-toggle="tooltip"]').tooltip({trigger: 'hover'});
     });

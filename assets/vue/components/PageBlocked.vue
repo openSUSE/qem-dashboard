@@ -60,7 +60,11 @@ export default {
   },
   methods: {
     loadData() {
-      axios.get('/secret/api/blocked').then(response => (this.incidents = response.data));
+      axios.get('/secret/api/blocked').then(response => {
+        const {data} = response;
+        this.incidents = data.blocked;
+        this.$emit('last-updated', data.last_updated);
+      });
     }
   }
 };

@@ -17,11 +17,11 @@ package Dashboard::Controller::Overview;
 use Mojo::Base 'Mojolicious::Controller', -signatures;
 
 sub blocked ($self) {
-  $self->render(json => $self->incidents->blocked);
+  $self->_render_api_response({blocked => $self->incidents->blocked});
 }
 
 sub list ($self) {
-  $self->render(json => $self->incidents->find);
+  $self->_render_api_response({incidents => $self->incidents->find});
 }
 
 sub incident ($self) {
@@ -40,11 +40,17 @@ sub incident ($self) {
 }
 
 sub repos ($self) {
-  $self->render(json => $self->incidents->repos);
+  $self->_render_api_response({repos => $self->incidents->repos});
 }
 
 # HTML!
 sub index ($self) {
+}
+
+sub _render_api_response ($self, $data) {
+  my $updated = $self->jobs->latest_update;
+  $data->{last_updated} = int($updated * 1000);
+  return $self->render(json => $data);
 }
 
 1;
