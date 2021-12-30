@@ -36,7 +36,8 @@ export default {
   name: 'PageActive',
   data() {
     return {
-      incidents: null
+      incidents: null,
+      timer: null
     };
   },
   components: {IncidentLink},
@@ -52,15 +53,22 @@ export default {
     }
   },
   created() {
-    this.loadData();
+    this.refreshData();
+    this.timer = setInterval(this.refreshData, 30000);
+  },
+  beforeDestroy() {
+    this.cancelRefresh();
   },
   methods: {
-    loadData() {
+    refreshData() {
       axios.get('/secret/api/list').then(response => {
         const {data} = response;
         this.incidents = data.incidents;
         this.$emit('last-updated', data.last_updated);
       });
+    },
+    cancelRefresh() {
+      clearInterval(this.timer);
     }
   }
 };
