@@ -3,6 +3,7 @@ import 'bootstrap';
 import 'bootstrap/dist/css/bootstrap.css';
 import router from './router.js';
 import App from './vue/App.vue';
+import axios from 'axios';
 import $ from 'jquery';
 import {createApp} from 'vue';
 
@@ -23,17 +24,13 @@ const backToTop = function () {
 };
 
 window.addEventListener('load', () => {
-  const url = new URL(window.location.href);
-  url.pathname = '/app-config';
+  axios('/app-config').then(response => {
+    const config = response.data;
+    const app = createApp(App);
+    app.config.globalProperties.appConfig = config;
+    app.use(router).mount('#app');
 
-  fetch(url)
-    .then(res => res.json())
-    .then(config => {
-      const app = createApp(App);
-      app.config.globalProperties.appConfig = config;
-      app.use(router).mount('#app');
-
-      backToTop();
-      $('[data-toggle="tooltip"]').tooltip({trigger: 'hover'});
-    });
+    backToTop();
+    $('[data-toggle="tooltip"]').tooltip({trigger: 'hover'});
+  });
 });
