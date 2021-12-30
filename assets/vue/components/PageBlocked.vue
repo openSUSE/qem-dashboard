@@ -55,11 +55,11 @@ export default {
       return this.incidents;
     }
   },
-  created() {
+  mounted() {
     this.refreshData();
     this.timer = setInterval(this.refreshData, 30000);
   },
-  beforeDestroy() {
+  unmounted() {
     this.cancelRefresh();
   },
   methods: {

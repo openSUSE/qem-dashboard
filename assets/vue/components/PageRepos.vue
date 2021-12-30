@@ -24,19 +24,26 @@ import axios from 'axios';
 export default {
   name: 'PageRepos',
   components: {RepoIncidentDialog, RepoLine},
-  created() {
-    this.loadData();
-  },
   data() {
     return {repos: null};
   },
+  mounted() {
+    this.refreshData();
+    this.timer = setInterval(this.refreshData, 30000);
+  },
+  unmounted() {
+    this.cancelRefresh();
+  },
   methods: {
-    loadData() {
+    refreshData() {
       axios.get('/secret/api/repos').then(response => {
         const {data} = response;
         this.repos = data.repos;
         this.$emit('last-updated', data.last_updated);
       });
+    },
+    cancelRefresh() {
+      clearInterval(this.timer);
     }
   }
 };

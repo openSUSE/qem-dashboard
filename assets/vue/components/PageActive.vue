@@ -52,11 +52,11 @@ export default {
       return this.incidents.filter(incident => incident.approved);
     }
   },
-  created() {
+  mounted() {
     this.refreshData();
     this.timer = setInterval(this.refreshData, 30000);
   },
-  beforeDestroy() {
+  unmounted() {
     this.cancelRefresh();
   },
   methods: {
