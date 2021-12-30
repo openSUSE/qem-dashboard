@@ -79,10 +79,11 @@ export default {
     };
   },
   created() {
-    // Refresh relative last updated time
-    this.timer = setInterval(() => {
-      this.lastUpdated += 1;
-    }, 60000);
+    // Refresh relative last updated time (every minute)
+    this.timer = setInterval(this.refreshLastUpdated, 60000);
+  },
+  beforeDestroy() {
+    this.cancelRefresh();
   },
   computed: {
     title() {
@@ -96,6 +97,12 @@ export default {
     }
   },
   methods: {
+    refreshLastUpdated() {
+      this.lastUpdated += 1;
+    },
+    cancelRefresh() {
+      clearInterval(this.timer);
+    },
     update(epoch) {
       this.lastUpdated = epoch;
     }
