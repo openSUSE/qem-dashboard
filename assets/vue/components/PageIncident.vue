@@ -1,19 +1,27 @@
 <template>
   <div class="col-md-12">
-    <div class="smelt-link">
-      <h3>Link to smelt</h3>
-      <p>
-        <SmeltLink :incident="incident" v-if="incident" />
-      </p>
+    <div class="external-links" v-if="incident">
+      <div class="smelt-link">
+        <h3>Link to Smelt</h3>
+        <p>
+          <SmeltLink :incident="incident" />
+        </p>
+      </div>
+      <div class="request-link">
+        <h3>Link to OBS</h3>
+        <p>
+          <RequestLink :incident="incident" />
+        </p>
+      </div>
     </div>
 
     <div class="incident-results" v-if="incident">
-      <h3>Per incident results</h3>
+      <h3>Per Incident Results</h3>
       <p v-if="!incident.buildNr">No incident build found</p>
       <p v-else>{{ results }} - see details on <a :href="openqaLink">openqa</a></p>
     </div>
 
-    <h3 class="mb-3 mt-3">Aggregate runs including this incident</h3>
+    <h3 class="mb-3 mt-3">Aggregate Runs Including This Incident</h3>
     <div class="container">
       <IncidentBuildSummary v-for="build in sortedBuilds" :key="build" :build="build" :jobs="jobs[build]" />
     </div>
@@ -22,6 +30,7 @@
 
 <script>
 import IncidentBuildSummary from './IncidentBuildSummary.vue';
+import RequestLink from './RequestLink.vue';
 import SmeltLink from './SmeltLink.vue';
 import axios from 'axios';
 
@@ -35,7 +44,7 @@ export default {
       timer: null
     };
   },
-  components: {SmeltLink, IncidentBuildSummary},
+  components: {RequestLink, SmeltLink, IncidentBuildSummary},
   computed: {
     results() {
       let str = '';
