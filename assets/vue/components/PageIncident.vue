@@ -31,7 +31,8 @@ export default {
     return {
       incident: null,
       summary: null,
-      jobs: []
+      jobs: [],
+      timer: null
     };
   },
   components: {SmeltLink, IncidentBuildSummary},
@@ -58,21 +59,31 @@ export default {
       return Object.keys(this.jobs).sort().reverse();
     }
   },
-  created() {
-    this.loadData();
+  mounted() {
+    this.refreshData();
+    this.timer = setInterval(this.refreshData, 30000);
+  },
+  unmounted() {
+    this.cancelRefresh();
   },
   methods: {
-    loadData() {
+    refreshData() {
       /*
        * The format is not necessary for mojo, but import for
        * chromium to keep the caches apart
        */
       axios.get(`/secret/api/incident/${this.$route.params.id}`).then(response => {
-        this.incident = response.data.incident;
-        this.incident.buildNr = response.data.build_nr;
-        this.summary = response.data.incident_summary;
-        this.jobs = response.data.jobs;
+        const {data} = response;
+        const {details} = data;
+        this.incident = details.incident;
+        this.incident.buildNr = details.build_nr;
+        this.summary = details.incident_summary;
+        this.jobs = details.jobs;
+        this.$emit('last-updated', data.last_updated);
       });
+    },
+    cancelRefresh() {
+      clearInterval(this.timer);
     }
   }
 };

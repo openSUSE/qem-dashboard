@@ -179,8 +179,9 @@ subtest 'Test Repos' => sub {
 };
 
 subtest 'Incident Details' => sub {
-  $t->get_ok('/secret/api/incident/16860' => {Accept => 'application/json'})->status_is(200)->json_is(
-    '/incident' => {
+  $t->get_ok('/secret/api/incident/16860' => {Accept => 'application/json'})->status_is(200)->json_has('/last_updated')
+    ->status_is(200)->json_is(
+    '/details/incident' => {
       "active"     => 1,
       "approved"   => 0,
       "emu"        => 1,
@@ -193,7 +194,7 @@ subtest 'Incident Details' => sub {
       "rr_number"  => 230066
     }
   )->json_is(
-    '/jobs' => {
+    '/details/jobs' => {
       "20201107-1" => [
         {
           "arch"      => "x86_64",
@@ -249,8 +250,8 @@ subtest 'Incident Details' => sub {
         }
       ]
     }
-  )->json_is('/incident_summary' => {waiting => 1, failed => 1, passed => 1})
-    ->json_is('/build_nr' => ':17063:perl-Mojolicious');
+  )->json_is('/details/incident_summary' => {waiting => 1, failed => 1, passed => 1})
+    ->json_is('/details/build_nr' => ':17063:perl-Mojolicious');
 
 };
 

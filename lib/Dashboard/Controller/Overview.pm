@@ -29,12 +29,14 @@ sub incident ($self) {
 
   my $incidents = $self->incidents;
   my $incident  = $incidents->incident_for_number($number);
-  $self->render(
-    json => {
-      jobs             => $incidents->openqa_summary_only_aggregates($incident),
-      incident         => $incident,
-      build_nr         => $incidents->build_nr($incident),
-      incident_summary => $incidents->openqa_summary_only_incident($incident)
+  $self->_render_api_response(
+    {
+      details => {
+        jobs             => $incidents->openqa_summary_only_aggregates($incident),
+        incident         => $incident,
+        build_nr         => $incidents->build_nr($incident),
+        incident_summary => $incidents->openqa_summary_only_incident($incident)
+      }
     }
   );
 }
