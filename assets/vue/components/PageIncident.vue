@@ -18,13 +18,14 @@
     <div class="incident-results" v-if="incident">
       <h4>Per Incident Results</h4>
       <p v-if="!incident.buildNr">No incident build found</p>
-      <p v-else>{{ results }} - see details on <a :href="openqaLink">openqa</a></p>
+      <p v-else>
+        <span class="badge badge-secondary">{{ results }}</span> see details on
+        <a :href="openqaLink" target="_blank">openQA</a>
+      </p>
     </div>
 
     <h4>Aggregate Runs Including This Incident</h4>
-    <div class="container">
-      <IncidentBuildSummary v-for="build in sortedBuilds" :key="build" :build="build" :jobs="jobs[build]" />
-    </div>
+    <IncidentBuildSummary v-for="build in sortedBuilds" :key="build" :build="build" :jobs="jobs[build]" />
   </div>
 </template>
 
