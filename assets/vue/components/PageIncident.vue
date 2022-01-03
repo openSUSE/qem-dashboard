@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div v-if="incident">
     <div class="external-links" v-if="incident">
       <div class="smelt-link">
         <h4>Link to Smelt</h4>
@@ -26,6 +26,7 @@
     <h4>Aggregate Runs Including This Incident</h4>
     <IncidentBuildSummary v-for="build in sortedBuilds" :key="build" :build="build" :jobs="jobs[build]" />
   </div>
+  <div v-else><i class="fas fa-sync fa-spin"></i> Loading incident...</div>
 </template>
 
 <script>

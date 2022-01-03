@@ -11,7 +11,7 @@
         <RepoLine v-for="(repo, name) in repos" :repo="repo" :name="name" :key="name" />
       </tbody>
     </table>
-    <div v-else>Loading repos...</div>
+    <div v-else><i class="fas fa-sync fa-spin"></i> Loading repos...</div>
     <RepoIncidentDialog ref="incidentsDialog"></RepoIncidentDialog>
   </div>
 </template>

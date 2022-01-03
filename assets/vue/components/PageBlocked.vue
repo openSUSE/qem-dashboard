@@ -37,7 +37,7 @@
       </tbody>
     </table>
   </div>
-  <div v-else>Loading incidents...</div>
+  <div v-else><i class="fas fa-sync fa-spin"></i> Loading incidents...</div>
 </template>
 
 <script>
