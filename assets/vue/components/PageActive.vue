@@ -61,7 +61,7 @@ export default {
   },
   methods: {
     refreshData() {
-      axios.get('/secret/api/list').then(response => {
+      axios.get('/app/api/list').then(response => {
         const {data} = response;
         this.incidents = data.incidents;
         this.$emit('last-updated', data.last_updated);

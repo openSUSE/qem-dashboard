@@ -97,7 +97,7 @@ sub startup ($self) {
   );
 
   # Dashboard JSON API for UI
-  my $json = $public->any('/secret/api' => [format => ['json']])->to(format => undef);
+  my $json = $public->any('/app/api' => [format => ['json']])->to(format => undef);
   $json->get('/list')->to('overview#list');
   $json->get('/blocked')->to('overview#blocked');
   $json->get('/repos')->to('overview#repos');

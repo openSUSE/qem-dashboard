@@ -1,19 +1,19 @@
 <template>
   <div class="col-md-12">
     <div class="smelt-link">
-      <h2>Link to smelt</h2>
+      <h3>Link to smelt</h3>
       <p>
         <SmeltLink :incident="incident" v-if="incident" />
       </p>
     </div>
 
     <div class="incident-results" v-if="incident">
-      <h2>Per incident results</h2>
+      <h3>Per incident results</h3>
       <p v-if="!incident.buildNr">No incident build found</p>
       <p v-else>{{ results }} - see details on <a :href="openqaLink">openqa</a></p>
     </div>
 
-    <h2 class="mb-3 mt-3">Aggregate runs including this incident</h2>
+    <h3 class="mb-3 mt-3">Aggregate runs including this incident</h3>
     <div class="container">
       <IncidentBuildSummary v-for="build in sortedBuilds" :key="build" :build="build" :jobs="jobs[build]" />
     </div>
@@ -72,7 +72,7 @@ export default {
        * The format is not necessary for mojo, but import for
        * chromium to keep the caches apart
        */
-      axios.get(`/secret/api/incident/${this.$route.params.id}`).then(response => {
+      axios.get(`/app/api/incident/${this.$route.params.id}`).then(response => {
         const {data} = response;
         const {details} = data;
         this.incident = details.incident;

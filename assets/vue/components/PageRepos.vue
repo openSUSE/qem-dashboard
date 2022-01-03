@@ -36,7 +36,7 @@ export default {
   },
   methods: {
     refreshData() {
-      axios.get('/secret/api/repos').then(response => {
+      axios.get('/app/api/repos').then(response => {
         const {data} = response;
         this.repos = data.repos;
         this.$emit('last-updated', data.last_updated);

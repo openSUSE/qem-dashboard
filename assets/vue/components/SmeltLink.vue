@@ -1,6 +1,6 @@
 <template>
   <div class="incident-link">
-    <a :href="smeltLink" target="_blank"> {{ incident.number }}:{{ packageName }} </a>
+    <a :href="smeltLink" target="_blank"> {{ incident.number }}:{{ packageName }}</a>
     <a v-if="incident.rr_number > 0" :href="obsLink" target="_blank" class="rr-link">
       <i class="fas fa-box" />
     </a>
