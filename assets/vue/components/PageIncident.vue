@@ -19,8 +19,7 @@
       <h4>Per Incident Results</h4>
       <p v-if="!incident.buildNr">No incident build found</p>
       <p v-else>
-        <span class="badge badge-secondary">{{ results }}</span> see details on
-        <a :href="openqaLink" target="_blank">openQA</a>
+        <mark>{{ results }}</mark> - see <a :href="openqaLink" target="_blank">openQA</a> for details
       </p>
     </div>
 
