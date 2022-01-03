@@ -1,14 +1,14 @@
 <template>
-  <div class="col-md-12">
+  <div>
     <div class="external-links" v-if="incident">
       <div class="smelt-link">
-        <h3>Link to Smelt</h3>
+        <h4>Link to Smelt</h4>
         <p>
           <SmeltLink :incident="incident" />
         </p>
       </div>
       <div class="request-link">
-        <h3>Link to OBS</h3>
+        <h4>Link to OBS</h4>
         <p>
           <RequestLink :incident="incident" />
         </p>
@@ -16,12 +16,12 @@
     </div>
 
     <div class="incident-results" v-if="incident">
-      <h3>Per Incident Results</h3>
+      <h4>Per Incident Results</h4>
       <p v-if="!incident.buildNr">No incident build found</p>
       <p v-else>{{ results }} - see details on <a :href="openqaLink">openqa</a></p>
     </div>
 
-    <h3 class="mb-3 mt-3">Aggregate Runs Including This Incident</h3>
+    <h4>Aggregate Runs Including This Incident</h4>
     <div class="container">
       <IncidentBuildSummary v-for="build in sortedBuilds" :key="build" :build="build" :jobs="jobs[build]" />
     </div>
