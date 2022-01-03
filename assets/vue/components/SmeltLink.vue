@@ -24,3 +24,12 @@ export default {
   }
 };
 </script>
+
+<style>
+.rr-link {
+  color: #ddd;
+}
+.rr-link:hover {
+  text-decoration: none;
+}
+</style>
