@@ -17,33 +17,23 @@
 </template>
 
 <script>
+import Refresh from '../mixins/refresh.js';
 import RepoIncidentDialog from './RepoIncidentDialog.vue';
 import RepoLine from './RepoLine.vue';
-import axios from 'axios';
 
 export default {
   name: 'PageRepos',
+  mixins: [Refresh],
   components: {RepoIncidentDialog, RepoLine},
   data() {
-    return {repos: null};
-  },
-  mounted() {
-    this.refreshData();
-    this.timer = setInterval(this.refreshData, 30000);
-  },
-  unmounted() {
-    this.cancelRefresh();
+    return {
+      repos: null,
+      refreshUrl: '/app/api/repos'
+    };
   },
   methods: {
-    refreshData() {
-      axios.get('/app/api/repos').then(response => {
-        const {data} = response;
-        this.repos = data.repos;
-        this.$emit('last-updated', data.last_updated);
-      });
-    },
-    cancelRefresh() {
-      clearInterval(this.timer);
+    refreshData(data) {
+      this.repos = data.repos;
     }
   }
 };

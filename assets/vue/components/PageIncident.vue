@@ -29,22 +29,23 @@
 </template>
 
 <script>
+import Refresh from '../mixins/refresh.js';
 import IncidentBuildSummary from './IncidentBuildSummary.vue';
 import RequestLink from './RequestLink.vue';
 import SmeltLink from './SmeltLink.vue';
-import axios from 'axios';
 
 export default {
   name: 'PageIncident',
+  mixins: [Refresh],
+  components: {RequestLink, SmeltLink, IncidentBuildSummary},
   data() {
     return {
       incident: null,
       summary: null,
       jobs: [],
-      timer: null
+      refreshUrl: `/app/api/incident/${this.$route.params.id}`
     };
   },
-  components: {RequestLink, SmeltLink, IncidentBuildSummary},
   computed: {
     results() {
       let str = '';
@@ -68,31 +69,17 @@ export default {
       return Object.keys(this.jobs).sort().reverse();
     }
   },
-  mounted() {
-    this.refreshData();
-    this.timer = setInterval(this.refreshData, 30000);
-  },
-  unmounted() {
-    this.cancelRefresh();
-  },
   methods: {
-    refreshData() {
+    refreshData(data) {
       /*
        * The format is not necessary for mojo, but import for
        * chromium to keep the caches apart
        */
-      axios.get(`/app/api/incident/${this.$route.params.id}`).then(response => {
-        const {data} = response;
-        const {details} = data;
-        this.incident = details.incident;
-        this.incident.buildNr = details.build_nr;
-        this.summary = details.incident_summary;
-        this.jobs = details.jobs;
-        this.$emit('last-updated', data.last_updated);
-      });
-    },
-    cancelRefresh() {
-      clearInterval(this.timer);
+      const {details} = data;
+      this.incident = details.incident;
+      this.incident.buildNr = details.build_nr;
+      this.summary = details.incident_summary;
+      this.jobs = details.jobs;
     }
   }
 };

@@ -1,9 +1,22 @@
 <template>
   <div v-if="incidents">
-    <div class="float-right">
-      <input type="checkbox" id="checkbox" v-model="groupFlavors" />
-      <label for="checkbox">Group Flavors</label>
-      <input v-model="matchText" placeholder="Search for Incident/Package" />
+    <div class="form-row align-items-center">
+      <div class="col-auto my-1">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="checkbox" v-model="groupFlavors" />
+          <label class="form-check-label" for="checkbox"> Group Flavors </label>
+        </div>
+      </div>
+      <div class="col-sm-3 my-1">
+        <label class="sr-only" for="inlineFormInputName">Name</label>
+        <input
+          v-model="matchText"
+          type="text"
+          class="form-control"
+          id="inlineSearch"
+          placeholder="Search for Incident/Package"
+        />
+      </div>
     </div>
     <table class="table">
       <thead>
@@ -28,17 +41,19 @@
 </template>
 
 <script>
+import Refresh from '../mixins/refresh.js';
 import BlockedIncident from './BlockedIncident.vue';
-import axios from 'axios';
 
 export default {
   name: 'PageBlocked',
+  mixins: [Refresh],
   components: {BlockedIncident},
   data() {
     return {
       incidents: null,
       groupFlavors: true,
-      matchText: ''
+      matchText: '',
+      refreshUrl: '/app/api/blocked'
     };
   },
   computed: {
@@ -55,23 +70,9 @@ export default {
       return this.incidents;
     }
   },
-  mounted() {
-    this.refreshData();
-    this.timer = setInterval(this.refreshData, 30000);
-  },
-  unmounted() {
-    this.cancelRefresh();
-  },
   methods: {
-    refreshData() {
-      axios.get('/app/api/blocked').then(response => {
-        const {data} = response;
-        this.incidents = data.blocked;
-        this.$emit('last-updated', data.last_updated);
-      });
-    },
-    cancelRefresh() {
-      clearInterval(this.timer);
+    refreshData(data) {
+      this.incidents = data.blocked;
     }
   }
 };

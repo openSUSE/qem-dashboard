@@ -29,18 +29,19 @@
 </template>
 
 <script>
+import Refresh from '../mixins/refresh.js';
 import IncidentLink from './IncidentLink.vue';
-import axios from 'axios';
 
 export default {
   name: 'PageActive',
+  mixins: [Refresh],
+  components: {IncidentLink},
   data() {
     return {
       incidents: null,
-      timer: null
+      refreshUrl: '/app/api/list'
     };
   },
-  components: {IncidentLink},
   computed: {
     testingIncidents() {
       return this.incidents.filter(incident => incident.rr_number > 0 && !incident.approved);
@@ -52,23 +53,9 @@ export default {
       return this.incidents.filter(incident => incident.approved);
     }
   },
-  mounted() {
-    this.refreshData();
-    this.timer = setInterval(this.refreshData, 30000);
-  },
-  unmounted() {
-    this.cancelRefresh();
-  },
   methods: {
-    refreshData() {
-      axios.get('/app/api/list').then(response => {
-        const {data} = response;
-        this.incidents = data.incidents;
-        this.$emit('last-updated', data.last_updated);
-      });
-    },
-    cancelRefresh() {
-      clearInterval(this.timer);
+    refreshData(data) {
+      this.incidents = data.incidents;
     }
   }
 };
