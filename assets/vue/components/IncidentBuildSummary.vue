@@ -1,14 +1,18 @@
 <template>
-  <div class="card">
+  <div class="card mb-3">
+    <div class="card-header">
+      Build {{ build }} <span class="badge badge-secondary">{{ NumberOfPassed }} passed</span>
+    </div>
     <div class="card-body text-left">
-      <h5 cass="card-title d-flex">Build {{ build }} ({{ NumberOfPassed }} passed)</h5>
       <p v-for="group of interestingGroups" :key="group.build">
         <strong>
-          Group <a :href="group.link">{{ group.build }}</a></strong
-        >
-        (<span v-for="(element, index) in group.summary" :key="element"
-          ><span v-if="index != 0">, </span><mark>{{ element }}</mark></span
-        >)
+          <a :href="group.link">{{ group.build }}</a>
+        </strong>
+        -
+        <span v-for="(element, index) in group.summary" :key="element">
+          <span v-if="index != 0">, </span>
+          <mark>{{ element }}</mark>
+        </span>
       </p>
     </div>
   </div>
