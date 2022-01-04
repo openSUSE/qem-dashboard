@@ -31,9 +31,32 @@ $dashboard_test->minimal_fixtures($t->app);
 
 subtest 'List incidents' => sub {
 
-  $t->get_ok('/' => {Accept => 'application/json'})->status_is(200)
-    ->json_is('/results' => 3, 'Incidents exist in test database')->json_is(
-    '/incidents/approved' => [
+  $t->get_ok('/app/api/list' => {Accept => 'application/json'})->status_is(200)->json_has('/last_updated')->json_is(
+    '/incidents' => [
+      {
+        "approved"    => 0,
+        "channels"    => ["Test"],
+        "emu"         => 1,
+        "inReview"    => 1,
+        "inReviewQAM" => 1,
+        "isActive"    => 1,
+        "number"      => 16860,
+        "packages"    => ["perl-Mojolicious"],
+        "project"     => "SUSE:Maintenance:16860",
+        "rr_number"   => 230066
+      },
+      {
+        "approved"    => 0,
+        "channels"    => ["Test"],
+        "emu"         => 1,
+        "inReview"    => 1,
+        "inReviewQAM" => 1,
+        "isActive"    => 1,
+        "number"      => 16861,
+        "packages"    => ["perl-Minion", "perl-Mojo-Pg"],
+        "project"     => "SUSE:Maintenance:16861",
+        "rr_number"   => undef
+      },
       {
         "approved"    => 1,
         "channels"    => ["Test"],
@@ -46,47 +69,14 @@ subtest 'List incidents' => sub {
         "project"     => "SUSE:Maintenance:16862",
         "rr_number"   => undef
       }
-    ],
-    '1 approved Incident for curl'
-  )->json_is(
-    '/incidents/testing' => [
-      {
-        "approved"    => 0,
-        "channels"    => ["Test"],
-        "emu"         => 1,
-        "inReview"    => 1,
-        "inReviewQAM" => 1,
-        "isActive"    => 1,
-        "number"      => 16860,
-        "packages"    => ["perl-Mojolicious"],
-        "project"     => "SUSE:Maintenance:16860",
-        "rr_number"   => 230066
-      }
-    ],
-    'perl-Mojolicious is testing'
-  )->json_is(
-    '/incidents/staged' => [
-      {
-        "approved"    => 0,
-        "channels"    => ["Test"],
-        "emu"         => 1,
-        "inReview"    => 1,
-        "inReviewQAM" => 1,
-        "isActive"    => 1,
-        "number"      => 16861,
-        "packages"    => ["perl-Minion", "perl-Mojo-Pg"],
-        "project"     => "SUSE:Maintenance:16861",
-        "rr_number"   => undef
-      }
-    ],
-    'perl-Minion is staged'
+    ]
   );
 
 };
 
 subtest 'Blocked by Tests' => sub {
 
-  $t->get_ok('/blocked' => {Accept => 'application/json'})->status_is(200)->json_is(
+  $t->get_ok('/app/api/blocked' => {Accept => 'application/json'})->status_is(200)->json_has('/last_updated')->json_is(
     '/blocked' => [
       {
         incident => {
@@ -138,10 +128,13 @@ subtest 'Blocked by Tests' => sub {
 };
 
 subtest 'Test Repos' => sub {
-  $t->get_ok('/repos' => {Accept => 'application/json'})->status_is(200)
-    ->json_is('/titles/Server-DVD-Incidents-12-SP5-x86_64/incidents' =>
-      [{"id" => 1, "number" => 16860}, {"id" => 2, "number" => 16861}])->json_is(
-    '/titles/Server-DVD-Incidents-12-SP5-x86_64/summaries' => [
+  $t->get_ok('/app/api/repos' => {Accept => 'application/json'})->status_is(200)->json_has('/last_updated')->json_is(
+    '/repos/Server-DVD-Incidents-12-SP5-x86_64/incidents' => [
+      {"id" => 1, "number" => 16860, "packages" => ['perl-Mojolicious']},
+      {"id" => 2, "number" => 16861, "packages" => ['perl-Minion', 'perl-Mojo-Pg']}
+    ]
+  )->json_is(
+    '/repos/Server-DVD-Incidents-12-SP5-x86_64/summaries' => [
       {
         "linkinfo" => {
           "arch"    => "x86_64",
@@ -180,12 +173,13 @@ subtest 'Test Repos' => sub {
         "passed" => 1
       }
     ]
-      );
+  );
 };
 
 subtest 'Incident Details' => sub {
-  $t->get_ok('/incident/16860' => {Accept => 'application/json'})->status_is(200)->json_is(
-    '/incident' => {
+  $t->get_ok('/app/api/incident/16860' => {Accept => 'application/json'})->status_is(200)->json_has('/last_updated')
+    ->status_is(200)->json_is(
+    '/details/incident' => {
       "active"     => 1,
       "approved"   => 0,
       "emu"        => 1,
@@ -198,7 +192,7 @@ subtest 'Incident Details' => sub {
       "rr_number"  => 230066
     }
   )->json_is(
-    '/jobs' => {
+    '/details/jobs' => {
       "20201107-1" => [
         {
           "arch"      => "x86_64",
@@ -254,7 +248,8 @@ subtest 'Incident Details' => sub {
         }
       ]
     }
-  );
+  )->json_is('/details/incident_summary' => {waiting => 1, failed => 1, passed => 1})
+    ->json_is('/details/build_nr' => ':17063:perl-Mojolicious');
 
 };
 

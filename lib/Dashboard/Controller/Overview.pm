@@ -17,62 +17,42 @@ package Dashboard::Controller::Overview;
 use Mojo::Base 'Mojolicious::Controller', -signatures;
 
 sub blocked ($self) {
-  my $incidents = $self->incidents;
-  my $blocked   = $incidents->blocked;
-
-  $self->respond_to(
-    json => {json => {blocked => $blocked}},
-    any  => sub {
-      $self->render(blocked => $blocked);
-    }
-  );
-
+  $self->_render_api_response({blocked => $self->incidents->blocked});
 }
 
-sub index ($self) {
-  my $incidents = $self->incidents->find;
-
-  my $num = 0;
-  my $cat = {approved => [], testing => [], staged => []};
-  for my $inc (@$incidents) {
-    my $name = $inc->{approved} ? 'approved' : $inc->{rr_number} ? 'testing' : 'staged';
-    push @{$cat->{$name}}, $inc;
-    $num++;
-  }
-
-  $self->respond_to(
-    json => {json => {incidents => $cat, results => $num}},
-    any  => sub {
-      $self->render(incidents => $cat, results => $num);
-    }
-  );
-
+sub list ($self) {
+  $self->_render_api_response({incidents => $self->incidents->find});
 }
 
 sub incident ($self) {
-  my $number    = $self->param('incident');
+  my $number = $self->param('incident');
+
   my $incidents = $self->incidents;
   my $incident  = $incidents->incident_for_number($number);
-
-  my $jobs = $incidents->openqa_summary_only_aggregates($incident);
-  $self->respond_to(
-    json => {json => {jobs => $jobs, incident => $incident}},
-    any  => sub {
-      $self->render(jobs => $jobs, incident => $incident);
+  $self->_render_api_response(
+    {
+      details => {
+        jobs             => $incidents->openqa_summary_only_aggregates($incident),
+        incident         => $incident,
+        build_nr         => $incidents->build_nr($incident),
+        incident_summary => $incidents->openqa_summary_only_incident($incident)
+      }
     }
   );
 }
 
 sub repos ($self) {
-  my $incidents = $self->incidents;
-  my $repos     = $incidents->repos;
-  $self->respond_to(
-    json => {json => {titles => $repos}},
-    any  => sub {
-      $self->render(titles => $repos);
-    }
-  );
+  $self->_render_api_response({repos => $self->incidents->repos});
+}
 
+# HTML!
+sub index ($self) {
+}
+
+sub _render_api_response ($self, $data) {
+  my $updated = $self->jobs->latest_update;
+  $data->{last_updated} = int($updated * 1000);
+  return $self->render(json => $data);
 }
 
 1;

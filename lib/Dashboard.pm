@@ -74,32 +74,39 @@ sub startup ($self) {
   $self->helper(settings  => sub { state $settings = Dashboard::Model::Settings->new(pg => shift->pg) });
   $self->helper(amqp      => sub { state $amqp = Dashboard::Model::AMQP->new(log => $self->log, jobs => shift->jobs) });
 
-  # Status plugin
-  my $public = $self->routes;
-  if (my $status = $config->{status}) {
-    my $admin = $public->under(
-      '/status' => sub ($c) {
-        return 1 if $c->req->url->to_abs->userinfo eq "admin:$status";
-        $c->res->headers->www_authenticate('Basic');
-        $c->render(text => 'Authentication required!', status => 401);
-        return undef;
-      }
-    );
-    $self->plugin('Status' => {route => $admin});
-  }
-
   # Migrations
   my $path = $self->home->child('migrations', 'dashboard.sql');
   $self->pg->auto_migrate(1)->migrations->name('dashboard')->from_file($path);
 
   # Authentication
-  my $token = $public->under('/')->to('Auth::Token#check');
+  my $public = $self->routes;
+  my $token  = $public->under('/')->to('Auth::Token#check');
 
-  # Dashboard UI
-  $public->get('/')->to('overview#index')->name('incidents');
-  $public->get('/blocked')->to('overview#blocked')->name('blocked');
-  $public->get('/repos')->to('overview#repos')->name('repos');
-  $public->get('/incident/<incident:num>')->to('overview#incident')->name('incident');
+  # Single page app
+  $public->get(
+    '/app-config' => sub ($c) {
+      my $config = $c->app->config;
+      $c->render(
+        json => {
+          openqaUrl => $c->openqa_url->path('/tests/overview'),
+          obsUrl    => $config->{obs}{url},
+          smeltUrl  => $config->{smelt}{url}
+        }
+      );
+    }
+  );
+
+  # Dashboard JSON API for UI
+  my $json = $public->any('/app/api' => [format => ['json']])->to(format => undef);
+  $json->get('/list')->to('overview#list');
+  $json->get('/blocked')->to('overview#blocked');
+  $json->get('/repos')->to('overview#repos');
+  $json->get('/incident/<incident:num>')->to('overview#incident');
+
+  # Catch all for delivering the webpack UI
+  $public->get('/')->to('overview#index')->name('index');
+  $public->get('/:name' => [name => ['repos', 'blocked']])->to('overview#index');
+  $public->get('/incident/<incident:num>')->to('overview#index');
 
   # API
   my $api = $token->any('/api');

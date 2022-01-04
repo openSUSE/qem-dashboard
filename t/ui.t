@@ -30,57 +30,11 @@ my $config         = $dashboard_test->default_config;
 my $t              = Test::Mojo->new(Dashboard => $config);
 $dashboard_test->minimal_fixtures($t->app);
 
-subtest 'Menu' => sub {
-  $t->get_ok('/')->status_is(200)->text_like('nav ul li a', qr/Active/)
-    ->text_like('nav ul li:nth-of-type(2) a', qr/Blocked/)->text_like('nav ul li:nth-of-type(3) a', qr/Repos/)
-    ->text_like('nav ul:nth-of-type(2) a',    qr/API/);
-};
-
-subtest 'Overview' => sub {
-  $t->get_ok('/')->status_is(200)->text_like('head title ', qr/Active Incidents/)
-    ->text_like('tbody tr:nth-of-type(1) td:nth-of-type(1) a',    qr/16860:perl-Mojolicious/)
-    ->text_like('tbody tr:nth-of-type(1) td:nth-of-type(2) span', qr/testing/)
-    ->text_like('tbody tr:nth-of-type(2) td:nth-of-type(1) a',    qr/16861:perl-Minion/)
-    ->text_like('tbody tr:nth-of-type(2) td:nth-of-type(2) span', qr/staged/)
-    ->text_like('tbody tr:nth-of-type(3) td:nth-of-type(1) a',    qr/16862:curl/)
-    ->text_like('tbody tr:nth-of-type(3) td:nth-of-type(2) span', qr/approved/);
-};
-
-subtest 'Blocked by Tests' => sub {
-  $t->get_ok('/blocked')->status_is(200)->text_like('head title ', qr/Blocked by Tests/)
-    ->element_exists('tbody tr:nth-of-type(1) td:nth-of-type(1) a[name=16860]')
-    ->text_like('tbody tr:nth-of-type(1) td:nth-of-type(1) a.incident-link',           qr/16860:perl-Mojolicious/)
-    ->text_like('tbody tr:nth-of-type(1) td:nth-of-type(2) ul li:nth-of-type(1) a',    qr/SLE 12 SP5/)
-    ->text_like('tbody tr:nth-of-type(1) td:nth-of-type(2) ul li:nth-of-type(1) span', qr!1/1!)
-    ->text_like('tbody tr:nth-of-type(1) td:nth-of-type(2) ul li:nth-of-type(2) a',    qr/SLE 12 SP5 Kernel/)
-    ->text_like('tbody tr:nth-of-type(1) td:nth-of-type(2) ul li:nth-of-type(2) span', qr!1!)
-    ->text_like('tbody tr:nth-of-type(1) td:nth-of-type(2) ul li:nth-of-type(3) a',    qr/SLE 12 SP4/)
-    ->text_like('tbody tr:nth-of-type(1) td:nth-of-type(2) ul li:nth-of-type(3) span', qr!1/1!);
-};
-
-subtest 'Test Repos' => sub {
-  $t->get_ok('/repos')->status_is(200)->text_like('head title ', qr/Test Repos/)
-    ->text_like('tbody tr:nth-of-type(1) td:nth-of-type(1) div',             qr/Server-DVD-Incidents-12-SP5-x86_64/)
-    ->text_like('tbody tr:nth-of-type(1) td:nth-of-type(1) div button span', qr/2/)
-    ->text_like('tbody tr:nth-of-type(1) td:nth-of-type(1) div button',      qr/Incidents/)
-    ->element_exists('tbody tr:nth-of-type(1) td:nth-of-type(2) ul li:nth-of-type(1) a.btn-info')
-    ->text_like('tbody tr:nth-of-type(1) td:nth-of-type(2) ul li:nth-of-type(1) a',      qr/20201108-1/)
-    ->text_like('tbody tr:nth-of-type(1) td:nth-of-type(2) ul li:nth-of-type(1) a span', qr!1/1!)
-    ->element_exists('tbody tr:nth-of-type(1) td:nth-of-type(2) ul li:nth-of-type(2) a.btn-danger')
-    ->text_like('tbody tr:nth-of-type(1) td:nth-of-type(2) ul li:nth-of-type(2) a',      qr/20201107-2/)
-    ->text_like('tbody tr:nth-of-type(1) td:nth-of-type(2) ul li:nth-of-type(2) a span', qr!1/2!)
-    ->element_exists('tbody tr:nth-of-type(1) td:nth-of-type(2) ul li:nth-of-type(3) a.btn-success')
-    ->text_like('tbody tr:nth-of-type(1) td:nth-of-type(2) ul li:nth-of-type(3) a',      qr/20201107-1/)
-    ->text_like('tbody tr:nth-of-type(1) td:nth-of-type(2) ul li:nth-of-type(3) a span', qr/1/)
-    ->text_like('tbody tr:nth-of-type(1) div.modal-header h5', qr/Incidents for Server-DVD-Incidents-12-SP5-x86_64/)
-    ->text_like('tbody tr:nth-of-type(1) div.modal-body ul li:nth-of-type(1) a', qr/16860:perl-Mojolicious/)
-    ->text_like('tbody tr:nth-of-type(1) div.modal-body ul li:nth-of-type(2) a', qr/16861:perl-Minion/);
-};
-
-subtest 'Incident Details' => sub {
-  $t->get_ok('/incident/16860')->status_is(200)->text_like('head title ', qr/Details for incident 16860/)
-    ->text_like('.incident-results', qr/1 passed, 1 failed, 1 waiting/)
-    ->text_like('.smelt-link a',     qr/16860:perl-Mojolicious/);
+subtest 'Webpack provided under various URLs' => sub {
+  $t->get_ok('/')->status_is(200)->text_like('#app' => qr/This application requires JavaScript!/);
+  $t->get_ok('/blocked')->status_is(200)->text_like('#app' => qr/This application requires JavaScript!/);
+  $t->get_ok('/repos')->status_is(200)->text_like('#app' => qr/This application requires JavaScript!/);
+  $t->get_ok('/incident/16860')->status_is(200)->text_like('#app' => qr/This application requires JavaScript!/);
 };
 
 done_testing();
