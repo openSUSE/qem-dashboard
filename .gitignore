@@ -2,4 +2,3 @@ assets/assetpack.db
 assets/cache
 public/asset
 node_modules
-package-lock.json
