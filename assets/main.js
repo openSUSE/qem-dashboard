@@ -31,6 +31,5 @@ window.addEventListener('load', () => {
     app.use(router).mount('#app');
 
     backToTop();
-    $('[data-toggle="tooltip"]').tooltip({trigger: 'hover'});
   });
 });
