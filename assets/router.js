@@ -2,7 +2,7 @@ import PageActive from './vue/components/PageActive.vue';
 import PageBlocked from './vue/components/PageBlocked.vue';
 import PageIncident from './vue/components/PageIncident.vue';
 import PageRepos from './vue/components/PageRepos.vue';
-import jQuery from 'jquery';
+import {Modal} from 'bootstrap';
 import {createRouter, createWebHistory} from 'vue-router';
 
 const routes = [
@@ -40,7 +40,8 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   if (from.name === 'repos') {
     // Make sure not to leave black screens
-    jQuery('#update-incidents').modal('hide');
+    const myModal = new Modal(document.getElementById('update-incidents'));
+    myModal.hide();
   }
   next();
 });
