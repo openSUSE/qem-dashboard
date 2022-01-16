@@ -17,3 +17,9 @@ export default {
   }
 };
 </script>
+
+<style>
+a.incident-link {
+  text-decoration: none;
+}
+</style>
