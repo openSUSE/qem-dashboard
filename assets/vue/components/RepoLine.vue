@@ -4,7 +4,7 @@
       <div>{{ name }}</div>
       <div class="text-left">
         <button type="button" class="btn btn-primary btn-sm" @click="triggerModal">
-          <span class="badge bg-primary">
+          <span class="badge bg-light text-dark">
             {{ incidentNumber }}
           </span>
           Incidents
