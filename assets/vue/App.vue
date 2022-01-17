@@ -155,7 +155,7 @@ body {
   padding-bottom: 0.2em;
   padding-right: 0.2em;
 }
-.table thead tr th {
+.table tbody {
   border-top: 0 !important;
 }
 </style>
