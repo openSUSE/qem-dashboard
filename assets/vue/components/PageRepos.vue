@@ -20,6 +20,7 @@
 import Refresh from '../mixins/refresh.js';
 import RepoIncidentDialog from './RepoIncidentDialog.vue';
 import RepoLine from './RepoLine.vue';
+import {Modal} from 'bootstrap';
 
 export default {
   name: 'PageRepos',
@@ -35,6 +36,13 @@ export default {
     refreshData(data) {
       this.repos = data.repos;
     }
+  },
+
+  // Remove the modal backdrop if one was left behind
+  beforeRouteLeave(to, from, next) {
+    const el = document.getElementById('update-incidents');
+    if (el !== null) Modal.getInstance(el).dispose();
+    next();
   }
 };
 </script>

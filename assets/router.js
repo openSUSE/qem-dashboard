@@ -2,7 +2,6 @@ import PageActive from './vue/components/PageActive.vue';
 import PageBlocked from './vue/components/PageBlocked.vue';
 import PageIncident from './vue/components/PageIncident.vue';
 import PageRepos from './vue/components/PageRepos.vue';
-import {Modal} from 'bootstrap';
 import {createRouter, createWebHistory} from 'vue-router';
 
 const routes = [
@@ -35,13 +34,6 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(),
   routes
-});
-
-// Remove the modal backdrop if one was left behind
-router.beforeEach((to, from, next) => {
-  const el = document.getElementById('update-incidents');
-  if (el !== null) Modal.getInstance(el).dispose();
-  next();
 });
 
 export default router;
