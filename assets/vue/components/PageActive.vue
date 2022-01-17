@@ -9,7 +9,7 @@
     <tbody>
       <tr v-for="incident in testingIncidents" :key="incident.number">
         <td><IncidentLink :incident="incident" /></td>
-        <td>
+        <td class="state-badge">
           <a :href="'/blocked#' + incident.number">
             <span class="badge bg-primary">testing</span>
           </a>
@@ -17,11 +17,11 @@
       </tr>
       <tr v-for="incident in stagedIncidents" :key="incident.number">
         <td><IncidentLink :incident="incident" /></td>
-        <td><span class="badge bg-secondary">staged</span></td>
+        <td class="state-badge"><span class="badge bg-secondary">staged</span></td>
       </tr>
       <tr v-for="incident in approvedIncidents" :key="incident.number">
         <td><IncidentLink :incident="incident" /></td>
-        <td><span class="badge bg-success">approved</span></td>
+        <td class="state-badge"><span class="badge bg-success">approved</span></td>
       </tr>
     </tbody>
   </table>
@@ -60,3 +60,12 @@ export default {
   }
 };
 </script>
+
+<style>
+.state-badge {
+  color: #ffffff;
+}
+.state-badge a:link {
+  color: #ffffff;
+}
+</style>
