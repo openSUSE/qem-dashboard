@@ -39,7 +39,7 @@
     "sass-loader": "^12.3.0",
     "tap": "^15.1.6",
     "terser-webpack-plugin": "^5.2.5",
-    "vue": "^3.2.26",
+    "vue": "^3.2.27",
     "vue-loader": "^17.0.0",
     "vue-router": "^4.0.12",
     "webpack": "^5.66.0",
