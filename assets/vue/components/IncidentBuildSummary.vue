@@ -1,7 +1,7 @@
 <template>
   <div class="card mb-3">
     <div class="card-header">
-      Build {{ build }} <span class="badge badge-secondary">{{ NumberOfPassed }} passed</span>
+      Build {{ build }} <span class="badge bg-secondary">{{ NumberOfPassed }} passed</span>
     </div>
     <div class="card-body text-left">
       <p v-for="group of interestingGroups" :key="group.build">

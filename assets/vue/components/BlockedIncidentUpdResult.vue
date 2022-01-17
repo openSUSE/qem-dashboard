@@ -1,5 +1,5 @@
 <template>
-  <li :group-id="groupId" data-toggle="tooltip" data-placement="left" :title="title">
+  <li :group-id="groupId" data-bs-toggle="tooltip" data-bs-placement="left" :title="title">
     <ResultSummary :result="result" />
   </li>
 </template>

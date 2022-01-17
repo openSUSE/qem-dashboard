@@ -4,7 +4,7 @@
       <div>{{ name }}</div>
       <div class="text-left">
         <button type="button" class="btn btn-primary btn-sm" @click="triggerModal">
-          <span class="badge badge-primary">
+          <span class="badge bg-primary">
             {{ incidentNumber }}
           </span>
           Incidents
@@ -23,7 +23,7 @@
 
 <script>
 import ResultSummary from './ResultSummary.vue';
-import jQuery from 'jquery';
+import {Modal} from 'bootstrap';
 
 export default {
   name: 'RepoLine',
@@ -39,7 +39,8 @@ export default {
       const dialog = this.$parent.$refs.incidentsDialog;
       dialog.title = this.name;
       dialog.incidents = this.repo.incidents;
-      jQuery('#update-incidents').modal('show');
+      const myModal = new Modal(document.getElementById('update-incidents'));
+      myModal.show();
     }
   }
 };

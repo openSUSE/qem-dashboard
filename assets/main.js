@@ -4,23 +4,31 @@ import 'bootstrap/dist/css/bootstrap.css';
 import router from './router.js';
 import App from './vue/App.vue';
 import axios from 'axios';
-import $ from 'jquery';
 import {createApp} from 'vue';
 
-window.$ = $;
-
 const backToTop = function () {
-  $(window).scroll(function () {
-    if ($(this).scrollTop() > 50) {
-      $('#back-to-top').fadeIn();
+  const mybutton = document.getElementById('back-to-top');
+
+  const scrollFunction = function () {
+    if (document.body.scrollTop > 50 || document.documentElement.scrollTop > 50) {
+      mybutton.style.display = 'block';
     } else {
-      $('#back-to-top').fadeOut();
+      mybutton.style.display = 'none';
     }
-  });
-  $('#back-to-top').click(() => {
-    $('body, html').animate({scrollTop: 0}, 800);
-    return false;
-  });
+  };
+
+  // When the user scrolls down 20px from the top of the document, show the button
+  window.onscroll = function () {
+    scrollFunction();
+  };
+
+  const scrollUp = function () {
+    document.body.scrollTop = 0;
+    document.documentElement.scrollTop = 0;
+  };
+
+  // When the user clicks on the button, scroll to the top of the document
+  mybutton.addEventListener('click', scrollUp);
 };
 
 window.addEventListener('load', () => {
@@ -31,6 +39,5 @@ window.addEventListener('load', () => {
     app.use(router).mount('#app');
 
     backToTop();
-    $('[data-toggle="tooltip"]').tooltip({trigger: 'hover'});
   });
 });

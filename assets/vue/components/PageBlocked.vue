@@ -1,6 +1,6 @@
 <template>
   <div v-if="incidents">
-    <div class="form-row align-items-center">
+    <div class="row align-items-center">
       <div class="col-sm-3 my-1">
         <label class="sr-only" for="inlineFormInputName">Name</label>
         <input
