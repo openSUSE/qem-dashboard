@@ -37,12 +37,10 @@ const router = createRouter({
   routes
 });
 
+// Remove the modal backdrop if one was left behind
 router.beforeEach((to, from, next) => {
-  if (from.name === 'repos') {
-    // Make sure not to leave black screens
-    const myModal = new Modal(document.getElementById('update-incidents'));
-    myModal.hide();
-  }
+  const el = document.getElementById('update-incidents');
+  if (el !== null) Modal.getInstance(el).dispose();
   next();
 });
 
