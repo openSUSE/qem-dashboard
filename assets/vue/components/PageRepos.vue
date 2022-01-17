@@ -41,7 +41,10 @@ export default {
   // Remove the modal backdrop if one was left behind
   beforeRouteLeave(to, from, next) {
     const el = document.getElementById('update-incidents');
-    if (el !== null) Modal.getInstance(el).dispose();
+    if (el !== null) {
+      const modal = Modal.getInstance(el);
+      modal.hide();
+    }
     next();
   }
 };
