@@ -7,7 +7,7 @@
     {{ result.name }} <span class="badge bg-light text-dark">{{ stopped }}/{{ total }}</span>
     <span class="sr-only">stopped jobs</span>
   </a>
-  <a v-else-if="waiting > 0" :href="link" class="btn btn-info" target="_blank">
+  <a v-else-if="waiting > 0" :href="link" class="btn btn-primary" target="_blank">
     {{ result.name }} <span class="badge bg-light text-dark">{{ waiting }}/{{ total }}</span>
     <span class="sr-only">stopped jobs</span>
   </a>
