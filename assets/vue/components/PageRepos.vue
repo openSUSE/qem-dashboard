@@ -43,7 +43,7 @@ export default {
     const el = document.getElementById('update-incidents');
     if (el !== null) {
       const modal = Modal.getInstance(el);
-      modal.hide();
+      if (modal !== null) modal.hide();
     }
     next();
   }
