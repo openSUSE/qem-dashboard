@@ -17,7 +17,7 @@
     "@babel/plugin-transform-runtime": "^7.16.8",
     "@babel/preset-env": "^7.16.8",
     "@fortawesome/fontawesome-free": "^5.15.4",
-    "@mojojs/path": "^1.4.0",
+    "@mojojs/path": "^1.4.1",
     "@mojolicious/server-starter": "^2.0.0",
     "axios": "^0.24.0",
     "babel-loader": "^8.2.3",
