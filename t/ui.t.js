@@ -25,14 +25,17 @@ t.test('Test dashboard ui', skip, async t => {
   await t.test('Navigation', async t => {
     await page.goto(url);
     t.equal(await page.innerText('title'), 'Active Incidents');
-    await page.click('text=Blocked');
 
+    await page.click('text=Blocked');
     t.equal(page.url(), `${url}/blocked`);
     t.equal(await page.innerText('title'), 'Blocked by Tests');
-    await page.click('text=Repos');
 
+    await page.click('text=Repos');
     t.equal(page.url(), `${url}/repos`);
     t.equal(await page.innerText('title'), 'Test Repos');
+
+    await page.click('text=Active');
+    t.equal(await page.innerText('title'), 'Active Incidents');
   });
 
   await t.test('Overview', async t => {
@@ -69,6 +72,9 @@ t.test('Test dashboard ui', skip, async t => {
     await page.click('text=2 Incidents');
     await page.click('text=16860:perl-Mojolicious');
     t.equal(page.url(), `${url}/incident/16860`);
+
+    await page.click('text=Active');
+    t.equal(await page.innerText('title'), 'Active Incidents');
   });
 
   t.same(errorLogs, []);
