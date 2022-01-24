@@ -18,7 +18,7 @@
           <span class="navbar-toggler-icon" />
         </button>
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
-          <ul class="navbar-nav mr-auto">
+          <ul class="nav navbar-nav">
             <li class="nav-item">
               <router-link :to="{name: 'home'}" exact class="nav-link"> Active </router-link>
             </li>
@@ -29,7 +29,7 @@
               <router-link :to="{name: 'repos'}" exact class="nav-link"> Repos </router-link>
             </li>
           </ul>
-          <ul class="navbar-nav">
+          <ul class="navbar-nav flex-row flex-wrap ms-md-auto" id="navbarAPI">
             <li class="nav-item">
               <a class="nav-link" href="https://github.com/openSUSE/qem-dashboard/blob/main/API.md" target="_blank">
                 API
