@@ -1,6 +1,6 @@
 # QEM Dashboard
 
-  The QEM Dashboard is a graphical user interface addon for the not yet released **openQABot**. It can show the current
+  The QEM Dashboard is a graphical user interface addon for [qem-bot](https://github.com/openSUSE/qem-bot). It can show the current
   state for all incidents that are being processed. To help identify which tests are currently blocking which incidents.
 
 ## Getting Started
