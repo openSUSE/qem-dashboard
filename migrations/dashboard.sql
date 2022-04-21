@@ -86,3 +86,11 @@ DROP TABLE IF EXISTS channels;
 
 -- 2 up
 ALTER TABLE incident_openqa_settings ADD COLUMN with_aggregate BOOLEAN DEFAULT FALSE;
+
+--3 up
+ALTER TABLE incident_in_update DROP CONSTRAINT incident_in_update_settings_fkey;
+ALTER TABLE incident_in_update ADD CONSTRAINT  incident_in_update_settings_fkey FOREIGN KEY (settings)
+  REFERENCES update_openqa_settings(id) ON DELETE CASCADE;
+ALTER TABLE openqa_jobs DROP CONSTRAINT openqa_jobs_update_settings_fkey;
+ALTER TABLE openqa_jobs ADD CONSTRAINT  openqa_jobs_update_settings_fkey FOREIGN KEY (update_settings)
+  REFERENCES update_openqa_settings(id) ON DELETE CASCADE;

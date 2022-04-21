@@ -11,3 +11,4 @@ obs:
   url: https://build.opensuse.org
 smelt:
   url: https://smelt.suse.de
+days_to_keep_aggregates: 90

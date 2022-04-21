@@ -31,14 +31,23 @@ sub new ($class, %options) {
   return $self;
 }
 
+sub cleanup_fixtures ($self, $app) {
+  $self->minimal_fixtures($app);
+
+  # Some aggregate jobs are older than 90 days
+  my $db = $app->pg->db;
+  $db->query(q{UPDATE openqa_jobs SET updated = NOW() - INTERVAL '91 days' WHERE job_id = any(?)}, [4953203, 4953200]);
+}
+
 sub default_config ($self) {
   return {
-    secrets => ['just_a_test'],
-    tokens  => ['test_token'],
-    pg      => $self->postgres_url,
-    openqa  => {url => 'https://openqa.suse.de'},
-    obs     => {url => 'https://build.suse.de'},
-    smelt   => {url => 'https://smelt.suse.de'}
+    secrets                 => ['just_a_test'],
+    tokens                  => ['test_token'],
+    pg                      => $self->postgres_url,
+    openqa                  => {url => 'https://openqa.suse.de'},
+    obs                     => {url => 'https://build.suse.de'},
+    smelt                   => {url => 'https://smelt.suse.de'},
+    days_to_keep_aggregates => 90
   };
 }
 
