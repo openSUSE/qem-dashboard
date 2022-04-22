@@ -46,6 +46,8 @@ sub sync ($self) {
   return $self->render(json => {error => "Incidents do not match the JSON schema: @errors"}, status => 400) if @errors;
 
   $self->incidents->sync($incidents);
+  $self->jobs->cleanup_aggregates;
+
   $self->render(json => {message => 'Ok'});
 }
 

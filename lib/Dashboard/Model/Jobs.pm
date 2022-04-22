@@ -16,7 +16,7 @@
 package Dashboard::Model::Jobs;
 use Mojo::Base -base, -signatures;
 
-has [qw(pg log)];
+has [qw(days_to_keep_aggregates pg log)];
 
 sub add ($self, $job) {
   my $db = $self->pg->db;
@@ -28,6 +28,16 @@ sub add ($self, $job) {
        status = EXCLUDED.status, updated = NOW()', $job->{incident_settings}, $job->{update_settings}, $job->{name},
     $job->{job_group}, $job->{job_id}, $job->{group_id}, $job->{status}, $job->{distri}, $job->{flavor},
     $job->{version},   $job->{arch},   $job->{build}
+  );
+}
+
+sub cleanup_aggregates ($self) {
+  $self->pg->db->query(
+    q{DELETE FROM update_openqa_settings
+      WHERE id IN (
+        SELECT update_settings FROM openqa_jobs
+        WHERE update_settings IS NOT NULL AND updated < NOW() - INTERVAL '1 days' * ?
+      )}, $self->days_to_keep_aggregates
   );
 }
 
