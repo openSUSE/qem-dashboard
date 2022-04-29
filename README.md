@@ -35,3 +35,34 @@
 
     $ mojo webpack script/dashboard
     Web application available at http://127.0.0.1:3000
+
+## Contribute
+
+This project lives in https://github.com/openSUSE/qem-dashboard
+
+Feel free to add issues in github or send pull requests.
+
+### Rules for commits
+
+* For git commit messages use the rules stated on
+  [How to Write a Git Commit Message](http://chris.beams.io/posts/git-commit/) as
+  a reference
+
+If this is too much hassle for you feel free to provide incomplete pull
+requests for consideration or create an issue with a code change proposal.
+
+### Local testing
+
+To execute all tests a postgreSQL instance is needed and needs to specified in
+the environment variable `TEST_ONLINE`. For example for a local postgres
+instance for which a postgres username and password is enabled one could call:
+
+```
+TEST_ONLINE=postgresql://postgres:postgres@localhost:5432/postgres prove -l t/*.t t/*.t.js
+```
+
+## License
+
+This project is licensed under the
+[GPLv2 license](http://www.gnu.org/licenses/gpl-2.0.html),
+see the COPYING file for details.
