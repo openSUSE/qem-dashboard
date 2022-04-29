@@ -1,7 +1,8 @@
 # QEM Dashboard
 
-  The QEM Dashboard is a graphical user interface addon for [qem-bot](https://github.com/openSUSE/qem-bot). It can show the current
-  state for all incidents that are being processed. To help identify which tests are currently blocking which incidents.
+The QEM Dashboard is a graphical user interface addon for [qem-bot](https://github.com/openSUSE/qem-bot). It can show
+the current state for all incidents that are being processed. To help identify which tests are currently blocking
+which incidents.
 
 ## Getting Started
 
@@ -12,7 +13,7 @@
       perl-Mojo-Pg perl-Cpanel-JSON-XS perl-JSON-Validator perl-IO-Socket-SSL nodejs16
     $ npm install
 
-  Update the config file `dashboard.yml` to point to your PostgreSQL database (and other services where appropriate):
+Update the config file `dashboard.yml` to point to your PostgreSQL database (and other services where appropriate):
 
     ---
     secrets:
@@ -30,32 +31,29 @@
       url: https://smelt.suse.de
 
 
-  And finally use the `mojo webpack` development web server to make the web application available under
-  `http://127.0.0.1:3000`.
+And finally use the `mojo webpack` development web server to make the web application available under
+`http://127.0.0.1:3000`.
 
     $ mojo webpack script/dashboard
     Web application available at http://127.0.0.1:3000
 
 ## Contribute
 
-This project lives in https://github.com/openSUSE/qem-dashboard
+This project lives on GitHub at https://github.com/openSUSE/qem-dashboard. Feel free to add issues or send pull
+requests there.
 
-Feel free to add issues in github or send pull requests.
-
-### Rules for commits
+### Rules for Commits
 
 * For git commit messages use the rules stated on
-  [How to Write a Git Commit Message](http://chris.beams.io/posts/git-commit/) as
-  a reference
+  [How to Write a Git Commit Message](http://chris.beams.io/posts/git-commit/) as a reference
 
-If this is too much hassle for you feel free to provide incomplete pull
-requests for consideration or create an issue with a code change proposal.
+If this is too much hassle for you feel free to provide incomplete pull requests for consideration or create an issue
+with a code change proposal.
 
-### Local testing
+### Local Testing
 
-To execute all tests a postgreSQL instance is needed and needs to specified in
-the environment variable `TEST_ONLINE`. For example for a local postgres
-instance for which a postgres username and password is enabled one could call:
+To execute all tests a PostgreSQL instance is needed and needs to specified in the environment variable `TEST_ONLINE`.
+For a local PostgreSQL instance with a username and password one could call:
 
 ```
 TEST_ONLINE=postgresql://postgres:postgres@localhost:5432/postgres prove -l t/*.t t/*.t.js
@@ -63,6 +61,5 @@ TEST_ONLINE=postgresql://postgres:postgres@localhost:5432/postgres prove -l t/*.
 
 ## License
 
-This project is licensed under the
-[GPLv2 license](http://www.gnu.org/licenses/gpl-2.0.html),
-see the COPYING file for details.
+This project is licensed under the [GPLv2 license](http://www.gnu.org/licenses/gpl-2.0.html), see the COPYING file for
+details.
