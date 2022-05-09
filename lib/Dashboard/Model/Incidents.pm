@@ -252,13 +252,26 @@ sub _update_openqa_jobs ($self, $inc) {
 sub _update ($db, $incident) {
   $db->query('INSERT INTO incidents (number, project) VALUES (?, ?) ON CONFLICT DO NOTHING',
     $incident->{number}, $incident->{project});
-  my $id = $db->query('SELECT id FROM incidents WHERE number = ? LIMIT 1', $incident->{number})->hash->{id};
+  my $row = $db->query('SELECT id, rr_number FROM incidents WHERE number = ? LIMIT 1', $incident->{number})->hash;
+  my ($id, $rr_number) = ($row->{id}, $row->{rr_number} // 0);
 
   $db->query(
     'UPDATE incidents SET packages = ?, rr_number = ?, review = ?, review_qam = ?, approved = ?, emu = ?, active = ?
        WHERE id = ?', $incident->{packages}, $incident->{rr_number}, $incident->{inReview}, $incident->{inReviewQAM},
     $incident->{approved}, $incident->{emu}, $incident->{isActive}, $id
   );
+
+  # Remove old jobs after release request number changed (because incidents might be reused)
+  if (defined $incident->{rr_number} && $rr_number ne '0' && $rr_number ne $incident->{rr_number}) {
+
+    # Individual jobs
+    $db->query('DELETE FROM incident_openqa_settings WHERE incident = ?', $id);
+
+    # Aggregate jobs
+    $db->query(
+      'DELETE FROM update_openqa_settings WHERE id IN (SELECT settings FROM incident_in_update WHERE incident = ?)',
+      $id);
+  }
 
   # Add new channels
   my $old_channels

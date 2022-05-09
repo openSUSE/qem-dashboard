@@ -39,14 +39,14 @@ CREATE TABLE IF NOT EXISTS update_openqa_settings (
 );
 CREATE TABLE IF NOT EXISTS incident_in_update (
   id       SERIAL PRIMARY KEY,
-  settings INT REFERENCES update_openqa_settings(id),
+  settings INT REFERENCES update_openqa_settings(id) ON DELETE CASCADE,
   incident INT REFERENCES incidents(id)
 );
 CREATE TYPE qa_status AS ENUM ('unknown', 'waiting', 'passed', 'failed', 'stopped');
 CREATE TABLE IF NOT EXISTS openqa_jobs (
   id                SERIAL PRIMARY KEY,
-  update_settings   INT REFERENCES update_openqa_settings(id),
-  incident_settings INT REFERENCES incident_openqa_settings(id),
+  update_settings   INT REFERENCES update_openqa_settings(id) ON DELETE CASCADE,
+  incident_settings INT REFERENCES incident_openqa_settings(id) ON DELETE CASCADE,
   name              TEXT NOT NULL,
   job_group         TEXT NOT NULL,
   status            qa_status NOT NULL DEFAULT 'waiting',
@@ -94,3 +94,8 @@ ALTER TABLE incident_in_update ADD CONSTRAINT  incident_in_update_settings_fkey 
 ALTER TABLE openqa_jobs DROP CONSTRAINT openqa_jobs_update_settings_fkey;
 ALTER TABLE openqa_jobs ADD CONSTRAINT  openqa_jobs_update_settings_fkey FOREIGN KEY (update_settings)
   REFERENCES update_openqa_settings(id) ON DELETE CASCADE;
+
+--4 up
+ALTER TABLE openqa_jobs DROP CONSTRAINT openqa_jobs_incident_settings_fkey;
+ALTER TABLE openqa_jobs ADD CONSTRAINT  openqa_jobs_incident_settings_fkey FOREIGN KEY (incident_settings)
+  REFERENCES incident_openqa_settings(id) ON DELETE CASCADE;
