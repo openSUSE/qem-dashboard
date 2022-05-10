@@ -32,11 +32,11 @@ $dashboard_test->minimal_fixtures($t->app);
 my $db = $t->app->pg->db;
 
 sub _is_field ($field, $expected) {
-  is($db->query("select $field from openqa_jobs where id=7")->hash->{$field}, $expected);
+  is($db->query("SELECT $field FROM openqa_jobs WHERE id = 9")->hash->{$field}, $expected);
 }
 
 sub _set_default() {
-  $db->query("update openqa_jobs set status='waiting', job_id=4953203 where id=7");
+  $db->query("UPDATE openqa_jobs SET status = 'waiting', job_id = 4953203 WHERE id = 9");
 }
 
 subtest 'Handle done job' => sub {

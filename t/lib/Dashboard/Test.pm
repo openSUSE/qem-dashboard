@@ -131,6 +131,28 @@ sub minimal_fixtures ($self, $app) {
       settings      => {DISTRI => 'sle', VERSION => '12-SP5', BUILD => ':17063:perl-Mojolicious'}
     }
   );
+  my $settings_four_id = $settings->add_incident_settings(
+    $incidents->id_for_number(16861),
+    {
+      incident      => 16861,
+      version       => '12-SP7',
+      flavor        => 'Server-DVD-HA-Incidents-Install',
+      arch          => 'aarch64',
+      withAggregate => true,
+      settings      => {DISTRI => 'sle', VERSION => '12-SP7', BUILD => ':17063:perl-Mojolicious'}
+    }
+  );
+  my $settings_five_id = $settings->add_incident_settings(
+    $incidents->id_for_number(16862),
+    {
+      incident      => 16862,
+      version       => '13-SP7',
+      flavor        => 'Server-DVD-HA-Incidents-Install',
+      arch          => 'aarch64',
+      withAggregate => true,
+      settings      => {DISTRI => 'sle', VERSION => '13-SP7', BUILD => ':17063:curl'}
+    }
+  );
 
   my $jobs = $app->jobs;
   $jobs->add(
@@ -179,6 +201,38 @@ sub minimal_fixtures ($self, $app) {
       arch              => 'aarch64',
       version           => '12-SP5',
       build             => ':17063:perl-Mojolicious'
+    }
+  );
+  $jobs->add(
+    {
+      incident_settings => $settings_four_id,
+      update_settings   => undef,
+      name              => 'mau-webserver@64bit',
+      job_group         => 'Maintenance: SLE 12 SP7 Kernel Incidents',
+      status            => 'passed',
+      job_id            => 4973199,
+      group_id          => 285,
+      distri            => 'sle',
+      flavor            => 'Server-DVD-Incidents',
+      arch              => 'aarch64',
+      version           => '12-SP7',
+      build             => ':17063:perl-Mojolicious'
+    }
+  );
+  $jobs->add(
+    {
+      incident_settings => $settings_five_id,
+      update_settings   => undef,
+      name              => 'mau-webserver@64bit',
+      job_group         => 'Maintenance: SLE 12 SP7 Kernel Incidents',
+      status            => 'passed',
+      job_id            => 4983199,
+      group_id          => 285,
+      distri            => 'sle',
+      flavor            => 'Server-DVD-Incidents',
+      arch              => 'aarch64',
+      version           => '12-SP7',
+      build             => ':17063:curl'
     }
   );
 
