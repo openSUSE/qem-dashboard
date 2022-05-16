@@ -83,6 +83,11 @@ subtest 'Clean up jobs after rr_number change (during sync)' => sub {
   $t->get_ok('/app/api/incident/16862')->status_is(200)->json_is('/details/incident/number', 16862)
     ->json_is('/details/incident/packages', ['curl'])->json_is('/details/incident_summary', {passed => 1});
 
+  my $log         = $t->app->log;
+  my $subscribers = $log->subscribers('message');
+  $t->app->log->level('info')->unsubscribe('message');
+  my $messages = '';
+  my $cb       = $log->on(message => sub { $messages .= pop });
   $t->patch_ok(
     '/api/incidents' => $auth_headers => json => [
       {
@@ -99,6 +104,9 @@ subtest 'Clean up jobs after rr_number change (during sync)' => sub {
       }
     ]
   )->status_is(200)->json_is({message => 'Ok'});
+  like $messages, qr/Cleaning up old jobs for incident 16861, rr_number change: 230067 -> 230068/, 'right message';
+  $log->unsubscribe(message => $cb);
+  $log->on(message => $_) for @$subscribers;
 
   $t->get_ok('/app/api/incident/16860')->status_is(200)->json_is('/details/incident/number', 16860)
     ->json_is('/details/incident/packages', ['perl-Mojolicious'])->json_hasnt('/details/jobs/20201107-1')

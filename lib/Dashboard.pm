@@ -68,8 +68,10 @@ sub startup ($self) {
   $self->renderer->compress(1);
 
   # Model
+  my $log = $self->log;
   $self->helper(pg => sub { state $pg = Mojo::Pg->new($config->{pg})->max_connections(1) });
-  $self->helper(incidents => sub ($c) { state $incidents = Dashboard::Model::Incidents->new(pg => $c->pg) });
+  $self->helper(incidents => sub ($c) { state $incidents = Dashboard::Model::Incidents->new(log => $log, pg => $c->pg) }
+  );
   $self->helper(
     jobs => sub ($c) {
       state $jobs = Dashboard::Model::Jobs->new(
@@ -80,7 +82,7 @@ sub startup ($self) {
     }
   );
   $self->helper(settings => sub ($c) { state $settings = Dashboard::Model::Settings->new(pg => $c->pg) });
-  $self->helper(amqp => sub ($c) { state $amqp = Dashboard::Model::AMQP->new(log => $self->log, jobs => $c->jobs) });
+  $self->helper(amqp     => sub ($c) { state $amqp     = Dashboard::Model::AMQP->new(log => $log, jobs => $c->jobs) });
 
   # Migrations
   my $path = $self->home->child('migrations', 'dashboard.sql');

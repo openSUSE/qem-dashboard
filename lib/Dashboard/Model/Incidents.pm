@@ -16,7 +16,7 @@
 package Dashboard::Model::Incidents;
 use Mojo::Base -base, -signatures;
 
-has 'pg';
+has [qw(log pg)];
 
 sub blocked ($self) {
   my $incidents = $self->pg->db->query(
@@ -164,7 +164,7 @@ sub sync ($self, $incidents) {
   my $tx = $db->begin;
 
   $db->query('UPDATE incidents SET active = FALSE');
-  for my $incident (@$incidents) { _update($db, $incident) }
+  for my $incident (@$incidents) { $self->_update($db, $incident) }
 
   $tx->commit;
 }
@@ -173,7 +173,7 @@ sub update ($self, $incident) {
   my $db = $self->pg->db;
   my $tx = $db->begin;
 
-  _update($db, $incident);
+  $self->_update($db, $incident);
 
   $tx->commit;
 }
@@ -249,7 +249,7 @@ sub _update_openqa_jobs ($self, $inc) {
   return \%ret;
 }
 
-sub _update ($db, $incident) {
+sub _update ($self, $db, $incident) {
   $db->query('INSERT INTO incidents (number, project) VALUES (?, ?) ON CONFLICT DO NOTHING',
     $incident->{number}, $incident->{project});
   my $row = $db->query('SELECT id, rr_number FROM incidents WHERE number = ? LIMIT 1', $incident->{number})->hash;
@@ -263,6 +263,8 @@ sub _update ($db, $incident) {
 
   # Remove old jobs after release request number changed (because incidents might be reused)
   if (defined $incident->{rr_number} && $rr_number ne '0' && $rr_number ne $incident->{rr_number}) {
+    $self->log->info(
+      "Cleaning up old jobs for incident $incident->{number}, rr_number change: $rr_number -> $incident->{rr_number}");
 
     # Individual jobs
     $db->query('DELETE FROM incident_openqa_settings WHERE incident = ?', $id);
