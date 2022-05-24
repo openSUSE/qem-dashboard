@@ -51,7 +51,7 @@ sub index ($self) {
 
 sub _render_api_response ($self, $data) {
   my $updated = $self->jobs->latest_update;
-  $data->{last_updated} = int($updated * 1000);
+  $data->{last_updated} = defined $updated ? int($updated * 1000) : undef;
   return $self->render(json => $data);
 }
 
