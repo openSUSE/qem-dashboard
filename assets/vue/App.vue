@@ -92,6 +92,7 @@ export default {
     },
     lastUpdatedText() {
       const last = this.lastUpdated;
+      if (last === null) return 'Never updated';
       if (last === 0) return 'Updating...';
       return `Last updated ${moment(this.lastUpdated).fromNow()}`;
     }
