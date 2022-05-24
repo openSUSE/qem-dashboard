@@ -32,12 +32,10 @@ const backToTop = function () {
 };
 
 window.addEventListener('load', () => {
+  const app = createApp(App);
+  app.use(router).mount('#app');
   axios('/app-config').then(response => {
-    const config = response.data;
-    const app = createApp(App);
-    app.config.globalProperties.appConfig = config;
-    app.use(router).mount('#app');
-
-    backToTop();
+    app.config.globalProperties.appConfig = response.data;
   });
+  backToTop();
 });
