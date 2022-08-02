@@ -16,7 +16,7 @@
     "@babel/core": "^7.18.9",
     "@babel/plugin-transform-runtime": "^7.18.2",
     "@babel/preset-env": "^7.18.9",
-    "@fortawesome/fontawesome-free": "^6.1.1",
+    "@fortawesome/fontawesome-free": "^6.1.2",
     "@mojojs/path": "^1.4.2",
     "@mojolicious/server-starter": "^2.1.0",
     "axios": "^0.27.2",
@@ -25,7 +25,7 @@
     "copy-webpack-plugin": "^11.0.0",
     "css-loader": "^6.7.1",
     "css-minimizer-webpack-plugin": "^4.0.0",
-    "eslint": "^8.16.0",
+    "eslint": "^8.21.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-import": "^2.26.0",
     "eslint-plugin-node": "^11.1.0",
@@ -37,13 +37,13 @@
     "prettier": "^2.7.1",
     "sass": "^1.54.0",
     "sass-loader": "^13.0.2",
-    "tap": "^16.2.0",
+    "tap": "^16.3.0",
     "terser-webpack-plugin": "^5.3.3",
     "vue": "^3.2.37",
     "vue-loader": "^17.0.0",
     "vue-router": "^4.0.15",
     "vue-template-compiler": "^2.6.14",
     "webpack": "^5.74.0",
-    "webpack-cli": "^4.9.2"
+    "webpack-cli": "^4.10.0"
   }
 }
