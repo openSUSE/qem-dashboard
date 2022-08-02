@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@babel/core": "^7.18.9",
-    "@babel/plugin-transform-runtime": "^7.18.2",
+    "@babel/plugin-transform-runtime": "^7.18.10",
     "@babel/preset-env": "^7.18.9",
     "@fortawesome/fontawesome-free": "^6.1.2",
     "@mojojs/path": "^1.5.2",
