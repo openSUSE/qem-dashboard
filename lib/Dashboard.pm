@@ -50,7 +50,7 @@ sub startup ($self) {
             my $code    = $tx->res->code;
             my $elapsed = Time::HiRes::tv_interval($started, [Time::HiRes::gettimeofday()]);
             my $rps     = $elapsed == 0 ? '??' : sprintf '%.3f', 1 / $elapsed;
-            $self->log->info(qq{$method $url -> $code (${elapsed}s, $rps/s)});
+            $self->log->debug(qq{$method $url -> $code (${elapsed}s, $rps/s)});
           }
         );
       }
