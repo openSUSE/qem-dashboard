@@ -51,7 +51,8 @@ sub default_config ($self) {
 }
 
 sub expire_aggregate_jobs ($self, $app, $ids) {
-  $app->pg->db->query(q{UPDATE openqa_jobs SET updated = NOW() - INTERVAL '91 days' WHERE job_id = any(?)}, $ids);
+  $app->pg->db->query(q{UPDATE openqa_jobs SET updated = NOW() - (INTERVAL '1 day' * ?) WHERE job_id = any(?)},
+    $app->config->{days_to_keep_aggregates} + 1, $ids);
 }
 
 sub minimal_fixtures ($self, $app) {
