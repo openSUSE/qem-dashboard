@@ -33,7 +33,7 @@
     "eslint-plugin-vue": "^9.3.0",
     "mini-css-extract-plugin": "^2.6.1",
     "moment": "^2.29.4",
-    "playwright": "^1.24.2",
+    "playwright": "^1.25.2",
     "prettier": "^2.7.1",
     "sass": "^1.54.9",
     "sass-loader": "^13.0.2",
