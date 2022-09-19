@@ -51,8 +51,7 @@ subtest 'Clean up old aggregate jobs (during sync)' => sub {
   };
 
   subtest 'The one remaining aggretate job has also expired now and can be cleaned up' => sub {
-    $t->app->pg->db->query(q{UPDATE openqa_jobs SET updated = NOW() - INTERVAL '91 days' WHERE job_id = any(?)},
-      [4953205]);
+    $dashboard_test->expire_aggregate_jobs($t->app, [4953205]);
 
     $t->patch_ok(
       '/api/incidents' => $auth_headers => json => [

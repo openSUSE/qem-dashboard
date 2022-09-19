@@ -35,8 +35,7 @@ sub cleanup_fixtures ($self, $app) {
   $self->minimal_fixtures($app);
 
   # Some aggregate jobs are older than 90 days
-  my $db = $app->pg->db;
-  $db->query(q{UPDATE openqa_jobs SET updated = NOW() - INTERVAL '91 days' WHERE job_id = any(?)}, [4953203, 4953200]);
+  $self->expire_aggregate_jobs($app, [4953203, 4953200]);
 }
 
 sub default_config ($self) {
@@ -49,6 +48,10 @@ sub default_config ($self) {
     smelt                   => {url => 'https://smelt.suse.de'},
     days_to_keep_aggregates => 90
   };
+}
+
+sub expire_aggregate_jobs ($self, $app, $ids) {
+  $app->pg->db->query(q{UPDATE openqa_jobs SET updated = NOW() - INTERVAL '91 days' WHERE job_id = any(?)}, $ids);
 }
 
 sub minimal_fixtures ($self, $app) {
