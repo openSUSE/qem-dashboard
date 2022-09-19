@@ -21,32 +21,61 @@ subtest 'Clean up old aggregate jobs (during sync)' => sub {
   my $t              = Test::Mojo->new(Dashboard => $config);
   $dashboard_test->cleanup_fixtures($t->app);
 
-  $t->get_ok('/app/api/incident/16861')->status_is(200)->json_is('/details/incident/number', 16861)
-    ->json_is('/details/incident/packages', ['perl-Minion', 'perl-Mojo-Pg'])->json_has('/details/jobs/20201107-1')
-    ->json_has('/details/jobs/20201107-2')->json_has('/details/jobs/20201108-1')
-    ->json_is('/details/incident_summary', {passed => 1});
+  subtest 'One aggregate job is still recent and cannot be cleaned up' => sub {
+    $t->get_ok('/app/api/incident/16861')->status_is(200)->json_is('/details/incident/number', 16861)
+      ->json_is('/details/incident/packages', ['perl-Minion', 'perl-Mojo-Pg'])->json_has('/details/jobs/20201107-1')
+      ->json_has('/details/jobs/20201107-2')->json_has('/details/jobs/20201108-1')
+      ->json_is('/details/incident_summary', {passed => 1});
 
-  $t->patch_ok(
-    '/api/incidents' => $auth_headers => json => [
-      {
-        number      => 16861,
-        project     => 'SUSE:Maintenance:16861',
-        packages    => ['perl-Minion', 'perl-Mojo-Pg'],
-        channels    => ['Test'],
-        rr_number   => 230067,
-        inReview    => true,
-        inReviewQAM => true,
-        approved    => false,
-        emu         => true,
-        isActive    => true
-      }
-    ]
-  )->status_is(200)->json_is({message => 'Ok'});
+    $t->patch_ok(
+      '/api/incidents' => $auth_headers => json => [
+        {
+          number      => 16861,
+          project     => 'SUSE:Maintenance:16861',
+          packages    => ['perl-Minion', 'perl-Mojo-Pg'],
+          channels    => ['Test'],
+          rr_number   => 230067,
+          inReview    => true,
+          inReviewQAM => true,
+          approved    => false,
+          emu         => true,
+          isActive    => true
+        }
+      ]
+    )->status_is(200)->json_is({message => 'Ok'});
 
-  $t->get_ok('/app/api/incident/16861')->status_is(200)->json_is('/details/incident/number', 16861)
-    ->json_is('/details/incident/packages', ['perl-Minion', 'perl-Mojo-Pg'])->json_has('/details/jobs/20201107-1')
-    ->json_hasnt('/details/jobs/20201107-2')->json_hasnt('/details/jobs/20201108-1')
-    ->json_is('/details/incident_summary', {passed => 1});
+    $t->get_ok('/app/api/incident/16861')->status_is(200)->json_is('/details/incident/number', 16861)
+      ->json_is('/details/incident/packages', ['perl-Minion', 'perl-Mojo-Pg'])->json_has('/details/jobs/20201107-1')
+      ->json_has('/details/jobs/20201107-2')->json_hasnt('/details/jobs/20201108-1')
+      ->json_is('/details/incident_summary', {passed => 1});
+  };
+
+  subtest 'The one remaining aggretate job has also expired now and can be cleaned up' => sub {
+    $t->app->pg->db->query(q{UPDATE openqa_jobs SET updated = NOW() - INTERVAL '91 days' WHERE job_id = any(?)},
+      [4953205]);
+
+    $t->patch_ok(
+      '/api/incidents' => $auth_headers => json => [
+        {
+          number      => 16861,
+          project     => 'SUSE:Maintenance:16861',
+          packages    => ['perl-Minion', 'perl-Mojo-Pg'],
+          channels    => ['Test'],
+          rr_number   => 230067,
+          inReview    => true,
+          inReviewQAM => true,
+          approved    => false,
+          emu         => true,
+          isActive    => true
+        }
+      ]
+    )->status_is(200)->json_is({message => 'Ok'});
+
+    $t->get_ok('/app/api/incident/16861')->status_is(200)->json_is('/details/incident/number', 16861)
+      ->json_is('/details/incident/packages', ['perl-Minion', 'perl-Mojo-Pg'])->json_has('/details/jobs/20201107-1')
+      ->json_hasnt('/details/jobs/20201107-2')->json_hasnt('/details/jobs/20201108-1')
+      ->json_is('/details/incident_summary', {passed => 1});
+  };
 };
 
 subtest 'Clean up jobs after rr_number change (during sync)' => sub {
