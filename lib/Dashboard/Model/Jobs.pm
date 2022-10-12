@@ -29,6 +29,7 @@ sub add ($self, $job) {
     $job->{job_group}, $job->{job_id}, $job->{group_id}, $job->{status}, $job->{distri}, $job->{flavor},
     $job->{version},   $job->{arch},   $job->{build}
   );
+  $self->log->info("Job added: $job->{job_id} ($job->{name})");
 }
 
 sub cleanup_aggregates ($self) {
