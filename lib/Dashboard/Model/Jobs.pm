@@ -20,16 +20,17 @@ has [qw(days_to_keep_aggregates pg log)];
 
 sub add ($self, $job) {
   my $db = $self->pg->db;
-  $db->query(
+  my $id = $db->query(
     'INSERT INTO openqa_jobs (incident_settings, update_settings, name, job_group, job_id, group_id, status, distri,
       flavor, version, arch, build) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
      ON CONFLICT (distri, flavor, arch, version, build, name)
      DO UPDATE SET job_group = EXCLUDED.job_group, job_id = EXCLUDED.job_id, group_id = EXCLUDED.group_id,
-       status = EXCLUDED.status, updated = NOW()', $job->{incident_settings}, $job->{update_settings}, $job->{name},
-    $job->{job_group}, $job->{job_id}, $job->{group_id}, $job->{status}, $job->{distri}, $job->{flavor},
-    $job->{version},   $job->{arch},   $job->{build}
-  );
-  $self->log->info("Job added: $job->{job_id} ($job->{name})");
+       status = EXCLUDED.status, updated = NOW()
+     RETURNING id', $job->{incident_settings}, $job->{update_settings}, $job->{name}, $job->{job_group},
+    $job->{job_id}, $job->{group_id}, $job->{status}, $job->{distri}, $job->{flavor}, $job->{version}, $job->{arch},
+    $job->{build}
+  )->hash->{id};
+  $self->log->info("Job added: $job->{job_id} ($id)");
 }
 
 sub cleanup_aggregates ($self) {
