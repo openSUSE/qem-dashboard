@@ -30,7 +30,7 @@ sub add ($self, $job) {
     $job->{job_id}, $job->{group_id}, $job->{status}, $job->{distri}, $job->{flavor}, $job->{version}, $job->{arch},
     $job->{build}
   )->hash->{id};
-  $self->log->info("Job added: $job->{job_id} ($id)");
+  $self->log->info("Job added: $job->{job_id} (id: $id, name: $job->{name})");
 }
 
 sub cleanup_aggregates ($self) {
