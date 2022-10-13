@@ -263,16 +263,22 @@ sub _update ($self, $db, $incident) {
 
   # Remove old jobs after release request number changed (because incidents might be reused)
   if (defined $incident->{rr_number} && $rr_number ne '0' && $rr_number ne $incident->{rr_number}) {
-    $self->log->info(
+    my $log = $self->log;
+    $log->info(
       "Cleaning up old jobs for incident $incident->{number}, rr_number change: $rr_number -> $incident->{rr_number}");
 
     # Individual jobs
     $db->query('DELETE FROM incident_openqa_settings WHERE incident = ?', $id);
 
     # Aggregate jobs
-    $db->query(
-      'DELETE FROM update_openqa_settings WHERE id IN (SELECT settings FROM incident_in_update WHERE incident = ?)',
-      $id);
+    my $deleted = $db->query(
+      'DELETE FROM update_openqa_settings
+       WHERE id IN (SELECT settings FROM incident_in_update WHERE incident = ?)
+       RETURNING id', $id
+    )->arrays;
+    $log->info(
+      "Update settings cleaned up for incident $incident->{number}: " . $deleted->flatten->join(', ')->to_string)
+      if $deleted->size;
   }
 
   # Add new channels
