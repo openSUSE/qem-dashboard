@@ -33,18 +33,19 @@ sub add ($self, $job) {
   $self->log->info("Job added: $job->{job_id} (id: $id, name: $job->{name})");
 }
 
-sub cleanup_aggregates ($self) {
-  $self->pg->db->query(
-    q{DELETE FROM update_openqa_settings
-      WHERE id IN (
-        SELECT update_settings FROM (
-          SELECT update_settings, MAX(updated) AS max_updated FROM openqa_jobs
-          WHERE update_settings IS NOT NULL
-          GROUP BY update_settings
-        ) AS jobs WHERE max_updated < NOW() - INTERVAL '1 days' * ?
-      )}, $self->days_to_keep_aggregates
-  );
-}
+# Disabled to test without cleanup in production
+#sub cleanup_aggregates ($self) {
+#  $self->pg->db->query(
+#    q{DELETE FROM update_openqa_settings
+#      WHERE id IN (
+#        SELECT update_settings FROM (
+#          SELECT update_settings, MAX(updated) AS max_updated FROM openqa_jobs
+#          WHERE update_settings IS NOT NULL
+#          GROUP BY update_settings
+#        ) AS jobs WHERE max_updated < NOW() - INTERVAL '1 days' * ?
+#      )}, $self->days_to_keep_aggregates
+#  );
+#}
 
 sub get ($self, $job_id) {
   return $self->pg->db->query(
