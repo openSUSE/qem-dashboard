@@ -271,14 +271,7 @@ sub _update ($self, $db, $incident) {
     $db->query('DELETE FROM incident_openqa_settings WHERE incident = ?', $id);
 
     # Aggregate jobs
-    my $deleted = $db->query(
-      'DELETE FROM update_openqa_settings
-       WHERE id IN (SELECT settings FROM incident_in_update WHERE incident = ?)
-       RETURNING id', $id
-    )->arrays;
-    $log->info(
-      "Update settings cleaned up for incident $incident->{number}: " . $deleted->flatten->join(', ')->to_string)
-      if $deleted->size;
+    $db->query('DELETE FROM incident_in_update WHERE incident = ?', $id);
   }
 
   # Add new channels

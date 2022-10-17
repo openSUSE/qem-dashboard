@@ -138,8 +138,8 @@ subtest 'Clean up jobs after rr_number change (during sync)' => sub {
   $log->on(message => $_) for @$subscribers;
 
   $t->get_ok('/app/api/incident/16860')->status_is(200)->json_is('/details/incident/number', 16860)
-    ->json_is('/details/incident/packages', ['perl-Mojolicious'])->json_hasnt('/details/jobs/20201107-1')
-    ->json_hasnt('/details/jobs/20201107-2')->json_hasnt('/details/jobs/20201108-1')
+    ->json_is('/details/incident/packages', ['perl-Mojolicious'])->json_has('/details/jobs/20201107-1')
+    ->json_has('/details/jobs/20201107-2')->json_has('/details/jobs/20201108-1')
     ->json_is('/details/incident_summary', {passed => 1, failed => 1, waiting => 1});
   $t->get_ok('/app/api/incident/16861')->status_is(200)->json_is('/details/incident/number', 16861)
     ->json_is('/details/incident/packages', ['perl-Minion', 'perl-Mojo-Pg'])->json_hasnt('/details/jobs/20201107-1')
