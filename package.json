@@ -30,7 +30,7 @@
     "eslint-plugin-import": "^2.26.0",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prettier": "^4.2.1",
-    "eslint-plugin-vue": "^9.3.0",
+    "eslint-plugin-vue": "^9.6.0",
     "mini-css-extract-plugin": "^2.6.1",
     "moment": "^2.29.4",
     "playwright": "^1.26.1",
