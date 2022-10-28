@@ -1,5 +1,6 @@
 <template>
-  <div v-if="incidents">
+  <div v-if="incidents === null"><i class="fas fa-sync fa-spin"></i> Loading incidents...</div>
+  <div v-else-if="incidents.length > 1">
     <div class="row align-items-center">
       <div class="col-sm-3 my-1">
         <label class="sr-only" for="inlineFormInputName">Name</label>
@@ -37,7 +38,7 @@
       </tbody>
     </table>
   </div>
-  <div v-else><i class="fas fa-sync fa-spin"></i> Loading incidents...</div>
+  <div v-else>No active incidents, maybe take a look at <a :href="smelt">Smelt</a>.</div>
 </template>
 
 <script>
@@ -68,6 +69,9 @@ export default {
         });
       }
       return this.incidents;
+    },
+    smelt() {
+      return this.appConfig.smeltUrl;
     }
   },
   methods: {

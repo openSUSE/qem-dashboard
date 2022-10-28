@@ -1,5 +1,6 @@
 <template>
-  <table class="table" v-if="incidents">
+  <div v-if="incidents === null"><i class="fas fa-sync fa-spin"></i> Loading incidents...</div>
+  <table class="table" v-else-if="incidents.length > 1">
     <thead>
       <tr>
         <th>Incident</th>
@@ -25,7 +26,7 @@
       </tr>
     </tbody>
   </table>
-  <div v-else><i class="fas fa-sync fa-spin"></i> Loading incidents...</div>
+  <div v-else>No active incidents, maybe take a look at <a :href="smelt">Smelt</a>.</div>
 </template>
 
 <script>
@@ -51,6 +52,9 @@ export default {
     },
     approvedIncidents() {
       return this.incidents.filter(incident => incident.approved);
+    },
+    smelt() {
+      return this.appConfig.smeltUrl;
     }
   },
   methods: {
