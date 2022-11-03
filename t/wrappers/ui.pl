@@ -15,7 +15,7 @@ my $daemon         = Mojo::Server::Daemon->new(listen => ['http://*?fd=3'], sile
 
 my $app = Test::Mojo->new(Dashboard => $dashboard_test->default_config)->app;
 $daemon->app($app);
-$app->log->level('debug');
+$app->log->level('warn');
 $dashboard_test->minimal_fixtures($app);
 
 $daemon->run;
