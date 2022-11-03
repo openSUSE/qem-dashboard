@@ -79,7 +79,6 @@ t.test('Test dashboard ui', skip, async t => {
 
   await t.test('Link to Smelt if there are no incidents', async t => {
     await page.goto(`${url}/deactivate_incidents`);
-    /* eslint-disable-no-await-in-loop */
     for (const path of ['/', '/blocked']) {
       await page.goto(url + path);
       await page.waitForSelector('.container');
