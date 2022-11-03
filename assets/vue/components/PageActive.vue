@@ -1,6 +1,6 @@
 <template>
   <div v-if="incidents === null"><i class="fas fa-sync fa-spin"></i> Loading incidents...</div>
-  <table class="table" v-else-if="incidents.length > 1">
+  <table class="table" v-else-if="incidents.length > 0">
     <thead>
       <tr>
         <th>Incident</th>
