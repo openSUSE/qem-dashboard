@@ -1,4 +1,4 @@
-use Mojo::Base -strict;
+use Mojo::Base -strict, -signatures;
 
 use FindBin;
 use lib "$FindBin::Bin/../lib";
@@ -16,6 +16,14 @@ my $daemon         = Mojo::Server::Daemon->new(listen => ['http://*?fd=3'], sile
 my $app = Test::Mojo->new(Dashboard => $dashboard_test->default_config)->app;
 $daemon->app($app);
 $app->log->level('warn');
+
+$app->routes->get(
+  '/deactivate_incidents' => sub ($c) {
+    $c->pg->db->query('update incidents set active = false');
+    $c->render(text => 'ok');
+  }
+);
+
 $dashboard_test->minimal_fixtures($app);
 
 $daemon->run;
