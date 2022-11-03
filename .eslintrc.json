@@ -25,6 +25,7 @@
     "no-continue": "off",
     "func-names": "off",
     "no-invalid-this": "off",
+    "no-await-in-loop": "off",
     "import/order": [
       "error",
       {
