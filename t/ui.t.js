@@ -75,6 +75,9 @@ t.test('Test dashboard ui', skip, async t => {
 
     await page.click('text=Active');
     t.equal(await page.innerText('title'), 'Active Incidents');
+
+    await page.goto(`${url}/incident/123`);
+    t.equal(await page.innerText('.container p'), 'Incident does not exist.');
   });
 
   await t.test('Link to Smelt if there are no incidents', async t => {

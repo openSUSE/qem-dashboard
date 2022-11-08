@@ -1,5 +1,6 @@
 <template>
-  <div v-if="incident">
+  <div v-if="exists === false"><p>Incident does not exist.</p></div>
+  <div v-else-if="exists === true">
     <div class="external-links" v-if="incident">
       <div class="smelt-link">
         <h4>Link to Smelt</h4>
@@ -41,6 +42,7 @@ export default {
   components: {RequestLink, SmeltLink, IncidentBuildSummary},
   data() {
     return {
+      exists: null,
       incident: null,
       summary: null,
       jobs: [],
@@ -77,10 +79,15 @@ export default {
        * chromium to keep the caches apart
        */
       const {details} = data;
-      this.incident = details.incident;
-      this.incident.buildNr = details.build_nr;
-      this.summary = details.incident_summary;
-      this.jobs = details.jobs;
+      if (details.incident === null) {
+        this.exists = false;
+      } else {
+        this.exists = true;
+        this.incident = details.incident;
+        this.incident.buildNr = details.build_nr;
+        this.summary = details.incident_summary;
+        this.jobs = details.jobs;
+      }
     }
   }
 };
