@@ -88,6 +88,41 @@ subtest 'JSON schema validation failed' => sub {
     }
   )->status_is(400);
   like $t->tx->res->json('/error'), qr/Incident does not match the JSON schema:.+/, 'right error';
+
+  $t->patch_ok(
+    '/api/incidents' => $auth_headers => json => [
+      {
+        number   => 16860,
+        project  => 'SUSE:Maintenance:16860',
+        packages =>
+          ['salt', 'cobbler', 'spacecmd', 'mgr-daemon', 'spacewalk-abrt', 'yum-rhn-plugin', 'spacewalk-client-tools'],
+        channels    => ['Test'],
+        rr_number   => undef,
+        inReview    => true,
+        inReviewQAM => [],
+        approved    => false,
+        emu         => true,
+        isActive    => true
+      }
+    ]
+  )->status_is(400);
+  like $t->tx->res->json('/error'), qr/Expected boolean - got array/, 'right error';
+
+  $t->patch_ok(
+    '/api/incidents/16862' => $auth_headers => json => {
+      number      => 16862,
+      project     => 'SUSE:Maintenance:16862',
+      packages    => ['perl-Mojo-Pg'],
+      channels    => ['Test3'],
+      rr_number   => 12345,
+      inReview    => false,
+      inReviewQAM => [],
+      approved    => false,
+      emu         => false,
+      isActive    => true
+    }
+  )->status_is(400);
+  like $t->tx->res->json('/error'), qr/Expected boolean - got array/, 'right error';
 };
 
 subtest 'Add incident' => sub {
