@@ -24,6 +24,11 @@ pull_request_rules:
         - base=main
         - "label=merge-fast"
     actions: *merge
+  - name: automatic merge for dependabot updates
+    conditions:
+      - and: *base_checks
+      - author~=^dependabot$
+    actions: *merge
   - name: ask to resolve conflict
     conditions:
       - conflict
