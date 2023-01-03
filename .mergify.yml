@@ -27,6 +27,10 @@ pull_request_rules:
   - name: automatic merge for dependabot updates
     conditions:
       - and: *base_checks
+      - and:
+        # mergify config checks needs at least two rules in "and" so we repeat
+        # one from the base checks
+        - base=main
       - author~=^dependabot$
     actions: *merge
   - name: ask to resolve conflict
