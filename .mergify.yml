@@ -32,6 +32,7 @@ pull_request_rules:
         # one from the base checks
         - base=main
         - author=dependabot[bot]
+        - "label=deps-waited"
     actions: *merge
   - name: ask to resolve conflict
     conditions:
@@ -39,3 +40,12 @@ pull_request_rules:
     actions:
       comment:
         message: This pull request is now in conflicts. Could you fix it? 🙏
+  - name: Wait for 2 days before validating merge
+    actions:
+      label:
+        add:
+          - deps-waited
+    conditions:
+      - and:
+          - updated-at<2 days ago
+          - author=dependabot[bot]
