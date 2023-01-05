@@ -33,7 +33,9 @@ pull_request_rules:
         - base=main
         - author=dependabot[bot]
         - "label=waited"
-    actions: *merge
+    actions:
+      merge:
+        method: squash
   - name: ask to resolve conflict
     conditions:
       - conflict
