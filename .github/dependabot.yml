@@ -7,4 +7,7 @@ updates:
     allow:
       # Allow both direct and indirect updates for all packages
       - dependency-type: "all"
-    open-pull-requests-limit: 4
+    open-pull-requests-limit: 15
+    labels:
+      - "waiting"
+      - "dependencies"
