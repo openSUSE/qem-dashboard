@@ -32,8 +32,10 @@ pull_request_rules:
         # one from the base checks
         - base=main
         - author=dependabot[bot]
-        - "label=deps-waited"
-    actions: *merge
+        - "label=waited"
+    actions:
+      merge:
+        method: squash
   - name: ask to resolve conflict
     conditions:
       - conflict
@@ -44,7 +46,9 @@ pull_request_rules:
     actions:
       label:
         add:
-          - deps-waited
+          - waited
+        remove:
+          - waiting
     conditions:
       - and:
           - updated-at<2 days ago
