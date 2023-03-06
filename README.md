@@ -58,6 +58,10 @@ For a local PostgreSQL instance with a username and password one could call:
 ```
 TEST_ONLINE=postgresql://postgres:postgres@localhost:5432/postgres prove -l t/*.t t/*.t.js
 ```
+### Further notes
+A containerized environment could be used to build and run the dashboard and its dependencies.
+For a concrete example, checkout the (so far) internal documentation under
+https://gitlab.suse.de/qsf-u/dev-dashboard.
 
 ## License
 
