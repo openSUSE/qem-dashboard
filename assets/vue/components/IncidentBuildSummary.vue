@@ -5,7 +5,7 @@
     </div>
     <div class="card-body text-left">
       <p v-for="group of interestingGroups" :key="group.build">
-        <a :href="group.link">{{ group.build }}</a>
+        <a :href="group.link" target="_blank">{{ group.build }}</a>
         -
         <span v-for="(element, index) in group.summary" :key="element">
           <span v-if="index != 0">, </span>
