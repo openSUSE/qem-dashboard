@@ -32,8 +32,10 @@
       </p>
     </div>
 
-    <h4>Aggregate Runs Including This Incident</h4>
-    <IncidentBuildSummary v-for="build in sortedBuilds" :key="build" :build="build" :jobs="jobs[build]" />
+    <div class="incident-aggregates" v-if="jobs.length">
+      <h4>Aggregate Runs Including This Incident</h4>
+      <IncidentBuildSummary v-for="build in sortedBuilds" :key="build" :build="build" :jobs="jobs[build]" />
+    </div>
   </div>
   <div v-else><i class="fas fa-sync fa-spin"></i> Loading incident...</div>
 </template>
