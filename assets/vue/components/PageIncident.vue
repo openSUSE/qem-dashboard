@@ -32,7 +32,7 @@
       </p>
     </div>
 
-    <div class="incident-aggregates" v-if="jobs.length">
+    <div class="incident-aggregates" v-if="!!sortedBuilds.length">
       <h4>Aggregate Runs Including This Incident</h4>
       <IncidentBuildSummary v-for="build in sortedBuilds" :key="build" :build="build" :jobs="jobs[build]" />
     </div>
