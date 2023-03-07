@@ -2,6 +2,14 @@
   <div v-if="exists === false"><p>Incident does not exist.</p></div>
   <div v-else-if="exists === true">
     <div class="external-links" v-if="incident">
+      <div class="packages">
+        <h4>Packages</h4>
+        <ul>
+          <li v-for="pkg in incident.packages" :key="pkg">
+            {{ pkg }}
+          </li>
+        </ul>
+      </div>
       <div class="smelt-link">
         <h4>Link to Smelt</h4>
         <p>

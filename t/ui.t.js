@@ -49,6 +49,7 @@ t.test('Test dashboard ui', skip, async t => {
 
     await page.click('text=16860:perl-Mojolicious');
     t.equal(page.url(), `${url}/incident/16860`);
+    t.match(await page.innerText('.packages ul'), /perl-Mojolicious/);
     t.equal(
       await page.locator('text=openqa').getAttribute('href'),
       'https://openqa.suse.de/tests/overview?build=%3A17063%3Aperl-Mojolicious'
