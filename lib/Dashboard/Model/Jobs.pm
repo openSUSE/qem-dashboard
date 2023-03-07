@@ -19,8 +19,7 @@ use Mojo::Base -base, -signatures;
 has [qw(days_to_keep_aggregates pg log)];
 
 sub add ($self, $job) {
-  my $db = $self->pg->db;
-  my $id = $db->query(
+  $self->pg->db->query(
     'INSERT INTO openqa_jobs (incident_settings, update_settings, name, job_group, job_id, group_id, status, distri,
       flavor, version, arch, build) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
      ON CONFLICT (distri, flavor, arch, version, build, name)
@@ -29,8 +28,7 @@ sub add ($self, $job) {
      RETURNING id', $job->{incident_settings}, $job->{update_settings}, $job->{name}, $job->{job_group},
     $job->{job_id}, $job->{group_id}, $job->{status}, $job->{distri}, $job->{flavor}, $job->{version}, $job->{arch},
     $job->{build}
-  )->hash->{id};
-  $self->log->info("Job added: $job->{job_id} (id: $id, name: $job->{name})");
+  );
 }
 
 # Disabled to test without cleanup in production
