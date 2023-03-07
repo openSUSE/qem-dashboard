@@ -38,9 +38,10 @@ sub blocked ($self) {
 sub build_nr ($self, $inc) {
   return undef
     unless my $settings = $self->pg->db->query(
-    'SELECT build FROM incident_openqa_settings ios JOIN openqa_jobs
-     oj ON oj.incident_settings=ios.id
-    WHERE incident=? limit 1', $inc->{id}
+    'SELECT build FROM incident_openqa_settings ios JOIN openqa_jobs oj ON oj.incident_settings = ios.id
+     WHERE incident = ?
+     ORDER BY updated DESC
+     LIMIT 1', $inc->{id}
   )->hash;
   return $settings->{build};
 }
