@@ -11,6 +11,13 @@
           id="inlineSearch"
           placeholder="Search for Incident/Package"
         />
+        <input
+          v-model="groupNames"
+          type="text"
+          class="form-control"
+          id="inlineSearch"
+          placeholder="Search for Group Names"
+        />
       </div>
       <div class="col-auto my-1">
         <div class="form-check">
@@ -34,6 +41,7 @@
           :incident-results="incident.incident_results"
           :update-results="incident.update_results"
           :group-flavors="groupFlavors"
+          :group-names="groupNames"
         />
       </tbody>
     </table>
@@ -54,21 +62,40 @@ export default {
       incidents: null,
       groupFlavors: true,
       matchText: '',
+      groupNames: '',
       refreshUrl: '/app/api/blocked'
     };
   },
   computed: {
     matchedIncidents() {
+      var results = [];
       if (this.matchText) {
-        return this.incidents.filter(incident => {
+        results = this.incidents.filter(incident => {
           if (String(incident.incident.number).includes(this.matchText)) return true;
           for (const pack of incident.incident.packages) {
             if (pack.includes(this.matchText)) return true;
           }
           return false;
         });
+      } else {
+        results = this.incidents;
       }
-      return this.incidents;
+      if (this.groupNames) {
+        return results.filter(incident => {
+          for (let key in incident.update_results) {
+            for (let groupName of this.groupNames.split(',')) {
+              if (groupName.toLowerCase() == incident.update_results[key].name.toLowerCase()) return true;
+            }
+          }
+          for (let key in incident.incident_results) {
+            for (let groupName of this.groupNames.split(',')) {
+              if (groupName.toLowerCase() == incident.incident_results[key].name.toLowerCase()) return true;
+            }
+          }
+          return false;
+        });
+      }
+      return results;
     },
     smelt() {
       return this.appConfig.smeltUrl;
