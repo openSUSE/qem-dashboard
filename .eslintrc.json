@@ -7,7 +7,7 @@
   "parserOptions": {
     "sourceType": "module"
   },
-  "extends": ["eslint:all", "plugin:vue/strongly-recommended", "prettier"],
+  "extends": ["eslint:recommended", "plugin:vue/strongly-recommended", "prettier"],
   "plugins": ["import", "prettier"],
   "rules": {
     "prettier/prettier": "error",

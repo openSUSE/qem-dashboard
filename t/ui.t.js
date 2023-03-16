@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import {UserAgent} from '@mojojs/core';
 import ServerStarter from '@mojolicious/server-starter';
 import {chromium} from 'playwright';
 import t from 'tap';
@@ -21,6 +22,10 @@ t.test('Test dashboard ui', skip, async t => {
       errorLogs.push(message.text());
     }
   });
+
+  // GitHub actions can be a bit flaky, so better wait for the server
+  const ua = new UserAgent();
+  await ua.get(url, {timeout: 10000}).catch(error => console.warn(error));
 
   await t.test('Navigation', async t => {
     await page.goto(url);
