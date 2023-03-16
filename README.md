@@ -1,5 +1,7 @@
 # QEM Dashboard
 
+[![Coverage Status](https://coveralls.io/repos/github/openSUSE/qem-dashboard/badge.svg?branch=main)](https://coveralls.io/github/openSUSE/qem-dashboard?branch=main)
+
 The QEM Dashboard is a graphical user interface addon for [qem-bot](https://github.com/openSUSE/qem-bot). It can show
 the current state for all incidents that are being processed. To help identify which tests are currently blocking
 which incidents.
