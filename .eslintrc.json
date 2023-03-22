@@ -11,21 +11,6 @@
   "plugins": ["import", "prettier"],
   "rules": {
     "prettier/prettier": "error",
-    "one-var": "off",
-    "require-unicode-regexp": "off",
-    "sort-keys": "off",
-    "id-length": "off",
-    "sort-imports": "off",
-    "no-magic-numbers": "off",
-    "no-shadow": "off",
-    "no-ternary": "off",
-    "prefer-named-capture-group": "off",
-    "max-lines-per-function": "off",
-    "max-statements": "off",
-    "no-continue": "off",
-    "func-names": "off",
-    "no-invalid-this": "off",
-    "no-await-in-loop": "off",
     "import/order": [
       "error",
       {
