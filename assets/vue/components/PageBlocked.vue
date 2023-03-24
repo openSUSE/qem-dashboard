@@ -9,14 +9,14 @@
           type="text"
           class="form-control"
           id="inlineSearch"
-          placeholder="Search for Incident/Package"
+          placeholder="Search for incident/package"
         />
         <input
           v-model="groupNames"
           type="text"
           class="form-control"
           id="inlineSearch"
-          placeholder="Search for Group Names"
+          placeholder="Search for group names"
         />
       </div>
       <div class="col-auto my-1">
@@ -68,7 +68,7 @@ export default {
   },
   computed: {
     matchedIncidents() {
-      var results = [];
+      let results = [];
       if (this.matchText) {
         results = this.incidents.filter(incident => {
           if (String(incident.incident.number).includes(this.matchText)) return true;
@@ -82,14 +82,15 @@ export default {
       }
       if (this.groupNames) {
         return results.filter(incident => {
-          for (let key in incident.update_results) {
-            for (let groupName of this.groupNames.split(',')) {
-              if (groupName.toLowerCase() == incident.update_results[key].name.toLowerCase()) return true;
+          const groupNamesList = this.groupNames.toLowerCase().split(',');
+          for (const key of Object.keys(incident.update_results)) {
+            for (const groupName of Object.values(groupNamesList)) {
+              if (groupName.toLowerCase() === incident.update_results[key].name.toLowerCase()) return true;
             }
           }
-          for (let key in incident.incident_results) {
-            for (let groupName of this.groupNames.split(',')) {
-              if (groupName.toLowerCase() == incident.incident_results[key].name.toLowerCase()) return true;
+          for (const key of Object.keys(incident.incident_results)) {
+            for (const groupName of Object.values(groupNamesList)) {
+              if (groupName.toLowerCase() === incident.incident_results[key].name.toLowerCase()) return true;
             }
           }
           return false;

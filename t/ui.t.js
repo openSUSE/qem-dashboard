@@ -69,7 +69,7 @@ t.test('Test dashboard ui', skip, async t => {
     t.match(await page.innerText('tbody tr:nth-of-type(1) td:nth-of-type(1) a'), /16860:perl-Mojolicious/);
     t.match(await page.innerText('tbody tr:nth-of-type(1) td:nth-of-type(2)'), /SLE 12 SP5 1/);
 
-    await page.fill('[placeholder="Search for Incident/Package"]', 'curl');
+    await page.fill('[placeholder="Search for incident/package"]', 'curl');
     t.equal(await list.count(), 0);
   });
 

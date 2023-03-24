@@ -47,16 +47,22 @@ export default {
     updateResultsGrouped() {
       if (!this.groupFlavors) return this.updateResults;
       const results = {};
+      const groupNamesList = this.groupNames.toLowerCase().split(',');
       for (const value of Object.values(this.updateResults)) {
         const {flavor} = value.linkinfo;
         const {version} = value.linkinfo;
         const {groupid} = value.linkinfo;
         const newkey = `${groupid}:${version}`;
-        if (this.groupNames.toLowerCase().split(',').includes(value.name.toLowerCase()) || this.groupNames == '') {
+        if (groupNamesList.includes(value.name.toLowerCase()) || this.groupNames === '') {
           if (!(newkey in results)) {
-            results[newkey] = {name: value.name, passed: 0, failed: 0, stopped: 0, waiting: 0};
-            results[newkey].linkinfo = value.linkinfo;
-            results[newkey].linkinfo.flavor = [];
+            results[newkey] = {
+              name: value.name,
+              passed: 0,
+              failed: 0,
+              stopped: 0,
+              waiting: 0,
+              linkinfo: {...value.linkinfo, flavor: []}
+            };
           }
           results[newkey].linkinfo.flavor.push(flavor);
           results[newkey].passed += value.passed || 0;
@@ -68,12 +74,13 @@ export default {
       return results;
     },
     incidentResultsGrouped() {
-      if (this.groupNames == '') {
+      if (this.groupNames === '') {
         return this.incidentResults;
       }
       const results = [];
+      const groupNamesList = this.groupNames.toLowerCase().split(',');
       for (const value of Object.values(this.incidentResults)) {
-        if (this.groupNames.toLowerCase().split(',').includes(value.name.toLowerCase())) {
+        if (groupNamesList.includes(value.name.toLowerCase())) {
           results.push(value);
         }
       }
