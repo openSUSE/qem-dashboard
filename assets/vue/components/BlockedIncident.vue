@@ -54,21 +54,19 @@ export default {
         const {groupid} = value.linkinfo;
         const newkey = `${groupid}:${version}`;
         if (groupNamesList.includes(value.name.toLowerCase()) || this.groupNames === '') {
-          if (!(newkey in results)) {
-            results[newkey] = {
-              name: value.name,
-              passed: 0,
-              failed: 0,
-              stopped: 0,
-              waiting: 0,
-              linkinfo: {...value.linkinfo, flavor: []}
-            };
-          }
-          results[newkey].linkinfo.flavor.push(flavor);
-          results[newkey].passed += value.passed || 0;
-          results[newkey].stopped += value.stopped || 0;
-          results[newkey].waiting += value.waiting || 0;
-          results[newkey].failed += value.failed || 0;
+          const res = (results[newkey] ||= {
+            name: value.name,
+            passed: 0,
+            failed: 0,
+            stopped: 0,
+            waiting: 0,
+            linkinfo: {...value.linkinfo, flavor: []}
+          });
+          res.linkinfo.flavor.push(flavor);
+          res.passed += value.passed || 0;
+          res.stopped += value.stopped || 0;
+          res.waiting += value.waiting || 0;
+          res.failed += value.failed || 0;
         }
       }
       return results;
