@@ -68,7 +68,7 @@ export default {
   },
   computed: {
     matchedIncidents() {
-      let results = [];
+      let results = this.incidents;
       if (this.matchText) {
         results = this.incidents.filter(incident => {
           if (String(incident.incident.number).includes(this.matchText)) return true;
@@ -77,12 +77,10 @@ export default {
           }
           return false;
         });
-      } else {
-        results = this.incidents;
       }
       if (this.groupNames) {
+        const groupNamesList = this.groupNames.toLowerCase().split(',');
         return results.filter(incident => {
-          const groupNamesList = this.groupNames.toLowerCase().split(',');
           for (const key of Object.keys(incident.update_results)) {
             for (const groupName of Object.values(groupNamesList)) {
               if (groupName.toLowerCase() === incident.update_results[key].name.toLowerCase()) return true;

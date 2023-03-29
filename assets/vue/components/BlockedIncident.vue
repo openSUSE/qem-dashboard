@@ -72,15 +72,11 @@ export default {
       return results;
     },
     incidentResultsGrouped() {
-      if (this.groupNames === '') {
-        return this.incidentResults;
-      }
+      if (this.groupNames === '') return this.incidentResults;
       const results = [];
       const groupNamesList = this.groupNames.toLowerCase().split(',');
       for (const value of Object.values(this.incidentResults)) {
-        if (groupNamesList.includes(value.name.toLowerCase())) {
-          results.push(value);
-        }
+        if (groupNamesList.includes(value.name.toLowerCase())) results.push(value);
       }
       return results;
     }
