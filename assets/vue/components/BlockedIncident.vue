@@ -54,7 +54,7 @@ export default {
         const {groupid} = value.linkinfo;
         const newkey = `${groupid}:${version}`;
         if (groupNamesList.includes(value.name.toLowerCase()) || this.groupNames === '') {
-          const res = (results[newkey] ||= {
+          const res = (results[newkey] = {
             name: value.name,
             passed: 0,
             failed: 0,
