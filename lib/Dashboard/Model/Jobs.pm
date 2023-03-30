@@ -48,7 +48,7 @@ sub add ($self, $job) {
 sub get ($self, $job_id) {
   return $self->pg->db->query(
     'SELECT incident_settings, update_settings, name, job_group, job_id, group_id, status, distri, flavor, version,
-       arch, build
+       arch, build, obsolete
      FROM openqa_jobs where job_id = ? LIMIT 1', $job_id
   )->hash;
 }
@@ -65,7 +65,8 @@ sub get_update_settings ($self, $update_settings) {
   return $self->pg->db->query(
     'SELECT incident_settings, update_settings, name, job_group, job_id, group_id, status, distri, flavor, version,
        arch, build
-     FROM openqa_jobs where update_settings = ?', $update_settings
+     FROM openqa_jobs
+     WHERE update_settings = ?', $update_settings
   )->hashes->to_array;
 }
 
@@ -74,6 +75,11 @@ sub latest_update ($self) {
     unless my $array
     = $self->pg->db->query('SELECT EXTRACT(EPOCH FROM updated) FROM openqa_jobs ORDER BY updated DESC LIMIT 1')->array;
   return $array->[0];
+}
+
+sub modify ($self, $job_id, $job_data) {
+  $self->pg->db->query('UPDATE openqa_jobs SET obsolete = coalesce(?, obsolete) WHERE job_id = ?',
+    $job_data->{obsolete}, $job_id);
 }
 
 sub update_result ($self, $id, $result) {

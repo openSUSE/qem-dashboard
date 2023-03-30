@@ -32,8 +32,8 @@ $dashboard_test->no_fixtures($t->app);
 my $auth_headers = {Authorization => 'Token test_token', Accept => 'application/json'};
 
 subtest 'Migrations' => sub {
-  is $t->app->pg->migrations->latest, 4, 'latest version';
-  is $t->app->pg->migrations->active, 4, 'active version';
+  is $t->app->pg->migrations->latest, 5, 'latest version';
+  is $t->app->pg->migrations->active, 5, 'active version';
 };
 
 subtest 'Unknown endpoint' => sub {
@@ -483,9 +483,54 @@ subtest 'Add openQA job' => sub {
       flavor            => 'Server-DVD-Incidents',
       arch              => 'x86_64',
       version           => '12-SP5',
-      build             => ':17063:wpa_supplicant'
+      build             => ':17063:wpa_supplicant',
+      obsolete          => false
     }
   );
+};
+
+subtest 'Modify openQA job' => sub {
+  $t->get_ok('/api/jobs/4953193' => $auth_headers)->status_is(200)->json_is(
+    {
+      incident_settings => 1,
+      update_settings   => 1,
+      name              => 'mau-webserver@64bit',
+      job_group         => 'Maintenance: SLE 12 SP5 Incidents',
+      status            => 'passed',
+      job_id            => 4953193,
+      group_id          => 282,
+      distri            => 'sle',
+      flavor            => 'Server-DVD-Incidents',
+      arch              => 'x86_64',
+      version           => '12-SP5',
+      build             => ':17063:wpa_supplicant',
+      obsolete          => false
+    }
+  );
+
+  $t->patch_ok('/api/jobs/4953193' => $auth_headers => json => {obsolete => true})->status_is(200)
+    ->json_is({message => 'Ok'});
+
+  $t->get_ok('/api/jobs/4953193' => $auth_headers)->status_is(200)->json_is(
+    {
+      incident_settings => 1,
+      update_settings   => 1,
+      name              => 'mau-webserver@64bit',
+      job_group         => 'Maintenance: SLE 12 SP5 Incidents',
+      status            => 'passed',
+      job_id            => 4953193,
+      group_id          => 282,
+      distri            => 'sle',
+      flavor            => 'Server-DVD-Incidents',
+      arch              => 'x86_64',
+      version           => '12-SP5',
+      build             => ':17063:wpa_supplicant',
+      obsolete          => true
+    }
+  );
+
+  $t->patch_ok('/api/jobs/4953193' => $auth_headers => json => {obsolete => 'whatever'})->status_is(400)
+    ->json_like('/error', qr/Expected boolean - got string/);
 };
 
 subtest 'Search update settings' => sub {

@@ -99,3 +99,6 @@ ALTER TABLE openqa_jobs ADD CONSTRAINT  openqa_jobs_update_settings_fkey FOREIGN
 ALTER TABLE openqa_jobs DROP CONSTRAINT openqa_jobs_incident_settings_fkey;
 ALTER TABLE openqa_jobs ADD CONSTRAINT  openqa_jobs_incident_settings_fkey FOREIGN KEY (incident_settings)
   REFERENCES incident_openqa_settings(id) ON DELETE CASCADE;
+
+--5 up
+ALTER TABLE openqa_jobs ADD COLUMN obsolete BOOLEAN DEFAULT FALSE;

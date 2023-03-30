@@ -67,6 +67,20 @@ sub incidents ($self) {
   $self->render(json => $job);
 }
 
+sub modify ($self) {
+  my $job_id = $self->param('job_id');
+
+  return $self->render(json => {error => 'Job in JSON format required'}, status => 400)
+    unless my $job_data = $self->req->json;
+
+  my $jv     = $self->schema({type => 'object', properties => {obsolete => {type => 'boolean'}}});
+  my @errors = $jv->validate($job_data);
+  return $self->render(json => {error => "Job does not match the JSON schema: @errors"}, status => 400) if @errors;
+
+  $self->jobs->modify($job_id, $job_data);
+  $self->render(json => {message => 'Ok'});
+}
+
 sub show ($self) {
   return $self->render(json => {error => 'Job not found'}, status => 400)
     unless my $job = $self->jobs->get($self->param('job_id'));

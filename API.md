@@ -430,7 +430,8 @@ None
   "flavor": "Server-DVD-Incidents",
   "arch": "x86_64",
   "version": "12-SP5",
-  "build": ":17063:wpa_supplicant"
+  "build": ":17063:wpa_supplicant",
+  "obsolete": false
 }
 ```
 
@@ -475,6 +476,34 @@ Content-Type: application/json
 }
 ```
 
+---
+
+`PATCH /api/jobs/<job_id>`
+
+Update job information that commonly changes during its lifetime.
+
+**Request parameters:**
+
+None
+
+**Request body:**
+
+```
+{
+  "obsolete": true
+}
+```
+
+**Response:**
+
+```
+HTTP/1.1 200 OK
+Content-Length: 123
+Content-Type: application/json
+{
+  "message": "Ok"
+}
+```
 
 ---
 

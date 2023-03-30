@@ -130,6 +130,7 @@ sub startup ($self) {
   $api->get('/update_settings')->to('API::Settings#search_update_settings');
   $api->put('/update_settings')->to('API::Settings#add_update_settings');
   $api->get('/jobs/<job_id:num>')->to('API::Jobs#show');
+  $api->patch('/jobs/<job_id:num>')->to('API::Jobs#modify');
   $api->put('/jobs')->to('API::Jobs#add');
   $api->get('/jobs/incident/<incident_settings:num>')->to('API::Jobs#incidents');
   $api->get('/jobs/update/<update_settings:num>')->to('API::Jobs#updates');
