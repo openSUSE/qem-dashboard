@@ -2,23 +2,6 @@
   <div v-if="incidents === null"><i class="fas fa-sync fa-spin"></i> Loading incidents...</div>
   <div v-else-if="incidents.length > 0">
     <div class="row align-items-center">
-      <div class="col-sm-3 my-1">
-        <label class="sr-only" for="inlineFormInputName">Name</label>
-        <input
-          v-model="matchText"
-          type="text"
-          class="form-control"
-          id="inlineSearch"
-          placeholder="Search for incident/package"
-        />
-        <input
-          v-model="groupNames"
-          type="text"
-          class="form-control"
-          id="inlineSearch"
-          placeholder="Search for group names"
-        />
-      </div>
       <div class="col-auto my-1">
         <div class="form-check">
           <input class="form-check-input" type="checkbox" id="checkbox" v-model="groupFlavors" />
@@ -29,8 +12,28 @@
     <table class="table">
       <thead>
         <tr>
-          <th>Incident</th>
-          <th>Groups</th>
+          <th>
+            Incident
+            <input
+              v-model="matchText"
+              type="text"
+              class="form-control"
+              id="inlineSearch"
+              title="Partial incident# or package name are matched"
+              placeholder="Search for incident/package"
+            />
+          </th>
+          <th>
+            Groups
+            <input
+              v-model="groupNames"
+              type="text"
+              class="form-control"
+              id="inlineSearch"
+              title="Only exact, comma separated, job group names are matched"
+              placeholder="Search for group names"
+            />
+          </th>
         </tr>
       </thead>
       <tbody>
