@@ -25,9 +25,17 @@ my $app = Test::Mojo->new(Dashboard => $dashboard_test->default_config)->app;
 $daemon->app($app);
 $app->log->level('warn');
 
-$app->routes->get(
+my $r = $app->routes;
+$r->get(
   '/deactivate_incidents' => sub ($c) {
-    $c->pg->db->query('update incidents set active = false');
+    $c->pg->db->query('UPDATE incidents SET active = false');
+    $c->render(text => 'ok');
+  }
+);
+
+$r->get(
+  '/obsolete_jobs' => sub ($c) {
+    $c->pg->db->query('UPDATE openqa_jobs SET obsolete = true WHERE job_id = 4953194');
     $c->render(text => 'ok');
   }
 );

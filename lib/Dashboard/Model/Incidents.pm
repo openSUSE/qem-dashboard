@@ -83,14 +83,12 @@ sub openqa_summary_only_aggregates ($self, $inc) {
 
 sub openqa_summary_only_incident ($self, $inc) {
   my $res = $self->pg->db->query(
-    'SELECT oj.status,count(oj.id) FROM incident_openqa_settings ios JOIN openqa_jobs
-            oj ON oj.incident_settings=ios.id  WHERE incident=? group by oj.status', $inc->{id}
+    'SELECT oj.status, count(oj.id)
+     FROM incident_openqa_settings ios JOIN openqa_jobs oj ON oj.incident_settings=ios.id
+     WHERE incident = ? AND oj.obsolete = false
+     GROUP BY oj.status', $inc->{id}
   )->hashes;
-  my %ret;
-  for my $row ($res->each) {
-    $ret{$row->{status}} = $row->{count};
-  }
-  return \%ret;
+  return {map { $_->{status} => $_->{count} } $res->each};
 }
 
 sub incident_for_number ($self, $number) {
