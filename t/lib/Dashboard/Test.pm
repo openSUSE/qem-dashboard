@@ -352,19 +352,18 @@ sub no_fixtures ($self, $app) {
 }
 
 sub postgres_url ($self) {
-  return Mojo::URL->new($self->{options}{online})->query([search_path => [$self->{options}{schema}, 'public']])
-    ->to_unsafe_string;
+  return Mojo::URL->new($self->{options}{online})->query([search_path => [$self->{options}{schema}]])->to_unsafe_string;
 }
 
 sub _prepare_schema ($self, $name) {
 
   # Isolate tests
   my $pg = $self->{pg};
-  $pg->db->query("drop schema if exists $name cascade");
-  $pg->db->query("create schema $name");
+  $pg->db->query("DROP SCHEMA IF EXISTS $name CASCADE");
+  $pg->db->query("CREATE SCHEMA $name");
 
   # Clean up once we are done
-  return scope_guard sub { $pg->db->query("drop schema $name cascade") };
+  return scope_guard sub { $pg->db->query("DROP SCHEMA $name CASCADE") };
 }
 
 1;
