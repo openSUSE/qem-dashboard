@@ -18,7 +18,7 @@
               v-model="matchText"
               type="text"
               class="form-control"
-              id="inlineSearch"
+              id="inlineSearchIncidents"
               title="Partial incident# or package name are matched"
               placeholder="Search for incident/package"
             />
@@ -29,7 +29,7 @@
               v-model="groupNames"
               type="text"
               class="form-control"
-              id="inlineSearch"
+              id="inlineSearchGroups"
               title="Only exact, comma separated, job group names are matched"
               placeholder="Search for group names"
             />
@@ -86,12 +86,12 @@ export default {
         return results.filter(incident => {
           for (const key of Object.keys(incident.update_results)) {
             for (const groupName of Object.values(groupNamesList)) {
-              if (groupName.toLowerCase() === incident.update_results[key].name.toLowerCase()) return true;
+              if (groupName === incident.update_results[key].name.toLowerCase()) return true;
             }
           }
           for (const key of Object.keys(incident.incident_results)) {
             for (const groupName of Object.values(groupNamesList)) {
-              if (groupName.toLowerCase() === incident.incident_results[key].name.toLowerCase()) return true;
+              if (groupName === incident.incident_results[key].name.toLowerCase()) return true;
             }
           }
           return false;
