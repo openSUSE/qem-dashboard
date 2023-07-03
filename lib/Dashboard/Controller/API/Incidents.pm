@@ -21,7 +21,8 @@ use Mojo::JSON qw(true false);
 my $INCIDENT_SPEC = {
   type     => 'object',
   required => [
-    'number', 'project', 'packages', 'channels', 'rr_number', 'inReview', 'inReviewQAM', 'approved', 'emu', 'isActive'
+    'number',      'project',  'packages', 'channels', 'rr_number', 'inReview',
+    'inReviewQAM', 'approved', 'emu',      'isActive', 'embargoed'
   ],
   properties => {
     number      => {type  => 'integer', minimum => 1},
@@ -33,7 +34,8 @@ my $INCIDENT_SPEC = {
     inReviewQAM => {type  => 'boolean'},
     approved    => {type  => 'boolean'},
     emu         => {type  => 'boolean'},
-    isActive    => {type  => 'boolean'}
+    isActive    => {type  => 'boolean'},
+    embargoed   => {type  => 'boolean'}
   }
 };
 
@@ -75,7 +77,7 @@ sub update ($self) {
 
 sub _fix_booleans ($incidents) {
   for my $incident (@$incidents) {
-    for my $field (qw(approved emu isActive inReview inReviewQAM)) {
+    for my $field (qw(approved emu isActive inReview inReviewQAM embargoed)) {
       $incident->{$field} = $incident->{$field} ? true : false;
     }
   }

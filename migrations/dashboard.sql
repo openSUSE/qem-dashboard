@@ -102,3 +102,6 @@ ALTER TABLE openqa_jobs ADD CONSTRAINT  openqa_jobs_incident_settings_fkey FOREI
 
 --5 up
 ALTER TABLE openqa_jobs ADD COLUMN obsolete BOOLEAN DEFAULT FALSE;
+
+--6 up
+ALTER TABLE incidents ADD COLUMN embargoed BOOLEAN DEFAULT FALSE;
