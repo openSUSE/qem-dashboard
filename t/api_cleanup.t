@@ -96,7 +96,8 @@ subtest 'Clean up jobs after rr_number change (during sync)' => sub {
         inReviewQAM => true,
         approved    => false,
         emu         => true,
-        isActive    => true
+        isActive    => true,
+        embargoed   => true
       }
     ]
   )->status_is(200)->json_is({message => 'Ok'});
@@ -129,7 +130,8 @@ subtest 'Clean up jobs after rr_number change (during sync)' => sub {
         inReviewQAM => true,
         approved    => false,
         emu         => true,
-        isActive    => true
+        isActive    => true,
+        embargoed   => false
       }
     ]
   )->status_is(200)->json_is({message => 'Ok'});

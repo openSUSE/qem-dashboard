@@ -48,10 +48,10 @@ sub build_nr ($self, $inc) {
 
 sub find ($self, $options = {}) {
   my $incidents = $self->pg->db->query(
-    'SELECT number, project, packages, rr_number, review, review_qam, approved, emu, ARRAY_AGG(c.name) as channels
+    'SELECT number, project, packages, rr_number, review, review_qam, approved, emu, embargoed, ARRAY_AGG(c.name) as channels
      FROM incidents i INNER JOIN incident_channels ic ON ic.incident = i.id INNER JOIN channels c ON ic.channel = c.id
      WHERE number = COALESCE(?, number) AND active = TRUE
-     GROUP BY number, project, packages, rr_number, review, review_qam, approved, emu, active ORDER BY number',
+     GROUP BY number, project, packages, rr_number, review, review_qam, approved, emu, active, embargoed ORDER BY number',
     $options->{number}
   )->hashes->to_array;
   @{$_}{qw(isActive inReview inReviewQAM)} = (1, delete $_->{review}, delete $_->{review_qam}) for @$incidents;
@@ -255,9 +255,10 @@ sub _update ($self, $db, $incident) {
   my ($id, $rr_number) = ($row->{id}, $row->{rr_number} // 0);
 
   $db->query(
-    'UPDATE incidents SET packages = ?, rr_number = ?, review = ?, review_qam = ?, approved = ?, emu = ?, active = ?
-       WHERE id = ?', $incident->{packages}, $incident->{rr_number}, $incident->{inReview}, $incident->{inReviewQAM},
-    $incident->{approved}, $incident->{emu}, $incident->{isActive}, $id
+    'UPDATE incidents SET packages = ?, rr_number = ?, review = ?, review_qam = ?, approved = ?, emu = ?, active = ?,
+       embargoed = ? WHERE id = ?', $incident->{packages}, $incident->{rr_number}, $incident->{inReview},
+    $incident->{inReviewQAM}, $incident->{approved}, $incident->{emu}, $incident->{isActive}, $incident->{embargoed},
+    $id
   );
 
   # Remove old jobs after release request number changed (because incidents might be reused)

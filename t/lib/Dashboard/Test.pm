@@ -71,6 +71,7 @@ sub minimal_fixtures ($self, $app) {
         inReviewQAM => true,
         approved    => false,
         emu         => true,
+        embargoed   => true,
         isActive    => true
       },
       {
@@ -83,6 +84,7 @@ sub minimal_fixtures ($self, $app) {
         inReviewQAM => true,
         approved    => false,
         emu         => true,
+        embargoed   => true,
         isActive    => true
       },
       {
@@ -95,6 +97,7 @@ sub minimal_fixtures ($self, $app) {
         inReviewQAM => true,
         approved    => true,
         emu         => true,
+        embargoed   => true,
         isActive    => true
       }
     ]

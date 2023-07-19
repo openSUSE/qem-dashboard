@@ -91,7 +91,8 @@ Content-Type: application/json
     "inReviewQAM": true,
     "approved": false,
     "emu": true,
-    "isActive": true
+    "isActive": true,
+    "embargoed": false
   },
   ...
 ]
@@ -127,7 +128,8 @@ Content-Type: application/json
   "inReviewQAM": true,
   "approved": false,
   "emu": true,
-  "isActive": true
+  "isActive": true,
+  "embargoed": false
 }
 ```
 
@@ -155,7 +157,8 @@ None
     "inReviewQAM": true,
     "approved": false,
     "emu": true,
-    "isActive": true
+    "isActive": true,
+    "embargoed": false
   },
   ...
 ]
@@ -193,7 +196,8 @@ None
   "inReviewQAM": true,
   "approved": false,
   "emu": true,
-  "isActive": true
+  "isActive": true,
+  "embargoed": false
 }
 ```
 
@@ -509,7 +513,6 @@ Content-Type: application/json
 
 `GET /api/jobs/incident/<incident_settings>`
 
-
 Get openQA jobs by incident_settings.
 
 **Request parameters:**
@@ -542,11 +545,9 @@ None
 ]
 ```
 
-
 ---
 
 `GET /api/jobs/update/<update_settings>`
-
 
 Get openQA jobs by update_settings.
 

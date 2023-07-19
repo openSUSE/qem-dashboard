@@ -32,8 +32,8 @@ $dashboard_test->no_fixtures($t->app);
 my $auth_headers = {Authorization => 'Token test_token', Accept => 'application/json'};
 
 subtest 'Migrations' => sub {
-  is $t->app->pg->migrations->latest, 5, 'latest version';
-  is $t->app->pg->migrations->active, 5, 'active version';
+  is $t->app->pg->migrations->latest, 6, 'latest version';
+  is $t->app->pg->migrations->active, 6, 'active version';
 };
 
 subtest 'Unknown endpoint' => sub {
@@ -67,7 +67,8 @@ subtest 'JSON schema validation failed' => sub {
         inReviewQAM => true,
         approved    => false,
         emu         => true,
-        isActive    => true
+        isActive    => true,
+        embargoed   => true
       }
     ]
   )->status_is(400);
@@ -84,7 +85,8 @@ subtest 'JSON schema validation failed' => sub {
       inReviewQAM => true,
       approved    => false,
       emu         => true,
-      isActive    => true
+      isActive    => true,
+      embargoed   => false
     }
   )->status_is(400);
   like $t->tx->res->json('/error'), qr/Incident does not match the JSON schema:.+/, 'right error';
@@ -102,7 +104,8 @@ subtest 'JSON schema validation failed' => sub {
         inReviewQAM => [],
         approved    => false,
         emu         => true,
-        isActive    => true
+        isActive    => true,
+        embargoed   => false
       }
     ]
   )->status_is(400);
@@ -119,7 +122,8 @@ subtest 'JSON schema validation failed' => sub {
       inReviewQAM => [],
       approved    => false,
       emu         => false,
-      isActive    => true
+      isActive    => true,
+      embargoed   => false
     }
   )->status_is(400);
   like $t->tx->res->json('/error'), qr/Expected boolean - got array/, 'right error';
@@ -139,7 +143,8 @@ subtest 'Add incident' => sub {
         inReviewQAM => true,
         approved    => false,
         emu         => true,
-        isActive    => true
+        isActive    => true,
+        embargoed   => false
       }
     ]
   )->status_is(200)->json_is({message => 'Ok'});
@@ -157,7 +162,8 @@ subtest 'Add incident' => sub {
         inReviewQAM => true,
         approved    => false,
         emu         => true,
-        isActive    => true
+        isActive    => true,
+        embargoed   => false
       }
     ]
   );
@@ -174,7 +180,8 @@ subtest 'Add incident' => sub {
       inReviewQAM => true,
       approved    => false,
       emu         => true,
-      isActive    => true
+      isActive    => true,
+      embargoed   => false
     }
   );
   $t->get_ok('/api/incidents/1' => $auth_headers)->status_is(404)->json_is({error => 'Incident not found'});
@@ -193,7 +200,8 @@ subtest 'Update incident' => sub {
         inReviewQAM => false,
         approved    => false,
         emu         => false,
-        isActive    => true
+        isActive    => true,
+        embargoed   => true
       }
     ]
   )->status_is(200)->json_is({message => 'Ok'});
@@ -210,7 +218,8 @@ subtest 'Update incident' => sub {
         inReviewQAM => false,
         approved    => false,
         emu         => false,
-        isActive    => true
+        isActive    => true,
+        embargoed   => true
       }
     ]
   );
@@ -226,7 +235,8 @@ subtest 'Update incident' => sub {
       inReviewQAM => false,
       approved    => false,
       emu         => false,
-      isActive    => true
+      isActive    => true,
+      embargoed   => true
     }
   );
   $t->get_ok('/api/incidents/1' => $auth_headers)->status_is(404)->json_is({error => 'Incident not found'});
@@ -245,7 +255,8 @@ subtest 'Obsolete incident' => sub {
         inReviewQAM => false,
         approved    => false,
         emu         => false,
-        isActive    => true
+        isActive    => true,
+        embargoed   => false
       }
     ]
   )->status_is(200)->json_is({message => 'Ok'});
@@ -262,7 +273,8 @@ subtest 'Obsolete incident' => sub {
         inReviewQAM => false,
         approved    => false,
         emu         => false,
-        isActive    => true
+        isActive    => true,
+        embargoed   => false
       }
     ]
   );
@@ -278,7 +290,8 @@ subtest 'Obsolete incident' => sub {
       inReviewQAM => false,
       approved    => false,
       emu         => false,
-      isActive    => true
+      isActive    => true,
+      embargoed   => false
     }
   );
   $t->get_ok('/api/incidents/16860' => $auth_headers)->status_is(404)->json_is({error => 'Incident not found'});
@@ -296,7 +309,8 @@ subtest 'Update individual incidents' => sub {
       inReviewQAM => false,
       approved    => false,
       emu         => false,
-      isActive    => true
+      isActive    => true,
+      embargoed   => false
     }
   )->status_is(200)->json_is({message => 'Ok'});
 
@@ -311,7 +325,8 @@ subtest 'Update individual incidents' => sub {
       inReviewQAM => false,
       approved    => false,
       emu         => false,
-      isActive    => true
+      isActive    => true,
+      embargoed   => false
     }
   );
   $t->get_ok('/api/incidents/16862' => $auth_headers)->status_is(200)->json_is(
@@ -325,7 +340,8 @@ subtest 'Update individual incidents' => sub {
       inReviewQAM => false,
       approved    => false,
       emu         => false,
-      isActive    => true
+      isActive    => true,
+      embargoed   => false
     }
   );
 
@@ -340,7 +356,8 @@ subtest 'Update individual incidents' => sub {
       inReviewQAM => false,
       approved    => false,
       emu         => false,
-      isActive    => true
+      isActive    => true,
+      embargoed   => true
     }
   )->status_is(200)->json_is({message => 'Ok'});
 
@@ -356,7 +373,8 @@ subtest 'Update individual incidents' => sub {
         inReviewQAM => false,
         approved    => false,
         emu         => false,
-        isActive    => true
+        isActive    => true,
+        embargoed   => false
       },
       {
         number      => 16862,
@@ -368,7 +386,8 @@ subtest 'Update individual incidents' => sub {
         inReviewQAM => false,
         approved    => false,
         emu         => false,
-        isActive    => true
+        isActive    => true,
+        embargoed   => true
       }
     ]
   );
@@ -384,7 +403,8 @@ subtest 'Update individual incidents' => sub {
       inReviewQAM => false,
       approved    => false,
       emu         => false,
-      isActive    => false
+      isActive    => false,
+      embargoed   => false
     }
   )->status_is(200)->json_is({message => 'Ok'});
   $t->get_ok('/api/incidents/16862' => $auth_headers)->status_is(404)->json_is({error => 'Incident not found'});
@@ -743,7 +763,8 @@ subtest 'Authentication' => sub {
         inReviewQAM => true,
         approved    => false,
         emu         => true,
-        isActive    => true
+        isActive    => true,
+        embargoed   => true
       }
     ]
   )->status_is(403)->json_is({error => 'Permission denied'});
@@ -760,7 +781,8 @@ subtest 'Authentication' => sub {
         inReviewQAM => true,
         approved    => false,
         emu         => true,
-        isActive    => true
+        isActive    => true,
+        embargoed   => false
       }
     ]
   )->status_is(200)->json_is({message => 'Ok'});
