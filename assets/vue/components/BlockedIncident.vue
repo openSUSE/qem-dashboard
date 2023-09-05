@@ -25,6 +25,7 @@
 </template>
 
 <script>
+import * as Filtering from '../helpers/filtering.js';
 import BlockedIncidentIncResult from './BlockedIncidentIncResult.vue';
 import BlockedIncidentUpdResult from './BlockedIncidentUpdResult.vue';
 import IncidentLink from './IncidentLink.vue';
@@ -47,13 +48,13 @@ export default {
     updateResultsGrouped() {
       if (!this.groupFlavors) return this.updateResults;
       const results = {};
-      const groupNamesList = this.groupNames.toLowerCase().split(',');
+      const filters = Filtering.makeGroupNamesFilters(this.groupNames);
       for (const value of Object.values(this.updateResults)) {
         const {flavor} = value.linkinfo;
         const {version} = value.linkinfo;
         const {groupid} = value.linkinfo;
         const newkey = `${groupid}:${version}`;
-        if (groupNamesList.includes(value.name.toLowerCase()) || this.groupNames === '') {
+        if (this.groupNames === '' || Filtering.checkResult(value, filters)) {
           const res = (results[newkey] = {
             name: value.name,
             passed: 0,
@@ -74,9 +75,9 @@ export default {
     incidentResultsGrouped() {
       if (this.groupNames === '') return this.incidentResults;
       const results = [];
-      const groupNamesList = this.groupNames.toLowerCase().split(',');
+      const filters = Filtering.makeGroupNamesFilters(this.groupNames);
       for (const value of Object.values(this.incidentResults)) {
-        if (groupNamesList.includes(value.name.toLowerCase())) results.push(value);
+        if (Filtering.checkResult(value, filters)) results.push(value);
       }
       return results;
     }
