@@ -359,6 +359,7 @@ sub postgres_url ($self) {
 }
 
 sub _prepare_schema ($self, $name) {
+  return undef unless $name;
 
   # Isolate tests
   my $pg = $self->{pg};
