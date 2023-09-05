@@ -30,7 +30,7 @@
               type="text"
               class="form-control"
               id="inlineSearchGroups"
-              title="Only exact, comma separated, job group names are matched"
+              title="Comma separated, job group names are matched, supports regex syntax"
               placeholder="Search for group names"
             />
           </th>
@@ -53,6 +53,7 @@
 </template>
 
 <script>
+import * as filtering from '../helpers/filtering.js';
 import Refresh from '../mixins/refresh.js';
 import BlockedIncident from './BlockedIncident.vue';
 
@@ -82,20 +83,12 @@ export default {
         });
       }
       if (this.groupNames) {
-        const groupNamesList = this.groupNames.toLowerCase().split(',');
-        return results.filter(incident => {
-          for (const key of Object.keys(incident.update_results)) {
-            for (const groupName of Object.values(groupNamesList)) {
-              if (groupName === incident.update_results[key].name.toLowerCase()) return true;
-            }
-          }
-          for (const key of Object.keys(incident.incident_results)) {
-            for (const groupName of Object.values(groupNamesList)) {
-              if (groupName === incident.incident_results[key].name.toLowerCase()) return true;
-            }
-          }
-          return false;
-        });
+        const filters = filtering.makeGroupNamesFilters(this.groupNames);
+        return results.filter(
+          incident =>
+            filtering.checkResults(incident.update_results, filters) ||
+            filtering.checkResults(incident.incident_results, filters)
+        );
       }
       return results;
     },
