@@ -77,21 +77,40 @@ t.test('Test dashboard ui', skip, async t => {
     t.equal(await list.count(), 1);
     t.match(await page.innerText('tbody tr:nth-of-type(1) td:nth-of-type(1) a'), /16860:perl-Mojolicious/);
     t.match(await page.innerText('tbody tr:nth-of-type(1) td:nth-of-type(2)'), /SLE 12 SP5 1/);
+    const pageUrl = await page.url();
+    t.notMatch(pageUrl, /incident/);
+    t.notMatch(pageUrl, /group_names/);
+    t.notMatch(pageUrl, /group_flavors/);
 
     await page.fill('[placeholder="Search for incident/package"]', 'curl');
     t.equal(await list.count(), 0);
+    t.match(await page.url(), /incident=curl/);
 
     await page.fill('[placeholder="Search for incident/package"]', 'perl');
     t.match(await page.innerText('tbody tr:nth-of-type(1) td:nth-of-type(2)'), /SLE 12 SP5 Kernel/);
     t.equal(await list.count(), 1);
+    t.notMatch(await page.url(), /incident=curl/);
+    t.match(await page.url(), /incident=perl/);
 
-    await page.fill('[placeholder="Search for group names"]', 'SLE');
+    await page.fill('[placeholder="Search for group names"]', 'SLE$');
     t.equal(await list.count(), 0);
 
     await page.fill('[placeholder="Search for group names"]', 'SLE 12 SP5');
     t.match(await page.innerText('tbody tr:nth-of-type(1) td:nth-of-type(2)'), /SLE 12 SP5/);
+    t.match(await page.innerText('tbody tr:nth-of-type(1) td:nth-of-type(2)'), /SLE 12 SP5 Kernel/);
+    t.equal(await list.count(), 1);
+    t.match(await page.url(), /incident=perl/);
+    t.match(await page.url(), /group_names=SLE\+12\+SP5/);
+
+    await page.fill('[placeholder="Search for group names"]', 'SLE 12 SP5$');
+    t.match(await page.innerText('tbody tr:nth-of-type(1) td:nth-of-type(2)'), /SLE 12 SP5/);
     t.notMatch(await page.innerText('tbody tr:nth-of-type(1) td:nth-of-type(2)'), /SLE 12 SP5 Kernel/);
     t.equal(await list.count(), 1);
+
+    await page.goto(`${url}/blocked?incident=foo&group_flavors=0&group_names=bar`);
+    t.equal(await page.getByPlaceholder('Search for incident/package').inputValue(), 'foo');
+    t.equal(await page.getByPlaceholder('Search for group names').inputValue(), 'bar');
+    t.ok(!(await page.getByLabel('Group Flavors').isChecked()));
   });
 
   await t.test('Incident popup', async t => {

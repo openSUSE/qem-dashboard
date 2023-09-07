@@ -30,7 +30,7 @@
               type="text"
               class="form-control"
               id="inlineSearchGroups"
-              title="Only exact, comma separated, job group names are matched"
+              title="Comma separated, job group names are matched, supports regex syntax"
               placeholder="Search for group names"
             />
           </th>
@@ -53,6 +53,7 @@
 </template>
 
 <script>
+import * as filtering from '../helpers/filtering.js';
 import Refresh from '../mixins/refresh.js';
 import BlockedIncident from './BlockedIncident.vue';
 
@@ -63,16 +64,19 @@ export default {
   data() {
     return {
       incidents: null,
-      groupFlavors: true,
-      matchText: '',
-      groupNames: '',
+      groupFlavors: this.$route.query.group_flavors !== '0',
+      matchText: this.$route.query.incident || '',
+      groupNames: this.$route.query.group_names || '',
       refreshUrl: '/app/api/blocked'
     };
   },
   computed: {
     matchedIncidents() {
+      const url = new URL(location);
+      const searchParams = url.searchParams;
       let results = this.incidents;
       if (this.matchText) {
+        searchParams.set('incident', this.matchText);
         results = this.incidents.filter(incident => {
           if (String(incident.incident.number).includes(this.matchText)) return true;
           for (const pack of incident.incident.packages) {
@@ -80,23 +84,21 @@ export default {
           }
           return false;
         });
+      } else {
+        searchParams.delete('incident');
       }
       if (this.groupNames) {
-        const groupNamesList = this.groupNames.toLowerCase().split(',');
-        return results.filter(incident => {
-          for (const key of Object.keys(incident.update_results)) {
-            for (const groupName of Object.values(groupNamesList)) {
-              if (groupName === incident.update_results[key].name.toLowerCase()) return true;
-            }
-          }
-          for (const key of Object.keys(incident.incident_results)) {
-            for (const groupName of Object.values(groupNamesList)) {
-              if (groupName === incident.incident_results[key].name.toLowerCase()) return true;
-            }
-          }
-          return false;
-        });
+        url.searchParams.set('group_names', this.groupNames);
+        const filters = filtering.makeGroupNamesFilters(this.groupNames);
+        results = results.filter(
+          incident =>
+            filtering.checkResults(incident.update_results, filters) ||
+            filtering.checkResults(incident.incident_results, filters)
+        );
+      } else {
+        searchParams.delete('group_names');
       }
+      history.pushState({}, '', url);
       return results;
     },
     smelt() {
@@ -106,6 +108,14 @@ export default {
   methods: {
     refreshData(data) {
       this.incidents = data.blocked;
+    }
+  },
+  watch: {
+    groupFlavors: function (enabled) {
+      const url = new URL(location);
+      const params = url.searchParams;
+      enabled ? params.delete('group_flavors') : params.set('group_flavors', '0');
+      history.pushState({}, '', url);
     }
   }
 };
