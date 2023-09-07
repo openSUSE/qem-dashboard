@@ -46,7 +46,6 @@ export default {
   },
   computed: {
     updateResultsGrouped() {
-      if (!this.groupFlavors) return this.updateResults;
       const results = {};
       const filters = filtering.makeGroupNamesFilters(this.groupNames);
       for (const value of Object.values(this.updateResults)) {
