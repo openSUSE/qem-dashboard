@@ -46,6 +46,7 @@ export default {
   },
   computed: {
     updateResultsGrouped() {
+      if (this.groupFlavors === false) return this.updateResults;
       const results = {};
       const filters = filtering.makeGroupNamesFilters(this.groupNames);
       for (const value of Object.values(this.updateResults)) {
@@ -54,14 +55,17 @@ export default {
         const {groupid} = value.linkinfo;
         const newkey = `${groupid}:${version}`;
         if (this.groupNames === '' || filtering.checkResult(value, filters)) {
-          const res = (results[newkey] = {
-            name: value.name,
-            passed: 0,
-            failed: 0,
-            stopped: 0,
-            waiting: 0,
-            linkinfo: {...value.linkinfo, flavor: []}
-          });
+          if (results[newkey] === undefined) {
+            results[newkey] = {
+              name: value.name,
+              passed: 0,
+              failed: 0,
+              stopped: 0,
+              waiting: 0,
+              linkinfo: {...value.linkinfo, flavor: []}
+            };
+          }
+          const res = results[newkey];
           res.linkinfo.flavor.push(flavor);
           res.passed += value.passed || 0;
           res.stopped += value.stopped || 0;
