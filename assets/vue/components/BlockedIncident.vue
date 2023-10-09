@@ -25,10 +25,10 @@
 </template>
 
 <script>
-import * as filtering from '../helpers/filtering.js';
 import BlockedIncidentIncResult from './BlockedIncidentIncResult.vue';
 import BlockedIncidentUpdResult from './BlockedIncidentUpdResult.vue';
 import IncidentLink from './IncidentLink.vue';
+import * as filtering from '../helpers/filtering.js';
 
 export default {
   name: 'BlockedIncident',
