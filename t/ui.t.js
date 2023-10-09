@@ -47,10 +47,12 @@ t.test('Test dashboard ui', skip, async t => {
     await page.goto(url);
     t.match(await page.innerText('tbody tr:nth-of-type(1) td:nth-of-type(1) a'), /16860:perl-Mojolicious/);
     t.match(await page.innerText('tbody tr:nth-of-type(1) td:nth-of-type(2) span'), /testing/);
-    t.match(await page.innerText('tbody tr:nth-of-type(2) td:nth-of-type(1) a'), /16861:perl-Minion/);
-    t.match(await page.innerText('tbody tr:nth-of-type(2) td:nth-of-type(2) span'), /staged/);
-    t.match(await page.innerText('tbody tr:nth-of-type(3) td:nth-of-type(1) a'), /16862:curl/);
-    t.match(await page.innerText('tbody tr:nth-of-type(3) td:nth-of-type(2) span'), /approved/);
+    t.match(await page.innerText('tbody tr:nth-of-type(2) td:nth-of-type(1) a'), /29722:multipath-tools/);
+    t.match(await page.innerText('tbody tr:nth-of-type(2) td:nth-of-type(2) span'), /testing/);
+    t.match(await page.innerText('tbody tr:nth-of-type(3) td:nth-of-type(1) a'), /16861:perl-Minion/);
+    t.match(await page.innerText('tbody tr:nth-of-type(3) td:nth-of-type(2) span'), /staged/);
+    t.match(await page.innerText('tbody tr:nth-of-type(4) td:nth-of-type(1) a'), /16862:curl/);
+    t.match(await page.innerText('tbody tr:nth-of-type(4) td:nth-of-type(2) span'), /approved/);
   });
 
   await t.test('Incicdent details', async t => {
@@ -74,7 +76,7 @@ t.test('Test dashboard ui', skip, async t => {
     await page.goto(`${url}/blocked`);
     await page.waitForSelector('tbody');
     const list = page.locator('tbody > tr');
-    t.equal(await list.count(), 1);
+    t.equal(await list.count(), 2);
     t.match(await page.innerText('tbody tr:nth-of-type(1) td:nth-of-type(1) a'), /16860:perl-Mojolicious/);
     t.match(await page.innerText('tbody tr:nth-of-type(1) td:nth-of-type(2)'), /SLE 12 SP5 1/);
     const pageUrl = await page.url();
@@ -111,6 +113,26 @@ t.test('Test dashboard ui', skip, async t => {
     t.equal(await page.getByPlaceholder('Search for incident/package').inputValue(), 'foo');
     t.equal(await page.getByPlaceholder('Search for group names').inputValue(), 'bar');
     t.ok(!(await page.getByLabel('Group Flavors').isChecked()));
+  });
+
+  await t.test('Group blocked', async t => {
+    await page.goto(`${url}/blocked`);
+    await page.waitForSelector('tbody');
+    t.match(await page.innerText('tbody tr:nth-of-type(2) td:nth-of-type(1) a'), /29722:multipath-tools/);
+    t.match(await page.innerText('tbody tr:nth-of-type(2) td:nth-of-type(2)'), /SAP\/HA Maintenance 1\/5/);
+
+    await page.getByLabel('Group Flavors').uncheck();
+    await page.waitForSelector('tbody');
+    t.match(await page.innerText('tbody tr:nth-of-type(2) td:nth-of-type(1) a'), /29722:multipath-tools/);
+    t.match(
+      await page.innerText('tbody tr:nth-of-type(2) td:nth-of-type(2)'),
+      /SAP\/HA Maintenance 1\/3.+SAP\/HA Maintenance 2/s
+    );
+
+    await page.getByLabel('Group Flavors').check();
+    await page.waitForSelector('tbody');
+    t.match(await page.innerText('tbody tr:nth-of-type(2) td:nth-of-type(1) a'), /29722:multipath-tools/);
+    t.match(await page.innerText('tbody tr:nth-of-type(2) td:nth-of-type(2)'), /SAP\/HA Maintenance 1\/5/);
   });
 
   await t.test('Incident popup', async t => {

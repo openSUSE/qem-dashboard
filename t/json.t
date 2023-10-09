@@ -71,6 +71,28 @@ subtest 'List incidents' => sub {
         "packages"    => ["curl"],
         "project"     => "SUSE:Maintenance:16862",
         "rr_number"   => undef
+      },
+      {
+        "approved" => 0,
+        "channels" => [
+          "SUSE:Updates:openSUSE-SLE:15.4",                       "SUSE:Updates:SLE-Module-Basesystem:15-SP4:x86_64",
+          "SUSE:Updates:SLE-Module-Basesystem:15-SP4:s390x",      "SUSE:Updates:SLE-Module-Basesystem:15-SP4:aarch64",
+          "SUSE:Updates:SLE-Module-Basesystem:15-SP4:ppc64le",    "SUSE:SLE-15-SP4:Update",
+          "SUSE:Updates:SLE-Product-SLES:15-SP4-TERADATA:x86_64", "SUSE:Updates:SLE-Micro:5.3:x86_64",
+          "SUSE:Updates:SLE-Micro:5.3:aarch64",                   "SUSE:Updates:SLE-Micro:5.3:s390x",
+          "SUSE:Updates:openSUSE-Leap-Micro:5.3",                 "SUSE:Updates:SLE-Micro:5.4:x86_64",
+          "SUSE:Updates:SLE-Micro:5.4:s390x",                     "SUSE:Updates:SLE-Micro:5.4:aarch64",
+          "SUSE:Updates:openSUSE-Leap-Micro:5.4"
+        ],
+        "embargoed"   => 0,
+        "emu"         => 0,
+        "inReview"    => 1,
+        "inReviewQAM" => 1,
+        "isActive"    => 1,
+        "number"      => 29722,
+        "packages"    => ["multipath-tools"],
+        "project"     => "SUSE:Maintenance:29722 ",
+        "rr_number"   => 302772
       }
     ]
   );
@@ -82,11 +104,11 @@ subtest 'Blocked by Tests' => sub {
   $t->get_ok('/app/api/blocked' => {Accept => 'application/json'})->status_is(200)->json_has('/last_updated')->json_is(
     '/blocked' => [
       {
-        incident => {
+        "incident" => {
           "active"     => 1,
           "approved"   => 0,
-          "emu"        => 1,
           "embargoed"  => 1,
+          "emu"        => 1,
           "id"         => 1,
           "number"     => 16860,
           "packages"   => ["perl-Mojolicious"],
@@ -95,7 +117,7 @@ subtest 'Blocked by Tests' => sub {
           "review_qam" => 1,
           "rr_number"  => 230066
         },
-        incident_results => {
+        "incident_results" => {
           "282" => {
             "linkinfo" => {"build" => ":17063:perl-Mojolicious", "distri" => "sle", "groupid" => 282},
             "name"     => "SLE 12 SP5",
@@ -112,7 +134,7 @@ subtest 'Blocked by Tests' => sub {
             "name"     => "SLE 12 SP4"
           }
         },
-        update_results => {
+        "update_results" => {
           "54 Server-DVD-Incidents 12-SP5" => {
             "linkinfo" => {
               "build"   => "20201108-1",
@@ -123,6 +145,47 @@ subtest 'Blocked by Tests' => sub {
             },
             "name"    => "SLE 12 SP5",
             "waiting" => 1
+          }
+        }
+      },
+      {
+        "incident" => {
+          "active"     => 1,
+          "approved"   => 0,
+          "embargoed"  => 0,
+          "emu"        => 0,
+          "id"         => 4,
+          "number"     => 29722,
+          "packages"   => ["multipath-tools"],
+          "project"    => "SUSE:Maintenance:29722 ",
+          "review"     => 1,
+          "review_qam" => 1,
+          "rr_number"  => 302772
+        },
+        "incident_results" => {},
+        "update_results"   => {
+          "405 SAP-DVD-Updates 15-SP4" => {
+            "failed"   => 1,
+            "linkinfo" => {
+              "build"   => "20230712-1",
+              "distri"  => "sle",
+              "flavor"  => "SAP-DVD-Updates",
+              "groupid" => 405,
+              "version" => "15-SP4"
+            },
+            "name"   => "SAP/HA Maintenance",
+            "passed" => 2
+          },
+          "405 Server-DVD-HA-Updates 15-SP4" => {
+            "linkinfo" => {
+              "build"   => "20230709-1",
+              "distri"  => "sle",
+              "flavor"  => "Server-DVD-HA-Updates",
+              "groupid" => 405,
+              "version" => "15-SP4"
+            },
+            "name"   => "SAP/HA Maintenance",
+            "passed" => 2
           }
         }
       }

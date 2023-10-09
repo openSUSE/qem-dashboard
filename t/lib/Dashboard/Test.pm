@@ -99,7 +99,29 @@ sub minimal_fixtures ($self, $app) {
         emu         => true,
         embargoed   => true,
         isActive    => true
-      }
+      },
+      {
+        number   => 29722,
+        project  => 'SUSE:Maintenance:29722 ',
+        packages => ['multipath-tools'],
+        channels => [
+          'SUSE:Updates:openSUSE-SLE:15.4',                       'SUSE:Updates:SLE-Module-Basesystem:15-SP4:x86_64',
+          'SUSE:Updates:SLE-Module-Basesystem:15-SP4:s390x',      'SUSE:Updates:SLE-Module-Basesystem:15-SP4:aarch64',
+          'SUSE:Updates:SLE-Module-Basesystem:15-SP4:ppc64le',    'SUSE:SLE-15-SP4:Update',
+          'SUSE:Updates:SLE-Product-SLES:15-SP4-TERADATA:x86_64', 'SUSE:Updates:SLE-Micro:5.3:x86_64',
+          'SUSE:Updates:SLE-Micro:5.3:aarch64',                   'SUSE:Updates:SLE-Micro:5.3:s390x',
+          'SUSE:Updates:openSUSE-Leap-Micro:5.3',                 'SUSE:Updates:SLE-Micro:5.4:x86_64',
+          'SUSE:Updates:SLE-Micro:5.4:s390x',                     'SUSE:Updates:SLE-Micro:5.4:aarch64',
+          'SUSE:Updates:openSUSE-Leap-Micro:5.4'
+        ],
+        rr_number   => 302772,
+        inReview    => true,
+        inReviewQAM => true,
+        approved    => false,
+        emu         => false,
+        embargoed   => false,
+        isActive    => true
+      },
     ]
   );
 
@@ -346,6 +368,124 @@ sub minimal_fixtures ($self, $app) {
       arch              => 'x86_64',
       version           => '12-SP5',
       build             => '20201108-1'
+    }
+  );
+
+  # Aggregate with failed and passed jobs
+  my $settings_multi_one_id = $settings->add_update_settings(
+    [$incidents->id_for_number(29722)],
+    {
+      incident => 29722,
+      product  => 'SAP-15-SP4',
+      build    => '20230712-1',
+      arch     => 'x86_64',
+      repohash => 'c4b3ffa55d4ea7cba6cde4fc3edd1d55',
+      settings => {
+        ARCH     => 'x86_64',
+        BUILD    => '20230712-1',
+        DISTRI   => 'sle',
+        FLAVOR   => 'SAP-DVD-Updates',
+        VERSION  => '15-SP4',
+        REPOHASH => 'c4b3ffa55d4ea7cba6cde4fc3edd1d55'
+      }
+    }
+  );
+  $jobs->add(
+    {
+      incident_settings => undef,
+      update_settings   => $settings_multi_one_id,
+      name              => 'sle-15-SP4-SAP-DVD-Updates-x86_64-Build20230712-1-qam-create_hdd_sles4sap_gnome@64bit',
+      job_group         => 'SAP/HA Maintenance Updates',
+      status            => 'passed',
+      job_id            => 11559697,
+      group_id          => 405,
+      distri            => 'sle',
+      flavor            => 'SAP-DVD-Updates',
+      arch              => 'x86_64',
+      version           => '15-SP4',
+      build             => '20230712-1'
+    }
+  );
+  $jobs->add(
+    {
+      incident_settings => undef,
+      update_settings   => $settings_multi_one_id,
+      name              => 'sle-15-SP4-SAP-DVD-Updates-x86_64-Build20230712-1-qam-sles4sap_scc_gnome_netweaver@64bit',
+      job_group         => 'SAP/HA Maintenance Updates',
+      status            => 'passed',
+      job_id            => 11559696,
+      group_id          => 405,
+      distri            => 'sle',
+      flavor            => 'SAP-DVD-Updates',
+      arch              => 'x86_64',
+      version           => '15-SP4',
+      build             => '20230712-1'
+    }
+  );
+  $jobs->add(
+    {
+      incident_settings => undef,
+      update_settings   => $settings_multi_one_id,
+      name      => 'sle-15-SP4-SAP-DVD-Updates-x86_64-Build20230712-1-qam_sles4sap_wmp_hana_node01@64bit-sap-qam',
+      job_group => 'SAP/HA Maintenance Updates',
+      status    => 'failed',
+      job_id    => 11559373,
+      group_id  => 405,
+      distri    => 'sle',
+      flavor    => 'SAP-DVD-Updates',
+      arch      => 'x86_64',
+      version   => '15-SP4',
+      build     => '20230712-1'
+    }
+  );
+  my $settings_multi_two_id = $settings->add_update_settings(
+    [$incidents->id_for_number(29722)],
+    {
+      incident => 29722,
+      product  => 'HA15SP4',
+      build    => '20230709-1',
+      arch     => 'x86_64',
+      repohash => '3a006173b17fa83685ae9d74b1881d8a',
+      settings => {
+        ARCH     => 'x86_64',
+        BUILD    => '20230709-1',
+        DISTRI   => 'sle',
+        FLAVOR   => 'Server-DVD-HA-Updates',
+        VERSION  => '15-SP4',
+        REPOHASH => '3a006173b17fa83685ae9d74b1881d8a'
+      }
+    }
+  );
+  $jobs->add(
+    {
+      incident_settings => undef,
+      update_settings   => $settings_multi_two_id,
+      name              => 'sle-15-SP4-Server-DVD-HA-Updates-x86_64-Build20230709-1-ha_qnetd_server@64bit',
+      job_group         => 'SAP/HA Maintenance Updates',
+      status            => 'passed',
+      job_id            => 11548759,
+      group_id          => 405,
+      distri            => 'sle',
+      flavor            => 'Server-DVD-HA-Updates',
+      arch              => 'x86_64',
+      version           => '15-SP4',
+      build             => '20230712-1'
+    }
+  );
+  $jobs->add(
+    {
+      incident_settings => undef,
+      update_settings   => $settings_multi_two_id,
+      name              => 'sle-15-SP4-Server-DVD-HA-Updates-x86_64-Build20230709-1-ha_qdevice_node2@64bit',
+      job_group         => 'SAP/HA Maintenance Updates',
+      status            => 'passed',
+      job_id            => 9179106,
+      group_id          => 405,
+      distri            => 'sle',
+      flavor            => 'Server-DVD-HA-Updates',
+      arch              => 'x86_64',
+      version           => '15-SP4',
+      build             => '20230712-1'
     }
   );
 }
