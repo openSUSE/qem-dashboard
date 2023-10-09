@@ -17,9 +17,9 @@
 </template>
 
 <script>
-import Refresh from '../mixins/refresh.js';
 import RepoIncidentDialog from './RepoIncidentDialog.vue';
 import RepoLine from './RepoLine.vue';
+import Refresh from '../mixins/refresh.js';
 import {Modal} from 'bootstrap';
 
 export default {

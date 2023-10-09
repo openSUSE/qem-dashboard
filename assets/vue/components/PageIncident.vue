@@ -41,10 +41,10 @@
 </template>
 
 <script>
-import Refresh from '../mixins/refresh.js';
 import IncidentBuildSummary from './IncidentBuildSummary.vue';
 import RequestLink from './RequestLink.vue';
 import SmeltLink from './SmeltLink.vue';
+import Refresh from '../mixins/refresh.js';
 
 export default {
   name: 'PageIncident',

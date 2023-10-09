@@ -53,9 +53,9 @@
 </template>
 
 <script>
+import BlockedIncident from './BlockedIncident.vue';
 import * as filtering from '../helpers/filtering.js';
 import Refresh from '../mixins/refresh.js';
-import BlockedIncident from './BlockedIncident.vue';
 
 export default {
   name: 'PageBlocked',

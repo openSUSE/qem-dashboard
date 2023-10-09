@@ -30,8 +30,8 @@
 </template>
 
 <script>
-import Refresh from '../mixins/refresh.js';
 import IncidentLink from './IncidentLink.vue';
+import Refresh from '../mixins/refresh.js';
 
 export default {
   name: 'PageActive',
