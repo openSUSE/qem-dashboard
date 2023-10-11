@@ -43,6 +43,7 @@ jobs:
           cpanm -n --installdeps .
           cpanm -n Test::Deep
           cpanm -n Devel::Cover::Report::Coveralls
+          npx playwright install
       - name: Run tests
         env:
           TEST_ONLINE: postgresql://postgres:postgres@localhost:5432/postgres
