@@ -32,6 +32,7 @@ export default {
           searchParams.append('flavor', flavor);
         });
       }
+      searchParams.delete('distri');
       return `${this.appConfig.openqaUrl}?${searchParams.toString()}`;
     },
     stopped() {
