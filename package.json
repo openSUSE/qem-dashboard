@@ -35,7 +35,7 @@
     "json5": "^2.2.3",
     "mini-css-extract-plugin": "^2.7.2",
     "moment": "^2.29.4",
-    "playwright": "^1.38.1",
+    "playwright": "^1.39.0",
     "prettier": "^3.0.3",
     "sass": "^1.69.4",
     "sass-loader": "^13.3.2",
