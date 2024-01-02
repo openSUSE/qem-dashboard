@@ -65,7 +65,7 @@ const config = {
     new MiniCssExtractPlugin({filename: isDev ? '[name].development.css' : '[name].[contenthash].css'}),
     new VueLoaderPlugin(),
     new webpack.DefinePlugin({
-      __VUE_PROD_DEVTOOLS__: JSON.stringify(false)
+      __VUE_PROD_DEVTOOLS__: JSON.stringify(isDev)
     })
   ]
 };
