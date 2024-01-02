@@ -62,6 +62,9 @@ const config = {
       patterns: [{from: './node_modules/@fortawesome/fontawesome-free/webfonts', to: './webfonts'}]
     }),
     new MiniCssExtractPlugin({filename: isDev ? '[name].development.css' : '[name].[contenthash].css'}),
+    new webpack.DefinePlugin({
+        __VUE_PROD_DEVTOOLS__: JSON.stringify(false)
+    }),
     new VueLoaderPlugin()
   ]
 };
