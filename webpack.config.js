@@ -4,6 +4,7 @@ import OptimizeCSSAssetsPlugin from 'css-minimizer-webpack-plugin';
 import MiniCssExtractPlugin from 'mini-css-extract-plugin';
 import TerserPlugin from 'terser-webpack-plugin';
 import {VueLoaderPlugin} from 'vue-loader';
+import webpack from 'webpack';
 
 const assetsDir = process.env.WEBPACK_ASSETS_DIR || Path.currentFile().sibling('assets').toString();
 const isDev = process.env.NODE_ENV !== 'production';
@@ -62,7 +63,10 @@ const config = {
       patterns: [{from: './node_modules/@fortawesome/fontawesome-free/webfonts', to: './webfonts'}]
     }),
     new MiniCssExtractPlugin({filename: isDev ? '[name].development.css' : '[name].[contenthash].css'}),
-    new VueLoaderPlugin()
+    new VueLoaderPlugin(),
+    new webpack.DefinePlugin({
+      __VUE_PROD_DEVTOOLS__: JSON.stringify(false)
+    })
   ]
 };
 
