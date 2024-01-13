@@ -20,7 +20,7 @@
     "@mojojs/core": "^1.26.3",
     "@mojojs/path": "^1.6.0",
     "@mojolicious/server-starter": "^2.1.2",
-    "axios": "^1.6.3",
+    "axios": "^1.6.5",
     "babel-loader": "^9.1.2",
     "bootstrap": "^5.2.2",
     "copy-webpack-plugin": "^11.0.0",
