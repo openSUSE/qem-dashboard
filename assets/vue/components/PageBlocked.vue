@@ -5,7 +5,7 @@
       <div class="col-auto my-1">
         <div class="form-check">
           <input class="form-check-input" type="checkbox" id="checkbox" v-model="groupFlavors" />
-          <label class="form-check-label" for="checkbox"> Group Flavors </label>
+          <label class="form-check-label" for="checkbox"> Group Flavors</label>
         </div>
       </div>
     </div>
