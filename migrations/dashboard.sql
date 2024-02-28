@@ -105,3 +105,6 @@ ALTER TABLE openqa_jobs ADD COLUMN obsolete BOOLEAN DEFAULT FALSE;
 
 --6 up
 ALTER TABLE incidents ADD COLUMN embargoed BOOLEAN DEFAULT FALSE;
+
+--7 up
+ALTER TABLE incidents ADD COLUMN priority INTEGER;

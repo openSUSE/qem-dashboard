@@ -35,7 +35,8 @@ my $INCIDENT_SPEC = {
     approved    => {type  => 'boolean'},
     emu         => {type  => 'boolean'},
     isActive    => {type  => 'boolean'},
-    embargoed   => {type  => 'boolean'}
+    embargoed   => {type  => 'boolean'},
+    priority    => {anyOf => [{type => 'integer'}, {type => 'null'}]},
   }
 };
 
