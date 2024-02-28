@@ -94,7 +94,7 @@ subtest 'List incidents' => sub {
         "isActive"    => 1,
         "number"      => 29722,
         "packages"    => ["multipath-tools"],
-        "priority"    => undef,
+        "priority"    => 100,
         "project"     => "SUSE:Maintenance:29722 ",
         "rr_number"   => 302772
       }
@@ -162,7 +162,7 @@ subtest 'Blocked by Tests' => sub {
           "id"         => 4,
           "number"     => 29722,
           "packages"   => ["multipath-tools"],
-          "priority"   => undef,
+          "priority"   => 100,
           "project"    => "SUSE:Maintenance:29722 ",
           "review"     => 1,
           "review_qam" => 1,

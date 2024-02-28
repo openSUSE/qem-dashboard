@@ -99,7 +99,7 @@ export default {
         searchParams.delete('group_names');
       }
       history.pushState({}, '', url);
-      return results;
+      return results.sort((a, b) => (b.incident.priority || 0) - (a.incident.priority || 0));
     },
     smelt() {
       return this.appConfig.smeltUrl;

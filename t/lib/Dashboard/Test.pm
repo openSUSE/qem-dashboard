@@ -124,7 +124,7 @@ sub minimal_fixtures ($self, $app) {
         emu         => false,
         embargoed   => false,
         isActive    => true,
-        priority    => undef,
+        priority    => 100,      # highest priority; supposed to show first on "Blocked" page
       },
     ]
   );
