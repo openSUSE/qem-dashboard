@@ -63,7 +63,7 @@ TEST_ONLINE=postgresql://postgres:postgres@localhost:5432/postgres prove -l t/*.
 ### Further notes
 A containerized environment could be used to build and run the dashboard and its dependencies.
 For a concrete example, checkout the (so far) internal documentation under
-https://gitlab.suse.de/qsf-u/dev-dashboard.
+https://gitlab.suse.de/qe-core/dev-dashboard.
 
 ## License
 
