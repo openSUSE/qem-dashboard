@@ -149,7 +149,7 @@ subtest 'Add incident' => sub {
         emu         => true,
         isActive    => true,
         embargoed   => false,
-        priority    => undef,
+        priority    => 123,
       }
     ]
   )->status_is(200)->json_is({message => 'Ok'});
@@ -169,7 +169,7 @@ subtest 'Add incident' => sub {
         emu         => true,
         isActive    => true,
         embargoed   => false,
-        priority    => undef,
+        priority    => 123,
       }
     ]
   );
@@ -188,7 +188,7 @@ subtest 'Add incident' => sub {
       emu         => true,
       isActive    => true,
       embargoed   => false,
-      priority    => undef,
+      priority    => 123,
     }
   );
   $t->get_ok('/api/incidents/1' => $auth_headers)->status_is(404)->json_is({error => 'Incident not found'});
@@ -209,7 +209,7 @@ subtest 'Update incident' => sub {
         emu         => false,
         isActive    => true,
         embargoed   => true,
-        priority    => undef,
+        priority    => 456,
       }
     ]
   )->status_is(200)->json_is({message => 'Ok'});
@@ -228,7 +228,7 @@ subtest 'Update incident' => sub {
         emu         => false,
         isActive    => true,
         embargoed   => true,
-        priority    => undef,
+        priority    => 456,
       }
     ]
   );
@@ -246,7 +246,7 @@ subtest 'Update incident' => sub {
       emu         => false,
       isActive    => true,
       embargoed   => true,
-      priority    => undef,
+      priority    => 456,
     }
   );
   $t->get_ok('/api/incidents/1' => $auth_headers)->status_is(404)->json_is({error => 'Incident not found'});
