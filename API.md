@@ -92,7 +92,8 @@ Content-Type: application/json
     "approved": false,
     "emu": true,
     "isActive": true,
-    "embargoed": false
+    "embargoed": false,
+    "priority": 500
   },
   ...
 ]
@@ -129,7 +130,8 @@ Content-Type: application/json
   "approved": false,
   "emu": true,
   "isActive": true,
-  "embargoed": false
+  "embargoed": false,
+  "priority": 500
 }
 ```
 
@@ -158,7 +160,8 @@ None
     "approved": false,
     "emu": true,
     "isActive": true,
-    "embargoed": false
+    "embargoed": false,
+    "priority": 500
   },
   ...
 ]
@@ -197,7 +200,8 @@ None
   "approved": false,
   "emu": true,
   "isActive": true,
-  "embargoed": false
+  "embargoed": false,
+  "priority": 500
 }
 ```
 

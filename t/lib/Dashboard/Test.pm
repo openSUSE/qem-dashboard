@@ -72,7 +72,8 @@ sub minimal_fixtures ($self, $app) {
         approved    => false,
         emu         => true,
         embargoed   => true,
-        isActive    => true
+        isActive    => true,
+        priority    => undef,
       },
       {
         number      => 16861,
@@ -85,7 +86,8 @@ sub minimal_fixtures ($self, $app) {
         approved    => false,
         emu         => true,
         embargoed   => true,
-        isActive    => true
+        isActive    => true,
+        priority    => undef,
       },
       {
         number      => 16862,
@@ -98,7 +100,8 @@ sub minimal_fixtures ($self, $app) {
         approved    => true,
         emu         => true,
         embargoed   => true,
-        isActive    => true
+        isActive    => true,
+        priority    => undef,
       },
       {
         number   => 29722,
@@ -120,7 +123,8 @@ sub minimal_fixtures ($self, $app) {
         approved    => false,
         emu         => false,
         embargoed   => false,
-        isActive    => true
+        isActive    => true,
+        priority    => 100,      # highest priority; supposed to show first on "Blocked" page
       },
     ]
   );

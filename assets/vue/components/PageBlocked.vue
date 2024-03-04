@@ -5,7 +5,7 @@
       <div class="col-auto my-1">
         <div class="form-check">
           <input class="form-check-input" type="checkbox" id="checkbox" v-model="groupFlavors" />
-          <label class="form-check-label" for="checkbox"> Group Flavors </label>
+          <label class="form-check-label" for="checkbox"> Group Flavors</label>
         </div>
       </div>
     </div>
@@ -99,7 +99,7 @@ export default {
         searchParams.delete('group_names');
       }
       history.pushState({}, '', url);
-      return results;
+      return results.sort((a, b) => (b.incident.priority || 0) - (a.incident.priority || 0));
     },
     smelt() {
       return this.appConfig.smeltUrl;

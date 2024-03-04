@@ -97,7 +97,8 @@ subtest 'Clean up jobs after rr_number change (during sync)' => sub {
         approved    => false,
         emu         => true,
         isActive    => true,
-        embargoed   => true
+        embargoed   => true,
+        priority    => undef,
       }
     ]
   )->status_is(200)->json_is({message => 'Ok'});
@@ -131,7 +132,8 @@ subtest 'Clean up jobs after rr_number change (during sync)' => sub {
         approved    => false,
         emu         => true,
         isActive    => true,
-        embargoed   => false
+        embargoed   => false,
+        priority    => undef,
       }
     ]
   )->status_is(200)->json_is({message => 'Ok'});

@@ -32,8 +32,8 @@ $dashboard_test->no_fixtures($t->app);
 my $auth_headers = {Authorization => 'Token test_token', Accept => 'application/json'};
 
 subtest 'Migrations' => sub {
-  is $t->app->pg->migrations->latest, 6, 'latest version';
-  is $t->app->pg->migrations->active, 6, 'active version';
+  is $t->app->pg->migrations->latest, 7, 'latest version';
+  is $t->app->pg->migrations->active, 7, 'active version';
 };
 
 subtest 'Unknown endpoint' => sub {
@@ -68,7 +68,8 @@ subtest 'JSON schema validation failed' => sub {
         approved    => false,
         emu         => true,
         isActive    => true,
-        embargoed   => true
+        embargoed   => true,
+        priority    => undef,
       }
     ]
   )->status_is(400);
@@ -86,7 +87,8 @@ subtest 'JSON schema validation failed' => sub {
       approved    => false,
       emu         => true,
       isActive    => true,
-      embargoed   => false
+      embargoed   => false,
+      priority    => undef,
     }
   )->status_is(400);
   like $t->tx->res->json('/error'), qr/Incident does not match the JSON schema:.+/, 'right error';
@@ -105,7 +107,8 @@ subtest 'JSON schema validation failed' => sub {
         approved    => false,
         emu         => true,
         isActive    => true,
-        embargoed   => false
+        embargoed   => false,
+        priority    => undef,
       }
     ]
   )->status_is(400);
@@ -123,7 +126,8 @@ subtest 'JSON schema validation failed' => sub {
       approved    => false,
       emu         => false,
       isActive    => true,
-      embargoed   => false
+      embargoed   => false,
+      priority    => undef,
     }
   )->status_is(400);
   like $t->tx->res->json('/error'), qr/Expected boolean - got array/, 'right error';
@@ -144,7 +148,8 @@ subtest 'Add incident' => sub {
         approved    => false,
         emu         => true,
         isActive    => true,
-        embargoed   => false
+        embargoed   => false,
+        priority    => 123,
       }
     ]
   )->status_is(200)->json_is({message => 'Ok'});
@@ -163,7 +168,8 @@ subtest 'Add incident' => sub {
         approved    => false,
         emu         => true,
         isActive    => true,
-        embargoed   => false
+        embargoed   => false,
+        priority    => 123,
       }
     ]
   );
@@ -181,7 +187,8 @@ subtest 'Add incident' => sub {
       approved    => false,
       emu         => true,
       isActive    => true,
-      embargoed   => false
+      embargoed   => false,
+      priority    => 123,
     }
   );
   $t->get_ok('/api/incidents/1' => $auth_headers)->status_is(404)->json_is({error => 'Incident not found'});
@@ -201,7 +208,8 @@ subtest 'Update incident' => sub {
         approved    => false,
         emu         => false,
         isActive    => true,
-        embargoed   => true
+        embargoed   => true,
+        priority    => 456,
       }
     ]
   )->status_is(200)->json_is({message => 'Ok'});
@@ -219,7 +227,8 @@ subtest 'Update incident' => sub {
         approved    => false,
         emu         => false,
         isActive    => true,
-        embargoed   => true
+        embargoed   => true,
+        priority    => 456,
       }
     ]
   );
@@ -236,7 +245,8 @@ subtest 'Update incident' => sub {
       approved    => false,
       emu         => false,
       isActive    => true,
-      embargoed   => true
+      embargoed   => true,
+      priority    => 456,
     }
   );
   $t->get_ok('/api/incidents/1' => $auth_headers)->status_is(404)->json_is({error => 'Incident not found'});
@@ -274,7 +284,8 @@ subtest 'Obsolete incident' => sub {
         approved    => false,
         emu         => false,
         isActive    => true,
-        embargoed   => false
+        embargoed   => false,
+        priority    => undef,
       }
     ]
   );
@@ -291,7 +302,8 @@ subtest 'Obsolete incident' => sub {
       approved    => false,
       emu         => false,
       isActive    => true,
-      embargoed   => false
+      embargoed   => false,
+      priority    => undef,
     }
   );
   $t->get_ok('/api/incidents/16860' => $auth_headers)->status_is(404)->json_is({error => 'Incident not found'});
@@ -310,7 +322,8 @@ subtest 'Update individual incidents' => sub {
       approved    => false,
       emu         => false,
       isActive    => true,
-      embargoed   => false
+      embargoed   => false,
+      priority    => undef,
     }
   )->status_is(200)->json_is({message => 'Ok'});
 
@@ -326,7 +339,8 @@ subtest 'Update individual incidents' => sub {
       approved    => false,
       emu         => false,
       isActive    => true,
-      embargoed   => false
+      embargoed   => false,
+      priority    => undef,
     }
   );
   $t->get_ok('/api/incidents/16862' => $auth_headers)->status_is(200)->json_is(
@@ -341,7 +355,8 @@ subtest 'Update individual incidents' => sub {
       approved    => false,
       emu         => false,
       isActive    => true,
-      embargoed   => false
+      embargoed   => false,
+      priority    => undef,
     }
   );
 
@@ -357,7 +372,8 @@ subtest 'Update individual incidents' => sub {
       approved    => false,
       emu         => false,
       isActive    => true,
-      embargoed   => true
+      embargoed   => true,
+      priority    => undef,
     }
   )->status_is(200)->json_is({message => 'Ok'});
 
@@ -374,7 +390,8 @@ subtest 'Update individual incidents' => sub {
         approved    => false,
         emu         => false,
         isActive    => true,
-        embargoed   => false
+        embargoed   => false,
+        priority    => undef,
       },
       {
         number      => 16862,
@@ -387,7 +404,8 @@ subtest 'Update individual incidents' => sub {
         approved    => false,
         emu         => false,
         isActive    => true,
-        embargoed   => true
+        embargoed   => true,
+        priority    => undef,
       }
     ]
   );
@@ -404,7 +422,8 @@ subtest 'Update individual incidents' => sub {
       approved    => false,
       emu         => false,
       isActive    => false,
-      embargoed   => false
+      embargoed   => false,
+      priority    => undef,
     }
   )->status_is(200)->json_is({message => 'Ok'});
   $t->get_ok('/api/incidents/16862' => $auth_headers)->status_is(404)->json_is({error => 'Incident not found'});
@@ -764,7 +783,8 @@ subtest 'Authentication' => sub {
         approved    => false,
         emu         => true,
         isActive    => true,
-        embargoed   => true
+        embargoed   => true,
+        priority    => undef,
       }
     ]
   )->status_is(403)->json_is({error => 'Permission denied'});
@@ -782,7 +802,8 @@ subtest 'Authentication' => sub {
         approved    => false,
         emu         => true,
         isActive    => true,
-        embargoed   => false
+        embargoed   => false,
+        priority    => undef,
       }
     ]
   )->status_is(200)->json_is({message => 'Ok'});

@@ -72,13 +72,15 @@ t.test('Test dashboard ui', skip, async t => {
     t.match(await page.innerText('.incident-results mark'), /1 passed, 1 waiting/);
   });
 
-  await t.test('Filter blocked', async t => {
+  await t.test('Sorting and filtering on "Blocked" page', async t => {
     await page.goto(`${url}/blocked`);
     await page.waitForSelector('tbody');
     const list = page.locator('tbody > tr');
     t.equal(await list.count(), 2);
-    t.match(await page.innerText('tbody tr:nth-of-type(1) td:nth-of-type(1) a'), /16860:perl-Mojolicious/);
-    t.match(await page.innerText('tbody tr:nth-of-type(1) td:nth-of-type(2)'), /SLE 12 SP5 1/);
+    t.match(await page.innerText('tbody tr:nth-of-type(1) td:nth-of-type(1) a'), /29722:multipath-tools/);
+    t.match(await page.innerText('tbody tr:nth-of-type(1) td:nth-of-type(2)'), /SAP\/HA Maintenance 1\/5/);
+    t.match(await page.innerText('tbody tr:nth-of-type(2) td:nth-of-type(1) a'), /16860:perl-Mojolicious/);
+    t.match(await page.innerText('tbody tr:nth-of-type(2) td:nth-of-type(2)'), /SLE 12 SP5 1/);
     const pageUrl = await page.url();
     t.notMatch(pageUrl, /incident/);
     t.notMatch(pageUrl, /group_names/);
@@ -118,21 +120,21 @@ t.test('Test dashboard ui', skip, async t => {
   await t.test('Group blocked', async t => {
     await page.goto(`${url}/blocked`);
     await page.waitForSelector('tbody');
-    t.match(await page.innerText('tbody tr:nth-of-type(2) td:nth-of-type(1) a'), /29722:multipath-tools/);
-    t.match(await page.innerText('tbody tr:nth-of-type(2) td:nth-of-type(2)'), /SAP\/HA Maintenance 1\/5/);
+    t.match(await page.innerText('tbody tr:nth-of-type(1) td:nth-of-type(1) a'), /29722:multipath-tools/);
+    t.match(await page.innerText('tbody tr:nth-of-type(1) td:nth-of-type(2)'), /SAP\/HA Maintenance 1\/5/);
 
     await page.getByLabel('Group Flavors').uncheck();
     await page.waitForSelector('tbody');
-    t.match(await page.innerText('tbody tr:nth-of-type(2) td:nth-of-type(1) a'), /29722:multipath-tools/);
+    t.match(await page.innerText('tbody tr:nth-of-type(1) td:nth-of-type(1) a'), /29722:multipath-tools/);
     t.match(
-      await page.innerText('tbody tr:nth-of-type(2) td:nth-of-type(2)'),
+      await page.innerText('tbody tr:nth-of-type(1) td:nth-of-type(2)'),
       /SAP\/HA Maintenance 1\/3.+SAP\/HA Maintenance 2/s
     );
 
     await page.getByLabel('Group Flavors').check();
     await page.waitForSelector('tbody');
-    t.match(await page.innerText('tbody tr:nth-of-type(2) td:nth-of-type(1) a'), /29722:multipath-tools/);
-    t.match(await page.innerText('tbody tr:nth-of-type(2) td:nth-of-type(2)'), /SAP\/HA Maintenance 1\/5/);
+    t.match(await page.innerText('tbody tr:nth-of-type(1) td:nth-of-type(1) a'), /29722:multipath-tools/);
+    t.match(await page.innerText('tbody tr:nth-of-type(1) td:nth-of-type(2)'), /SAP\/HA Maintenance 1\/5/);
   });
 
   await t.test('Incident popup', async t => {

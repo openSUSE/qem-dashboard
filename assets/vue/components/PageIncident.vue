@@ -36,6 +36,16 @@
       <h4>Aggregate Runs Including This Incident</h4>
       <IncidentBuildSummary v-for="build in sortedBuilds" :key="build" :build="build" :jobs="jobs[build]" />
     </div>
+
+    <div class="details">
+      <h4>Further details</h4>
+      <table>
+        <tr v-for="field in ['Approved', 'Active', 'Embargoed', 'Priority', 'Project']" :key="field">
+          <th>{{ field }}</th>
+          <td>{{ renderFieldValue(incident, field) }}</td>
+        </tr>
+      </table>
+    </div>
   </div>
   <div v-else><i class="fas fa-sync fa-spin"></i> Loading incident...</div>
 </template>
@@ -98,6 +108,12 @@ export default {
         this.summary = details.incident_summary;
         this.jobs = details.jobs;
       }
+    },
+    renderFieldValue(incident, field) {
+      const fieldName = field.toLowerCase();
+      const displayTypes = {approved: 'yesno', active: 'yesno', embargoed: 'yesno'};
+      const value = incident[fieldName];
+      return displayTypes[fieldName] === 'yesno' ? (value ? 'yes' : 'no') : value ? value : 'none';
     }
   }
 };
