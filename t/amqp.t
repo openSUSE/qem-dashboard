@@ -35,6 +35,10 @@ sub _is_field ($field, $expected) {
   is($db->query("SELECT $field FROM openqa_jobs WHERE id = 9")->hash->{$field}, $expected);
 }
 
+sub _is_count ($expected) {
+  is($db->query("SELECT COUNT(*) FROM openqa_jobs WHERE id = 9")->hash->{count}, $expected);
+}
+
 sub _set_default() {
   $db->query("UPDATE openqa_jobs SET status = 'waiting', job_id = 4953203 WHERE id = 9");
 }
@@ -103,6 +107,25 @@ subtest 'Handle restart job' => sub {
 
   _is_field('status', 'waiting');
   _is_field('job_id', 7764022);
+};
+
+subtest 'Handle delete job' => sub {
+  _set_default();
+  _is_count(1);
+  $t->app->amqp->handle(
+    'suse.openqa.job.delete',
+    {
+      "BUILD"     => "721304-Bogdan.Lezhepekov_branch_mr_4",
+      "FLAVOR"    => "qemu",
+      "HDD_1"     => "carwos-Bogdan.Lezhepekov_branch_mr_4-721304.qcow2",
+      "MACHINE"   => "64bit",
+      "TEST"      => "carwos-futex-performance",
+      "group_id"  => 328,
+      "id"        => 4953203,
+      "remaining" => 1,
+    }
+  );
+  _is_count(0);
 };
 
 done_testing();
