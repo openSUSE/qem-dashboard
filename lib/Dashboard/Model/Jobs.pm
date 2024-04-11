@@ -99,6 +99,11 @@ sub restart_job ($self, $old_id, $new_id) {
   $self->pg->db->query("UPDATE openqa_jobs set job_id=?, status='waiting' where job_id=?", $new_id, $old_id);
 }
 
+sub delete_job ($self, $id) {
+  $self->log->info("delete $id");
+  $self->pg->db->query("DELETE FROM openqa_jobs WHERE job_id=?", $id);
+}
+
 sub _normalize_result ($result) {
   return 'passed'  if $result eq 'passed' || $result eq 'softfailed';
   return 'waiting' if $result eq 'none';
