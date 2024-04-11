@@ -29,8 +29,7 @@ sub handle ($self, $key, $data) {
     $self->jobs->update_result($data->{id}, 'user_cancelled');
   }
   elsif ($type eq 'delete') {
-
-    # TODO deleting on openqa should also delete here
+    $self->jobs->delete_job($data->{id});
   }
   elsif ($type eq 'restart') {
     my $restart_map = $data->{result};
