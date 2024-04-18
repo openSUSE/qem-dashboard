@@ -41,7 +41,7 @@
     "sass-loader": "^14.1.1",
     "tap": "^18.7.1",
     "terser-webpack-plugin": "^5.3.10",
-    "vue": "^3.4.21",
+    "vue": "^3.4.23",
     "vue-loader": "^17.4.2",
     "vue-router": "^4.3.0",
     "vue-template-compiler": "^2.7.16",
