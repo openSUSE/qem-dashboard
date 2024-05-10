@@ -4,7 +4,8 @@
 
 The QEM Dashboard is a graphical user interface addon for [qem-bot](https://github.com/openSUSE/qem-bot). It can show
 the current state for all incidents that are being processed. To help identify which tests are currently blocking
-which incidents.
+which incidents. Its deployment happens once a day via
+[GitLab pipelines](https://gitlab.suse.de/opensuse/qem-dashboard/-/pipeline_schedules).
 
 ## Getting Started
 
