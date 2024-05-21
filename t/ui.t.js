@@ -4,14 +4,15 @@ import ServerStarter from '@mojolicious/server-starter';
 import {chromium} from 'playwright';
 import t from 'tap';
 
-// eslint-disable-next-line no-undefined
-const skip = process.env.TEST_ONLINE === undefined ? {skip: 'set TEST_ONLINE to enable this test'} : {};
+// eslint-disable-next-line no-undef
+const env = process.env;
+const skip = env.TEST_ONLINE === undefined ? {skip: 'set TEST_ONLINE to enable this test'} : {};
 
 // Wrapper script with fixtures can be found in "t/wrappers/ui.pl"
 t.test('Test dashboard ui', skip, async t => {
   const server = await ServerStarter.newServer();
   await server.launch('perl', ['t/wrappers/ui.pl']);
-  const browser = await chromium.launch(process.env.TEST_HEADLESS === '0' ? {headless: false, slowMo: 500} : {});
+  const browser = await chromium.launch(env.TEST_HEADLESS === '0' ? {headless: false, slowMo: 500} : {});
   const context = await browser.newContext();
   const page = await context.newPage();
   const url = server.url();
