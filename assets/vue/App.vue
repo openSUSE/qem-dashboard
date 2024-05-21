@@ -82,7 +82,7 @@ export default {
     // Refresh relative last updated time (every minute)
     this.timer = setInterval(this.refreshLastUpdated, 60000);
   },
-  beforeDestroy() {
+  beforeUnmount() {
     this.cancelRefresh();
   },
   computed: {
