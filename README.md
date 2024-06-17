@@ -13,7 +13,8 @@ which incidents. Its deployment happens once a day via
 
     $ sudo zypper in -C postgresql-server postgresql-contrib
     $ sudo zypper in -C perl-Mojolicious perl-Mojolicious-Plugin-Webpack \
-      perl-Mojo-Pg perl-Cpanel-JSON-XS perl-JSON-Validator perl-IO-Socket-SSL nodejs16
+      perl-Mojo-Pg perl-Mojo-RabbitMQ-Client perl-Cpanel-JSON-XS perl-JSON-Validator perl-IO-Socket-SSL \
+      npm
     $ npm install
 
 Update the config file `dashboard.yml` to point to your PostgreSQL database (and other services where appropriate):
