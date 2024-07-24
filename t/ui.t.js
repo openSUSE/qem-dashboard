@@ -87,6 +87,17 @@ t.test('Test dashboard ui', skip, async t => {
     t.notMatch(pageUrl, /group_names/);
     t.notMatch(pageUrl, /group_flavors/);
 
+    await t.test('Highlight blocked incidents with priority over 500', async t => {
+      await page.goto(`${url}/blocked`);
+      await page.waitForSelector('tbody');
+      const blockedIncidents = page.locator('tbody');
+      const highlightedIncidents = blockedIncidents.filter(element => element.getAttribute('priority') > 500);
+      t.ok(
+        highlightedIncidents.every(element => element.hasClass('highlighted')),
+        'Blocked incidents with priority over 500 are highlighted'
+      );
+    });
+
     await page.fill('[placeholder="Search for incident/package"]', 'curl');
     t.equal(await list.count(), 0);
     t.match(await page.url(), /incident=curl/);
