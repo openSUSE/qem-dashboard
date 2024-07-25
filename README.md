@@ -78,22 +78,6 @@ And finally use the `mojo webpack` development web server to make the web applic
     $ mojo webpack script/dashboard
     Web application available at http://127.0.0.1:3000
 
-### Project structure
-
-- **[API.md](https://github.com/openSUSE/qem-dashboard/blob/main/API.md)**: API documentation.
-- **[assets](https://github.com/openSUSE/qem-dashboard/tree/main/assets)**: Contains JavaScript files, stylesheets, etc.
-- **[cpanfile](https://github.com/openSUSE/qem-dashboard/blob/main/cpanfile)**: Configuration file used to manage Perl dependencies.
-- **[eslint.config.mjs](https://github.com/openSUSE/qem-dashboard/blob/main/eslint.config.mjs)**: Configuration file for JavaScript linter.
-- **[lib](https://github.com/openSUSE/qem-dashboard/tree/main/lib)**: Core library of Perl code.
-- **[migrations](https://github.com/openSUSE/qem-dashboard/blob/main/migrations)**: Database migration scripts.
-- **[node_modules](https://github.com/openSUSE/qem-dashboard/tree/main/node_modules)**: Dependencies installed by npm (Node Package Manager)
-- **[package.json](https://github.com/openSUSE/qem-dashboard/tree/main/package.json)** and **[package-lock.json](https://github.com/openSUSE/qem-dashboard/tree/main/package-lock.json)**: Configuration files used to manage dependencies.
-- **[public](https://github.com/openSUSE/qem-dashboard/tree/main/public)**: Publicly accessible assets, such as images and static files.
-- **[script](https://github.com/openSUSE/qem-dashboard/tree/main/script)**: Used to automate tasks and workflows.
-- **[t](https://github.com/openSUSE/qem-dashboard/tree/main/t)**: Containing test files.
-- **[templates](https://github.com/openSUSE/qem-dashboard/tree/main/templates)**: Template files, used to generate dynamic content.
-- **[webpack.config.js](https://github.com/openSUSE/qem-dashboard/tree/main/webpack.config.js)**: Configuration file for Webpack, a JavaScript bundler used to prepare code for production.
-
 ## Contribute
 
 This project lives on GitHub at https://github.com/openSUSE/qem-dashboard. Feel free to add issues or send pull
@@ -115,6 +99,10 @@ For a local PostgreSQL instance with a username and password one could call:
 ```
 TEST_ONLINE=postgresql://postgres:postgres@localhost:5432/postgres prove -l t/*.t t/*.t.js
 ```
+
+### Documentation
+For further documentation, please see **[docs](https://github.com/openSUSE/qem-dashboard/tree/main/docs)**
+
 ### Further notes
 A containerized environment could be used to build and run the dashboard and its dependencies.
 For a concrete example, checkout the (so far) internal documentation under
