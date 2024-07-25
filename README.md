@@ -9,18 +9,18 @@ which incidents. Its deployment happens once a day via
 
 ## Getting Started
 
-### Dependencies
+### Install Dependencies
 
-To get started all you need is an empty PostgreSQL database and the following dependencies:
+To install all required dependencies, run
 
     $ sudo zypper in -C postgresql-server postgresql-contrib
     $ sudo zypper in -C perl-Mojolicious perl-Mojolicious-Plugin-Webpack \
-      perl-Mojo-Pg perl-Cpanel-JSON-XS perl-JSON-Validator perl-IO-Socket-SSL nodejs16
+      perl-Mojo-Pg perl-Cpanel-JSON-XS perl-JSON-Validator perl-IO-Socket-SSL nodejs18
     $ npm install
 
-#### nodejs16
+#### nodejs18
 
-In case `nodejs16` is not available (e.g. Tumbleweed), you can alternatively get it via the [Node Version Manager](https://github.com/nvm-sh/nvm). Simply [install nvm](https://github.com/nvm-sh/nvm?tab=readme-ov-file#install--update-script) then run `nvm install 16` and `nvm use 16`.
+In case `nodejs18` is not available (e.g. Tumbleweed), you can alternatively get it via the [Node Version Manager](https://github.com/nvm-sh/nvm). Simply [install nvm](https://github.com/nvm-sh/nvm?tab=readme-ov-file#install--update-script) then run `nvm install 18` and `nvm use 18`.
 
 ### Postgres Database
 
