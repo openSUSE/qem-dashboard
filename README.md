@@ -13,10 +13,20 @@ which incidents. Its deployment happens once a day via
 
 To install all required dependencies, run
 
-    $ sudo zypper in -C postgresql-server postgresql-contrib
-    $ sudo zypper in -C perl-Mojolicious perl-Mojolicious-Plugin-Webpack \
+    sudo zypper in -C postgresql-server postgresql-contrib
+    sudo zypper in -C perl-Mojolicious perl-Mojolicious-Plugin-Webpack \
       perl-Mojo-Pg perl-Cpanel-JSON-XS perl-JSON-Validator perl-IO-Socket-SSL nodejs18
-    $ npm install
+    npm install
+
+if you are on an apt-based system, run 
+
+    npx playwright install --with-deps
+
+if you are on a zypper-based system, omit the `--with-deps` parameter
+
+    npx playwright install
+
+and ignore the missing dependencies
 
 #### nodejs18
 
