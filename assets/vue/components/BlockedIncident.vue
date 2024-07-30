@@ -1,7 +1,7 @@
 <template>
-  <tr>
+  <tr :class="{'high-priority': incident.priority > 650}">
     <td>
-      <IncidentLink :incident="incident" />
+      <IncidentLink :incident="incident" :high-priority="incident.priority > 650" />
     </td>
     <td>
       <div v-if="Object.keys(incidentResults).length + Object.keys(updateResults).length === 0">No data yet</div>
@@ -87,3 +87,21 @@ export default {
   }
 };
 </script>
+
+<style>
+.high-priority {
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 10px,
+    var(--bs-warning-bg-subtle) 10px,
+    var(--bs-warning-bg-subtle) 20px
+  );
+  td {
+    background-color: initial;
+  }
+  td:nth-child(1) a {
+    font-weight: bold;
+  }
+}
+</style>
