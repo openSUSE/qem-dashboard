@@ -73,7 +73,7 @@ t.test('Test dashboard ui', skip, async t => {
     t.match(await page.innerText('.incident-results mark'), /1 passed, 1 waiting/);
   });
 
-  await t.test('Sorting and filtering on "Blocked" page', async t => {
+  await t.test('Sorting, highlighting and filtering on "Blocked" page', async t => {
     await page.goto(`${url}/blocked`);
     await page.waitForSelector('tbody');
     const list = page.locator('tbody > tr');
@@ -82,6 +82,7 @@ t.test('Test dashboard ui', skip, async t => {
     t.match(await page.innerText('tbody tr:nth-of-type(1) td:nth-of-type(2)'), /SAP\/HA Maintenance 1\/5/);
     t.match(await page.innerText('tbody tr:nth-of-type(2) td:nth-of-type(1) a'), /16860:perl-Mojolicious/);
     t.match(await page.innerText('tbody tr:nth-of-type(2) td:nth-of-type(2)'), /SLE 12 SP5 1/);
+    t.match(await page.innerText('tbody tr.high-priority'), /29722:multipath-tools/);
     const pageUrl = await page.url();
     t.notMatch(pageUrl, /incident/);
     t.notMatch(pageUrl, /group_names/);

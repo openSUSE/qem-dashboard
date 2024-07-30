@@ -124,7 +124,8 @@ sub minimal_fixtures ($self, $app) {
         emu         => false,
         embargoed   => false,
         isActive    => true,
-        priority    => 100,      # highest priority; supposed to show first on "Blocked" page
+        priority    => 700
+        , # highest priority; supposed to show first on "Blocked" page and be highlighted for manual review as priority is above threshhold
       },
     ]
   );
