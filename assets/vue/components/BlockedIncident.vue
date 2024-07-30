@@ -97,11 +97,11 @@ export default {
     var(--bs-warning-bg-subtle) 10px,
     var(--bs-warning-bg-subtle) 20px
   );
-  td {
-    background-color: initial;
-  }
-  td:nth-child(1) a {
-    font-weight: bold;
-  }
+}
+.high-priority td {
+  background-color: initial;
+}
+.high-priority td:nth-child(1) a {
+  font-weight: bold;
 }
 </style>
