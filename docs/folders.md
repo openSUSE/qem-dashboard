@@ -1,0 +1,13 @@
+- **[assets](https://github.com/openSUSE/qem-dashboard/tree/main/assets)**: Contains JavaScript files, stylesheets, etc.
+- **[cpanfile](https://github.com/openSUSE/qem-dashboard/blob/main/cpanfile)**: Configuration file used to manage Perl dependencies.
+- **[docs](https://github.com/openSUSE/qem-dashboard/blob/main/docs)**: Project documentation.
+- **[eslint.config.mjs](https://github.com/openSUSE/qem-dashboard/blob/main/eslint.config.mjs)**: Configuration file for JavaScript linter.
+- **[lib](https://github.com/openSUSE/qem-dashboard/tree/main/lib)**: Core library of Perl code.
+- **[migrations](https://github.com/openSUSE/qem-dashboard/blob/main/migrations)**: Database migration scripts.
+- **[node_modules](https://github.com/openSUSE/qem-dashboard/tree/main/node_modules)**: Dependencies installed by npm (Node Package Manager)
+- **[package.json](https://github.com/openSUSE/qem-dashboard/tree/main/package.json)** and **[package-lock.json](https://github.com/openSUSE/qem-dashboard/tree/main/package-lock.json)**: Configuration files used to manage dependencies.
+- **[public](https://github.com/openSUSE/qem-dashboard/tree/main/public)**: Publicly accessible assets, such as images and static files.
+- **[script](https://github.com/openSUSE/qem-dashboard/tree/main/script)**: Used to automate tasks and workflows.
+- **[t](https://github.com/openSUSE/qem-dashboard/tree/main/t)**: Containing test files.
+- **[templates](https://github.com/openSUSE/qem-dashboard/tree/main/templates)**: Template files, used to generate dynamic content.
+- **[webpack.config.js](https://github.com/openSUSE/qem-dashboard/tree/main/webpack.config.js)**: Configuration file for Webpack, a JavaScript bundler used to prepare code for production.
