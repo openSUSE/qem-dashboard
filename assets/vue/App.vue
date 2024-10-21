@@ -31,7 +31,11 @@
           </ul>
           <ul class="navbar-nav flex-row flex-wrap ms-md-auto" id="navbarAPI">
             <li class="nav-item">
-              <a class="nav-link" href="https://github.com/openSUSE/qem-dashboard/blob/main/API.md" target="_blank">
+              <a
+                class="nav-link"
+                href="https://github.com/openSUSE/qem-dashboard/blob/main/docs/API.md"
+                target="_blank"
+              >
                 API
               </a>
             </li>
