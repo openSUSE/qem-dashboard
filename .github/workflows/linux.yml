@@ -31,31 +31,17 @@ jobs:
           node-version: '18'
       - name: node -v
         run: node -v
-      - name: npm install
-        run: npm i
-      - name: Install playwright browsers
-        run: npx playwright install --with-deps
+      - name: Install JS dependencies
+        run: make install-deps-js
       - name: perl -V
         run: perl -V
       - name: Install dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y libmagic-dev ruby-sass
-          cpanm -n --installdeps .
-          cpanm -n Test::Deep
-          cpanm -n Devel::Cover::Report::Coveralls
+          make install-deps-ubuntu install-deps-cpanm
       - name: Run tests
-        env:
-          MOJO_MODE: production
-          TEST_ONLINE: postgresql://postgres:postgres@localhost:5432/postgres
-          HARNESS_PERL_SWITCHES: -MDevel::Cover
-        run: prove -l t/*.t
+        run: make test-unit
       - name: Run UI tests
-        env:
-          MOJO_MODE: production
-          TEST_ONLINE: postgresql://postgres:postgres@localhost:5432/postgres
-          TEST_WRAPPER_COVERAGE: 1
-        run: prove -l -v t/*.t.js
+        run: make test-ui
       - name: Check assets
         run: ls public/asset
       - name: Coveralls
