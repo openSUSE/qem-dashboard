@@ -37,7 +37,7 @@
     "moment": "^2.30.1",
     "playwright": "^1.49.0",
     "prettier": "^3.4.1",
-    "sass": "^1.81.0",
+    "sass": "^1.81.1",
     "sass-loader": "^16.0.3",
     "tap": "^21.0.1",
     "terser-webpack-plugin": "^5.3.10",
