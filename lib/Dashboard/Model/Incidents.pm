@@ -42,7 +42,7 @@ sub build_nr ($self, $inc) {
      WHERE incident = ?
      ORDER BY updated DESC
      LIMIT 1', $inc->{id}
-  )->hash;
+    )->hash;
   return $settings->{build};
 }
 

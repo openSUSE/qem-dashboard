@@ -70,8 +70,8 @@ sub startup ($self) {
   # Model
   my $log = $self->log;
   $self->helper(pg => sub { state $pg = Mojo::Pg->new($config->{pg})->max_connections(1) });
-  $self->helper(incidents => sub ($c) { state $incidents = Dashboard::Model::Incidents->new(log => $log, pg => $c->pg) }
-  );
+  $self->helper(
+    incidents => sub ($c) { state $incidents = Dashboard::Model::Incidents->new(log => $log, pg => $c->pg) });
   $self->helper(
     jobs => sub ($c) {
       state $jobs = Dashboard::Model::Jobs->new(
