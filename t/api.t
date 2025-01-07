@@ -547,7 +547,8 @@ subtest 'Modify openQA job' => sub {
     }
   );
 
-  $t->patch_ok('/api/jobs/4953193' => $auth_headers => json => {obsolete => true})->status_is(200)
+  $t->patch_ok('/api/jobs/4953193' => $auth_headers => json => {obsolete => true})
+    ->status_is(200)
     ->json_is({message => 'Ok'});
 
   $t->get_ok('/api/jobs/4953193' => $auth_headers)->status_is(200)->json_is(
@@ -587,7 +588,8 @@ subtest 'Modify openQA job' => sub {
     }
   );
 
-  $t->patch_ok('/api/jobs/4953193' => $auth_headers => json => {obsolete => 'whatever'})->status_is(400)
+  $t->patch_ok('/api/jobs/4953193' => $auth_headers => json => {obsolete => 'whatever'})
+    ->status_is(400)
     ->json_like('/error', qr/Expected boolean - got string/);
 };
 
@@ -614,7 +616,8 @@ subtest 'Search update settings' => sub {
     }
   )->status_is(200)->json_is({message => 'Ok', id => 3});
 
-  $t->get_ok('/api/update_settings' => $auth_headers)->status_is(400)
+  $t->get_ok('/api/update_settings' => $auth_headers)
+    ->status_is(400)
     ->json_is({error => 'Invalid request parameters (arch, product)'});
 
   $t->get_ok('/api/update_settings?product=SLES-15-GA&arch=x86_64' => $auth_headers)->status_is(200)->json_is(
