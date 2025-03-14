@@ -212,15 +212,47 @@ sub _incident_openqa_jobs ($self, $inc) {
 }
 
 sub _update_openqa_jobs ($self, $inc) {
-  my $db = $self->pg->db;
+  my $db     = $self->pg->db;
+  my $inc_id = $inc->{id};
   my $ids
-    = $db->query('SELECT settings FROM incident_in_update WHERE incident = ?', $inc->{id})->arrays->flatten->to_array;
+    = $db->query('SELECT settings FROM incident_in_update WHERE incident = ?', $inc_id)->arrays->flatten->to_array;
 
   my $results = $db->query(
-    'SELECT job_group, group_id, us.build, oj.distri, oj.flavor, oj.arch, oj.version, status, COUNT(status)
-     FROM update_openqa_settings us JOIN openqa_jobs oj on oj.update_settings = us.id
-     WHERE us.id = ANY (?)
-     GROUP BY job_group, group_id, us.build, oj.distri, oj.flavor, oj.arch, oj.version, status', $ids
+    "WITH openqa_status_for_incident AS (
+     SELECT
+         oj.id AS openqa_job_id,
+         CASE
+             WHEN (SELECT COUNT(jr.id) FROM job_remarks jr WHERE jr.openqa_job_id = oj.id AND jr.incident_id = ? AND jr.text = 'acceptable_for' LIMIT 1) > 0
+             THEN 'passed'
+             ELSE oj.status
+         END AS incident_status
+     FROM openqa_jobs oj
+     )
+     SELECT
+         oj.job_group,
+         oj.group_id,
+         us.build,
+         oj.distri,
+         oj.flavor,
+         oj.arch,
+         oj.version,
+         osfi.incident_status,
+         COUNT(osfi.incident_status) AS incident_status_job_count
+     FROM
+         update_openqa_settings us
+         JOIN openqa_jobs oj ON oj.update_settings = us.id
+         JOIN openqa_status_for_incident osfi ON oj.id = osfi.openqa_job_id
+     WHERE
+         us.id = ANY (?)
+     GROUP BY
+         oj.job_group,
+         oj.group_id,
+         us.build,
+         oj.distri,
+         oj.flavor,
+         oj.arch,
+         oj.version,
+         osfi.incident_status", $inc_id, $ids
   )->hashes;
   my %ret;
   for my $result ($results->each) {
@@ -234,7 +266,7 @@ sub _update_openqa_jobs ($self, $inc) {
       },
       name => _group_nick($result->{job_group})
     };
-    $ret{$id}{builds}{$result->{build}}{$result->{status}} = $result->{count};
+    $ret{$id}{builds}{$result->{build}}{$result->{incident_status}} = $result->{incident_status_job_count};
   }
 
   for my $id (keys %ret) {
