@@ -32,8 +32,8 @@ $dashboard_test->no_fixtures($t->app);
 my $auth_headers = {Authorization => 'Token test_token', Accept => 'application/json'};
 
 subtest 'Migrations' => sub {
-  is $t->app->pg->migrations->latest, 7, 'latest version';
-  is $t->app->pg->migrations->active, 7, 'active version';
+  is $t->app->pg->migrations->latest, 8, 'latest version';
+  is $t->app->pg->migrations->active, 8, 'active version';
 };
 
 subtest 'Unknown endpoint' => sub {

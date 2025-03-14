@@ -150,6 +150,17 @@ subtest 'Blocked by Tests' => sub {
             },
             "name"    => "SLE 12 SP5",
             "waiting" => 1
+          },
+          "55 Server-DVD-Incidents 12-SP6" => {
+            "linkinfo" => {
+              "build"   => "20250317-1",
+              "distri"  => "sle",
+              "flavor"  => "Server-DVD-Incidents",
+              "groupid" => 55,
+              "version" => "12-SP6"
+            },
+            "name"   => "Server-DVD-Incidents 12-SP6",
+            "passed" => 2
           }
         }
       },
@@ -192,6 +203,18 @@ subtest 'Blocked by Tests' => sub {
             },
             "name"   => "SAP/HA Maintenance",
             "passed" => 2
+          },
+          "55 Server-DVD-Incidents 12-SP6" => {
+            "linkinfo" => {
+              "build"   => "20250317-1",
+              "distri"  => "sle",
+              "flavor"  => "Server-DVD-Incidents",
+              "groupid" => 55,
+              "version" => "12-SP6"
+            },
+            "name"   => "Server-DVD-Incidents 12-SP6",
+            "passed" => 1,
+            "failed" => 1
           }
         }
       }
@@ -272,6 +295,32 @@ subtest 'Incident Details' => sub {
     )
     ->json_is(
     '/details/jobs' => {
+      "20250317-1" => [
+        {
+          "arch"      => "x86_64",
+          "build"     => "20250317-1",
+          "distri"    => "sle",
+          "flavor"    => "Server-DVD-Incidents",
+          "group_id"  => 55,
+          "job_group" => "Server-DVD-Incidents 12-SP6",
+          "job_id"    => 4953600,
+          "name"      => "acceptable_for_16860_despite_failing\@64bit",
+          "status"    => "failed",
+          "version"   => "12-SP6"
+        },
+        {
+          "arch"      => "x86_64",
+          "build"     => "20250317-1",
+          "distri"    => "sle",
+          "flavor"    => "Server-DVD-Incidents",
+          "group_id"  => 55,
+          "job_group" => "Server-DVD-Incidents 12-SP6",
+          "job_id"    => 4953601,
+          "name"      => "acceptable_for_16860_but_passing_anyway\@64bit",
+          "status"    => "passed",
+          "version"   => "12-SP6"
+        }
+      ],
       "20201107-1" => [
         {
           "arch"      => "x86_64",

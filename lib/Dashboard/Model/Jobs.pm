@@ -28,7 +28,16 @@ sub add ($self, $job) {
      RETURNING id', $job->{incident_settings}, $job->{update_settings}, $job->{name}, $job->{job_group},
     $job->{job_id}, $job->{group_id}, $job->{status}, $job->{distri}, $job->{flavor}, $job->{version}, $job->{arch},
     $job->{build}
-  );
+  )->array->[0];
+}
+
+sub add_remark ($self, $openqa_job_id, $incident_id, $text) {
+  $self->pg->db->query(
+    'INSERT INTO job_remarks (openqa_job_id, incident_id, text) VALUES (?, ?, ?)
+     ON CONFLICT (openqa_job_id, incident_id)
+     DO UPDATE SET text = EXCLUDED.text
+     RETURNING id',
+    $openqa_job_id, $incident_id, $text)->array->[0];
 }
 
 # Disabled to test without cleanup in production

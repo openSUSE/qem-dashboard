@@ -108,3 +108,12 @@ ALTER TABLE incidents ADD COLUMN embargoed BOOLEAN DEFAULT FALSE;
 
 --7 up
 ALTER TABLE incidents ADD COLUMN priority INTEGER;
+
+--8 up
+CREATE TABLE IF NOT EXISTS job_remarks (
+  id            SERIAL PRIMARY KEY,
+  openqa_job_id INT NOT NULL REFERENCES openqa_jobs(id) ON DELETE CASCADE,
+  incident_id   INT REFERENCES incidents(id) ON DELETE CASCADE,
+  text          TEXT NOT NULL
+);
+CREATE UNIQUE INDEX ON job_remarks(openqa_job_id, incident_id);
