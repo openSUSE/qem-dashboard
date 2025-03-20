@@ -82,7 +82,8 @@ subtest 'Clean up jobs after rr_number change (during sync)' => sub {
   my $dashboard_test = Dashboard::Test->new(online => $ENV{TEST_ONLINE}, schema => 'api_cleanup_rr_test');
   my $config         = $dashboard_test->default_config;
   my $t              = Test::Mojo->new(Dashboard => $config);
-  $dashboard_test->minimal_fixtures($t->app);
+  my $app            = $t->app;
+  $dashboard_test->minimal_fixtures($app);
 
   $t->patch_ok(
     '/api/incidents' => $auth_headers => json => [
@@ -173,6 +174,13 @@ subtest 'Clean up jobs after rr_number change (during sync)' => sub {
     ->json_is('/details/incident/number',   16862)
     ->json_is('/details/incident/packages', ['curl'])
     ->json_is('/details/incident_summary',  {passed => 1});
+
+  subtest 'Job with remark can be cleaned up' => sub {
+    my $jobs = $app->jobs;
+    $jobs->delete_job(4953600);
+    is $jobs->internal_job_id(4953600),                                      undef, 'job no longer exists';
+    is $app->pg->db->query('SELECT count(id) FROM job_remarks')->array->[0], 0,     'remark removed as well';
+  };
 };
 
 done_testing();
