@@ -31,13 +31,24 @@ sub add ($self, $job) {
   )->array->[0];
 }
 
-sub add_remark ($self, $openqa_job_id, $incident_id, $text) {
+sub internal_job_id ($self, $openqa_job_id) {
+  return undef
+    unless my $res = $self->pg->db->query('SELECT id FROM openqa_jobs where job_id = ? LIMIT 1', $openqa_job_id)->array;
+  return $res->[0];
+}
+
+sub remarks ($self, $job_id) {
+  return $self->pg->db->query('SELECT incident_id, text FROM job_remarks where openqa_job_id = ? ORDER BY incident_id',
+    $job_id)->hashes;
+}
+
+sub add_remark ($self, $job_id, $incident_id, $text) {
   $self->pg->db->query(
     'INSERT INTO job_remarks (openqa_job_id, incident_id, text) VALUES (?, ?, ?)
      ON CONFLICT (openqa_job_id, incident_id)
      DO UPDATE SET text = EXCLUDED.text
-     RETURNING id',
-    $openqa_job_id, $incident_id, $text)->array->[0];
+     RETURNING id', $job_id, $incident_id, $text
+  )->array->[0];
 }
 
 # Disabled to test without cleanup in production
