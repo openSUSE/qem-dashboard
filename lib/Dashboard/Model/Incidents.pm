@@ -95,6 +95,11 @@ sub incident_for_number ($self, $number) {
   return $self->pg->db->query('select * from incidents where number = ? limit 1', $number)->hash;
 }
 
+sub number_for_id ($self, $id) {
+  return undef unless my $array = $self->pg->db->query('select number from incidents where id = ? limit 1', $id)->array;
+  return $array->[0];
+}
+
 sub id_for_number ($self, $number) {
   return undef
     unless my $array = $self->pg->db->query('select id from incidents where number = ? limit 1', $number)->array;

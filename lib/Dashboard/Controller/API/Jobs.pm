@@ -81,6 +81,37 @@ sub modify ($self) {
   $self->render(json => {message => 'Ok'});
 }
 
+sub _incident ($incidents, $remark) {
+  return undef unless my $incident_id = $remark->{incident_id};
+  return $incidents->number_for_id($incident_id);
+}
+
+sub show_remarks ($self) {
+  my $openqa_job_id   = $self->param('job_id');
+  my $internal_job_id = $self->jobs->internal_job_id($openqa_job_id);
+  return $self->render(json => {error => "openQA job ($openqa_job_id) does not exist"}, status => 404)
+    unless $internal_job_id;
+
+  my $incidents = $self->app->incidents;
+  my $remarks   = $self->jobs->remarks($internal_job_id);
+  my $res       = {remarks => [map { {text => $_->{text}, incident => _incident($incidents, $_)} } $remarks->each]};
+  $self->render(json => $res);
+}
+
+sub update_remark ($self) {
+  my $incident_number = $self->param('incident_number');
+  my $incident_id     = defined $incident_number ? $self->app->incidents->id_for_number($incident_number) : undef;
+  my $openqa_job_id   = $self->param('job_id');
+  my $internal_job_id = $self->jobs->internal_job_id($openqa_job_id);
+  return $self->render(json => {error => "openQA job ($openqa_job_id) does not exist"}, status => 404)
+    unless $internal_job_id;
+  return $self->render(json => {error => "Incident ($incident_number) does not exist"}, status => 404)
+    if defined $incident_number && !$incident_id;
+
+  $self->jobs->add_remark($internal_job_id, $incident_id, $self->param('text'));
+  $self->render(json => {message => 'Ok'});
+}
+
 sub show ($self) {
   return $self->render(json => {error => 'Job not found'}, status => 400)
     unless my $job = $self->jobs->get($self->param('job_id'));

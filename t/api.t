@@ -593,6 +593,29 @@ subtest 'Modify openQA job' => sub {
     ->json_like('/error', qr/Expected boolean - got string/);
 };
 
+subtest 'Add remark on openQA job and related incident' => sub {
+  $t->patch_ok('/api/jobs/4953193/remarks?incident_number=123&text=acceptable_for' => $auth_headers);
+  $t->status_is(404, 'error if incident does not exist');
+
+  $t->patch_ok('/api/jobs/8888888/remarks?incident_number=16860&text=acceptable_for' => $auth_headers);
+  $t->status_is(404, 'error if job does not exist');
+  $t->patch_ok('/api/jobs/4953193/remarks?incident_number=16860&text=acceptable_for' => $auth_headers);
+  $t->status_is(200)->json_is({message => 'Ok'});
+  $t->get_ok('/api/jobs/4953193/remarks' => $auth_headers)->status_is(200);
+  $t->json_is('/remarks', [{incident => 16860, text => 'acceptable_for'}], 'remark exists');
+
+  $t->patch_ok('/api/jobs/4953193/remarks?incident_number=16861&text=foo' => $auth_headers);
+  $t->status_is(200)->json_is('/message', 'Ok', 'second remark added');
+  $t->patch_ok('/api/jobs/4953193/remarks?incident_number=16860&text=bar' => $auth_headers);
+  $t->status_is(200)->json_is('/message', 'Ok', 'first remark updated');
+  $t->get_ok('/api/jobs/4953193/remarks' => $auth_headers)->status_is(200);
+  $t->json_is(
+    '/remarks',
+    [{incident => 16860, text => 'bar'}, {incident => 16861, text => 'foo'}],
+    'existing remark updated, new remark added'
+  );
+};
+
 subtest 'Search update settings' => sub {
   $t->put_ok(
     '/api/update_settings' => $auth_headers => json => {
