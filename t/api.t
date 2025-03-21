@@ -32,8 +32,8 @@ $dashboard_test->no_fixtures($t->app);
 my $auth_headers = {Authorization => 'Token test_token', Accept => 'application/json'};
 
 subtest 'Migrations' => sub {
-  is $t->app->pg->migrations->latest, 7, 'latest version';
-  is $t->app->pg->migrations->active, 7, 'active version';
+  is $t->app->pg->migrations->latest, 8, 'latest version';
+  is $t->app->pg->migrations->active, 8, 'active version';
 };
 
 subtest 'Unknown endpoint' => sub {
@@ -591,6 +591,29 @@ subtest 'Modify openQA job' => sub {
   $t->patch_ok('/api/jobs/4953193' => $auth_headers => json => {obsolete => 'whatever'})
     ->status_is(400)
     ->json_like('/error', qr/Expected boolean - got string/);
+};
+
+subtest 'Add remark on openQA job and related incident' => sub {
+  $t->patch_ok('/api/jobs/4953193/remarks?incident_number=123&text=acceptable_for' => $auth_headers);
+  $t->status_is(404, 'error if incident does not exist');
+
+  $t->patch_ok('/api/jobs/8888888/remarks?incident_number=16860&text=acceptable_for' => $auth_headers);
+  $t->status_is(404, 'error if job does not exist');
+  $t->patch_ok('/api/jobs/4953193/remarks?incident_number=16860&text=acceptable_for' => $auth_headers);
+  $t->status_is(200)->json_is({message => 'Ok'});
+  $t->get_ok('/api/jobs/4953193/remarks' => $auth_headers)->status_is(200);
+  $t->json_is('/remarks', [{incident => 16860, text => 'acceptable_for'}], 'remark exists');
+
+  $t->patch_ok('/api/jobs/4953193/remarks?incident_number=16861&text=foo' => $auth_headers);
+  $t->status_is(200)->json_is('/message', 'Ok', 'second remark added');
+  $t->patch_ok('/api/jobs/4953193/remarks?incident_number=16860&text=bar' => $auth_headers);
+  $t->status_is(200)->json_is('/message', 'Ok', 'first remark updated');
+  $t->get_ok('/api/jobs/4953193/remarks' => $auth_headers)->status_is(200);
+  $t->json_is(
+    '/remarks',
+    [{incident => 16860, text => 'bar'}, {incident => 16861, text => 'foo'}],
+    'existing remark updated, new remark added'
+  );
 };
 
 subtest 'Search update settings' => sub {

@@ -29,18 +29,19 @@ my $dashboard_test = Dashboard::Test->new(online => $ENV{TEST_ONLINE}, schema =>
 my $config         = $dashboard_test->default_config;
 my $t              = Test::Mojo->new(Dashboard => $config);
 $dashboard_test->minimal_fixtures($t->app);
-my $db = $t->app->pg->db;
+my $db     = $t->app->pg->db;
+my $job_id = 11;
 
 sub _is_field ($field, $expected) {
-  is($db->query("SELECT $field FROM openqa_jobs WHERE id = 9")->hash->{$field}, $expected);
+  is($db->query("SELECT $field FROM openqa_jobs WHERE id = $job_id")->hash->{$field}, $expected);
 }
 
 sub _is_count ($expected) {
-  is($db->query("SELECT COUNT(*) FROM openqa_jobs WHERE id = 9")->hash->{count}, $expected);
+  is($db->query("SELECT COUNT(*) FROM openqa_jobs WHERE id = $job_id")->hash->{count}, $expected);
 }
 
 sub _set_default() {
-  $db->query("UPDATE openqa_jobs SET status = 'waiting', job_id = 4953203 WHERE id = 9");
+  $db->query("UPDATE openqa_jobs SET status = 'waiting', job_id = 4953203 WHERE id = $job_id");
 }
 
 subtest 'Handle done job' => sub {
