@@ -584,3 +584,60 @@ None
   ...
 ]
 ```
+
+#### Remarks on openQA jobs
+`GET /api/jobs/<job_id>/remarks`
+
+List remarks on an openQA job.
+
+**Request parameters:**
+
+None
+
+**Request body:**
+
+None
+
+**Response:**
+
+```
+{
+  "remarks": [
+    {
+      "text": "foo",
+      "incident": 1234
+    },
+    {
+      "text": "bar",
+      "incident": 5678
+    }
+    ...
+  ]
+}
+```
+
+---
+
+`PATCH /api/jobs/<job_id>/remarks`
+
+Creates or updates a remark on an openQA job, possibly incident-specific.
+
+Only one remark can exist per incident.
+
+**Request parameters:**
+
+* `incident_number` (optional): The incident number if the remark is incident-specific.
+
+* `text` (optional): The remark text, defaults to an empty text.
+
+**Request body:**
+
+None
+
+**Response:**
+
+```
+{
+  "message": "Ok"
+}
+```
