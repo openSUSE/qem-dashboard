@@ -346,6 +346,55 @@ sub minimal_fixtures ($self, $app) {
     }
   );
 
+  # Add failing build that is acceptable for a certain incident
+  my @incident_numbers           = (16860, 29722);
+  my @incident_ids               = map { $incidents->id_for_number($_) } @incident_numbers;
+  my $settings_acceptable_for_id = $settings->add_update_settings(
+    \@incident_ids,
+    {
+      incidents => \@incident_numbers,
+      product   => 'SLES-12-SP6',
+      arch      => 'x86_64',
+      build     => '20250317-1',
+      repohash  => 'd5815a9f8aa482ec8288508da27a9d37',
+      settings  =>
+        {DISTRI => 'sle', VERSION => '12-SP6', BUILD => '20201108-1', REPOHASH => 'd5815a9f8aa482ec8288508da27a9d37'}
+    }
+  );
+  my $acceptable_for_16860_job_1_id = $jobs->add(
+    {
+      incident_settings => undef,
+      update_settings   => $settings_acceptable_for_id,
+      name              => 'acceptable_for_16860_despite_failing@64bit',
+      job_group         => 'Server-DVD-Incidents 12-SP6',
+      status            => 'failed',
+      job_id            => 4953600,
+      group_id          => 55,
+      distri            => 'sle',
+      flavor            => 'Server-DVD-Incidents',
+      arch              => 'x86_64',
+      version           => '12-SP6',
+      build             => '20250317-1'
+    }
+  );
+  my $acceptable_for_16860_job_2_id = $jobs->add(
+    {
+      incident_settings => undef,
+      update_settings   => $settings_acceptable_for_id,
+      name              => 'acceptable_for_16860_but_passing_anyway@64bit',
+      job_group         => 'Server-DVD-Incidents 12-SP6',
+      status            => 'passed',
+      job_id            => 4953601,
+      group_id          => 55,
+      distri            => 'sle',
+      flavor            => 'Server-DVD-Incidents',
+      arch              => 'x86_64',
+      version           => '12-SP6',
+      build             => '20250317-1'
+    }
+  );
+  $jobs->add_remark($acceptable_for_16860_job_1_id, $incident_ids[0], 'acceptable_for');
+
   # Waiting build
   my $settings_waiting_id = $settings->add_update_settings(
     [map { $incidents->id_for_number($_) } 16860, 16861],
