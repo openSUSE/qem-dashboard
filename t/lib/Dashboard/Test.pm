@@ -21,6 +21,8 @@ use Mojo::Pg;
 use Mojo::URL;
 use Mojo::Util qw(scope_guard);
 
+has options => undef;
+
 sub new ($class, %options) {
 
   # Database
@@ -347,9 +349,20 @@ sub minimal_fixtures ($self, $app) {
   );
 
   # Add failing build that is acceptable for a certain incident
-  my @incident_numbers           = (16860, 29722);
-  my @incident_ids               = map { $incidents->id_for_number($_) } @incident_numbers;
-  my $settings_acceptable_for_id = $settings->add_update_settings(
+  my @incident_numbers             = (16860, 29722);
+  my @incident_ids                 = map { $incidents->id_for_number($_) } @incident_numbers;
+  my $settings_acceptable_for_id_1 = $settings->add_incident_settings(
+    $incident_ids[0],
+    {
+      incident      => $incident_ids[0],
+      version       => '12-SP6',
+      flavor        => 'Server-DVD-Incidents',
+      arch          => 'x86_64',
+      withAggregate => true,
+      settings      => {DISTRI => 'sle', VERSION => '12-SP6', BUILD => '20250317-1'}
+    }
+  ) unless $self->options->{schema} eq 'js_ui_test';
+  my $settings_acceptable_for_id_2 = $settings->add_update_settings(
     \@incident_ids,
     {
       incidents => \@incident_numbers,
@@ -363,8 +376,8 @@ sub minimal_fixtures ($self, $app) {
   );
   my $acceptable_for_16860_job_1_id = $jobs->add(
     {
-      incident_settings => undef,
-      update_settings   => $settings_acceptable_for_id,
+      incident_settings => $settings_acceptable_for_id_1,
+      update_settings   => $settings_acceptable_for_id_2,
       name              => 'acceptable_for_16860_despite_failing@64bit',
       job_group         => 'Server-DVD-Incidents 12-SP6',
       status            => 'failed',
@@ -379,8 +392,8 @@ sub minimal_fixtures ($self, $app) {
   );
   my $acceptable_for_16860_job_2_id = $jobs->add(
     {
-      incident_settings => undef,
-      update_settings   => $settings_acceptable_for_id,
+      incident_settings => $settings_acceptable_for_id_1,
+      update_settings   => $settings_acceptable_for_id_2,
       name              => 'acceptable_for_16860_but_passing_anyway@64bit',
       job_group         => 'Server-DVD-Incidents 12-SP6',
       status            => 'passed',

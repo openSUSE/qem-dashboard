@@ -123,6 +123,11 @@ subtest 'Blocked by Tests' => sub {
           "rr_number"  => 230066
         },
         "incident_results" => {
+          "55" => {
+            "name"     => 'Server-DVD-Incidents 12-SP6',
+            "linkinfo" => {"build" => "20250317-1", "distri" => "sle", "groupid" => 55},
+            "passed"   => 2
+          },
           "282" => {
             "linkinfo" => {"build" => ":17063:perl-Mojolicious", "distri" => "sle", "groupid" => 282},
             "name"     => "SLE 12 SP5",
@@ -377,9 +382,8 @@ subtest 'Incident Details' => sub {
       ]
     }
     )
-    ->json_is('/details/incident_summary' => {waiting => 1, failed => 1, passed => 1})
-    ->json_is('/details/build_nr'         => ':17063:perl-Mojolicious');
-
+    ->json_is('/details/incident_summary' => {waiting => 1, failed => 2, passed => 2})
+    ->json_is('/details/build_nr'         => '20250317-1');
 };
 
 done_testing();

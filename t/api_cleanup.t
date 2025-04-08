@@ -111,7 +111,7 @@ subtest 'Clean up jobs after rr_number change (during sync)' => sub {
     ->json_has('/details/jobs/20201107-1')
     ->json_has('/details/jobs/20201107-2')
     ->json_has('/details/jobs/20201108-1')
-    ->json_is('/details/incident_summary', {passed => 1, failed => 1, waiting => 1});
+    ->json_is('/details/incident_summary', {passed => 2, failed => 2, waiting => 1});
   $t->get_ok('/app/api/incident/16861')
     ->status_is(200)
     ->json_is('/details/incident/number',   16861)
@@ -160,7 +160,7 @@ subtest 'Clean up jobs after rr_number change (during sync)' => sub {
     ->json_has('/details/jobs/20201107-1')
     ->json_has('/details/jobs/20201107-2')
     ->json_has('/details/jobs/20201108-1')
-    ->json_is('/details/incident_summary', {passed => 1, failed => 1, waiting => 1});
+    ->json_is('/details/incident_summary', {passed => 2, failed => 2, waiting => 1});
   $t->get_ok('/app/api/incident/16861')
     ->status_is(200)
     ->json_is('/details/incident/number',   16861)

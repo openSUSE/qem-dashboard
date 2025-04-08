@@ -191,24 +191,46 @@ sub _group_nick ($group) {
 
 sub _incident_openqa_jobs ($self, $inc) {
   my $db      = $self->pg->db;
+  my $inc_id  = $inc->{id};
   my $results = $db->query(
-    'SELECT job_group, group_id, status, COUNT(status)
-     FROM incident_openqa_settings os JOIN openqa_jobs oj on oj.incident_settings = os.id
-     WHERE os.incident = ?
-     GROUP BY job_group, group_id, status', $inc->{id}
+    "WITH openqa_status_for_incident AS (
+     SELECT
+         oj.id AS openqa_job_id,
+         CASE
+             WHEN (SELECT COUNT(jr.id) FROM job_remarks jr WHERE jr.openqa_job_id = oj.id AND jr.incident_id = ? AND jr.text = 'acceptable_for' LIMIT 1) > 0
+             THEN 'passed'
+             ELSE oj.status
+         END AS incident_status
+     FROM openqa_jobs oj
+     )
+     SELECT
+         oj.job_group,
+         oj.group_id,
+         osfi.incident_status,
+         COUNT(osfi.incident_status) AS incident_status_job_count
+     FROM
+         incident_openqa_settings os
+         JOIN openqa_jobs oj ON oj.incident_settings = os.id
+         JOIN openqa_status_for_incident osfi ON oj.id = osfi.openqa_job_id
+     WHERE
+         os.incident = ?
+     GROUP BY
+         oj.job_group,
+         oj.group_id,
+         osfi.incident_status", $inc_id, $inc_id
   )->hashes;
   my %ret;
   for my $result ($results->each) {
     my $id = $result->{group_id};
     $ret{$id} ||= {linkinfo => $result->{group_id}, name => _group_nick($result->{job_group})};
-    $ret{$id}{$result->{status}} = $result->{count};
+    $ret{$id}{$result->{incident_status}} = $result->{incident_status_job_count};
   }
 
   for my $id (keys %ret) {
     my $settings = $db->query(
       'SELECT settings
        FROM openqa_jobs oj JOIN incident_openqa_settings os ON oj.incident_settings = os.id
-       WHERE oj.group_id = ? AND os.incident = ? ORDER BY oj.job_id DESC LIMIT 1', $id, $inc->{id}
+       WHERE oj.group_id = ? AND os.incident = ? ORDER BY oj.job_id DESC LIMIT 1', $id, $inc_id
     )->expand->hash->{settings};
     $ret{$id}{linkinfo} = {distri => 'sle', groupid => $id, build => $settings->{BUILD}};
   }
