@@ -616,6 +616,42 @@ subtest 'Add remark on openQA job and related incident' => sub {
   );
 };
 
+subtest 'Replace openQA job' => sub {
+  my %json = (
+    incident_settings => 1,
+    update_settings   => 1,
+    name              => 'mau-webserver@64bit',
+    job_group         => 'Maintenance: SLE 12 SP5 Incidents',
+    status            => 'failed',
+    job_id            => 4953193,
+    group_id          => 282,
+    distri            => 'sle',
+    flavor            => 'Server-DVD-Incidents',
+    arch              => 'x86_64',
+    version           => '12-SP5',
+    build             => ':17063:wpa_supplicant',
+    obsolete          => true,
+  );
+  $t->put_ok('/api/jobs' => $auth_headers => json => \%json)->status_is(200);
+  $t->json_is({message => 'Ok'});
+  $t->get_ok('/api/jobs/4953193' => $auth_headers)->status_is(200);
+  $t->json_is(undef, \%json, 'job updated');
+  $t->get_ok('/api/jobs/4953193/remarks' => $auth_headers)->status_is(200);
+  $t->json_has('/remarks/0', 'remark still present if openQA job ID does not change (1)');
+  $t->json_has('/remarks/1', 'remark still present if openQA job ID does not change (2)');
+
+  # change job ID from 4953193 to 4953293
+  $json{job_id} = 4953293;
+  $t->put_ok('/api/jobs' => $auth_headers => json => \%json)->status_is(200);
+  $t->json_is({message => 'Ok'});
+
+  $t->get_ok('/api/jobs/4953293' => $auth_headers)->status_is(200);
+  $t->json_is(undef, \%json, 'job replaced');
+
+  $t->get_ok('/api/jobs/4953293/remarks' => $auth_headers)->status_is(200);
+  $t->json_is('/remarks', [], 'remark on job being replaced was removed');
+};
+
 subtest 'Search update settings' => sub {
   $t->put_ok(
     '/api/update_settings' => $auth_headers => json => {
@@ -756,8 +792,8 @@ subtest "Get jobs by settings" => sub {
         update_settings   => 1,
         name              => 'mau-webserver@64bit',
         job_group         => 'Maintenance: SLE 12 SP5 Incidents',
-        status            => 'passed',
-        job_id            => 4953193,
+        status            => 'failed',
+        job_id            => 4953293,
         group_id          => 282,
         distri            => 'sle',
         flavor            => 'Server-DVD-Incidents',
@@ -775,8 +811,8 @@ subtest "Get jobs by settings" => sub {
         update_settings   => 1,
         name              => 'mau-webserver@64bit',
         job_group         => 'Maintenance: SLE 12 SP5 Incidents',
-        status            => 'passed',
-        job_id            => 4953193,
+        status            => 'failed',
+        job_id            => 4953293,
         group_id          => 282,
         distri            => 'sle',
         flavor            => 'Server-DVD-Incidents',
