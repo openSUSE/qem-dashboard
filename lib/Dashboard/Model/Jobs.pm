@@ -19,16 +19,24 @@ use Mojo::Base -base, -signatures;
 has [qw(days_to_keep_aggregates pg log)];
 
 sub add ($self, $job) {
-  $self->pg->db->query(
+  my $new_job_id = $job->{job_id};
+  my $res        = $self->pg->db->query(
     'INSERT INTO openqa_jobs (incident_settings, update_settings, name, job_group, job_id, group_id, status, distri,
       flavor, version, arch, build) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
      ON CONFLICT (distri, flavor, arch, version, build, name)
      DO UPDATE SET job_group = EXCLUDED.job_group, job_id = EXCLUDED.job_id, group_id = EXCLUDED.group_id,
        status = EXCLUDED.status, updated = NOW()
-     RETURNING id', $job->{incident_settings}, $job->{update_settings}, $job->{name}, $job->{job_group},
-    $job->{job_id}, $job->{group_id}, $job->{status}, $job->{distri}, $job->{flavor}, $job->{version}, $job->{arch},
+     RETURNING
+       id,
+       (CASE WHEN (xmax = 0) THEN NULL ELSE (SELECT prev.job_id from openqa_jobs AS prev WHERE prev.id = openqa_jobs.id LIMIT 1)
+       END) AS old_job_id', $job->{incident_settings}, $job->{update_settings}, $job->{name}, $job->{job_group},
+    $new_job_id, $job->{group_id}, $job->{status}, $job->{distri}, $job->{flavor}, $job->{version}, $job->{arch},
     $job->{build}
-  )->array->[0];
+  )->hash;
+  my $internal_id = $res->{id};
+  my $old_job_id  = $res->{old_job_id};
+  $self->remove_remarks($internal_id) if defined($old_job_id) && ($old_job_id != $new_job_id);
+  return $internal_id;
 }
 
 sub internal_job_id ($self, $openqa_job_id) {
@@ -49,6 +57,10 @@ sub add_remark ($self, $job_id, $incident_id, $text) {
      DO UPDATE SET text = EXCLUDED.text
      RETURNING id', $job_id, $incident_id, $text
   )->array->[0];
+}
+
+sub remove_remarks ($self, $job_id) {
+  $self->pg->db->query('DELETE FROM job_remarks WHERE openqa_job_id = ?', $job_id);
 }
 
 # Disabled to test without cleanup in production
