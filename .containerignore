@@ -1,0 +1,9 @@
+*.md
+assets/assetpack.db
+assets/cache
+public/asset
+node_modules
+cover_db/
+containers
+.git
+.github

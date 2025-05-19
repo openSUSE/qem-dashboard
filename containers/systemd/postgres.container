@@ -1,0 +1,6 @@
+[Container]
+Environment=POSTGRES_HOST_AUTH_METHOD=trust
+Pod=qem.pod
+Image=registry.opensuse.org/opensuse/postgres:latest
+AutoUpdate=registry
+Mount=type=bind,source=/var/lib/data/qem/psql-data,destination=/var/lib/pgsql/data,relabel=private
