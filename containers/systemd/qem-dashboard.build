@@ -1,0 +1,4 @@
+[Build]
+ImageTag=localhost/qem-dashboard
+SetWorkingDirectory=file
+File=/var/lib/data/qem/qem-dashboard/Containerfile

@@ -18,7 +18,7 @@ To install all required dependencies, run
       perl-Mojo-Pg perl-Cpanel-JSON-XS perl-JSON-Validator perl-IO-Socket-SSL nodejs-default npm
     npm install
 
-if you are on an apt-based system, run 
+if you are on an apt-based system, run
 
     npx playwright install --with-deps
 
@@ -104,7 +104,8 @@ For further documentation, please see **[docs](https://github.com/openSUSE/qem-d
 ### Further notes
 A containerized environment could be used to build and run the dashboard and its dependencies.
 For a concrete example, checkout the (so far) internal documentation under
-https://gitlab.suse.de/qe-core/dev-dashboard.
+https://gitlab.suse.de/qe-core/dev-dashboard or containers quick start guide
+in **[docs/Containers](https://github.com/openSUSE/qem-dashboard/tree/main/docs/Containers.md)**
 
 ## License
 

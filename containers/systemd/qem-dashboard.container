@@ -1,0 +1,3 @@
+[Container]
+Pod=qem.pod
+Image=qem-dashboard.build
