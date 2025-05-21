@@ -68,7 +68,7 @@ t.test('Test dashboard ui', skip, async t => {
 
     await page.goto(`${url}/obsolete_jobs`);
     await page.goto(`${url}/incident/16860`);
-    await page.click('text=16860:perl-Mojolicious');
+    await page.click('text=230066:perl-Mojolicious');
     t.match(await page.innerText('.packages ul'), /perl-Mojolicious/);
     t.match(await page.innerText('.incident-results mark'), /1 passed, 1 waiting/);
   });

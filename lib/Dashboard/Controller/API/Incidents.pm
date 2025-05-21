@@ -37,6 +37,9 @@ my $INCIDENT_SPEC = {
     isActive    => {type  => 'boolean'},
     embargoed   => {type  => 'boolean'},
     priority    => {anyOf => [{type => 'integer'}, {type => 'null'}]},
+    scminfo     => {type  => 'string'},
+    url         => {type  => 'string'},
+    type        => {type  => 'string'},
   }
 };
 

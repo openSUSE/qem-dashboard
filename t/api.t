@@ -32,8 +32,8 @@ $dashboard_test->no_fixtures($t->app);
 my $auth_headers = {Authorization => 'Token test_token', Accept => 'application/json'};
 
 subtest 'Migrations' => sub {
-  is $t->app->pg->migrations->latest, 8, 'latest version';
-  is $t->app->pg->migrations->active, 8, 'active version';
+  is $t->app->pg->migrations->latest, 9, 'latest version';
+  is $t->app->pg->migrations->active, 9, 'active version';
 };
 
 subtest 'Unknown endpoint' => sub {
@@ -170,6 +170,9 @@ subtest 'Add incident' => sub {
         isActive    => true,
         embargoed   => false,
         priority    => 123,
+        scminfo     => '',
+        url         => '',
+        type        => '',
       }
     ]
   );
@@ -189,6 +192,9 @@ subtest 'Add incident' => sub {
       isActive    => true,
       embargoed   => false,
       priority    => 123,
+      scminfo     => '',
+      url         => '',
+      type        => '',
     }
   );
   $t->get_ok('/api/incidents/1' => $auth_headers)->status_is(404)->json_is({error => 'Incident not found'});
@@ -229,6 +235,9 @@ subtest 'Update incident' => sub {
         isActive    => true,
         embargoed   => true,
         priority    => 456,
+        scminfo     => '',
+        url         => '',
+        type        => '',
       }
     ]
   );
@@ -247,6 +256,9 @@ subtest 'Update incident' => sub {
       isActive    => true,
       embargoed   => true,
       priority    => 456,
+      scminfo     => '',
+      url         => '',
+      type        => '',
     }
   );
   $t->get_ok('/api/incidents/1' => $auth_headers)->status_is(404)->json_is({error => 'Incident not found'});
@@ -286,6 +298,9 @@ subtest 'Obsolete incident' => sub {
         isActive    => true,
         embargoed   => false,
         priority    => undef,
+        scminfo     => '',
+        url         => '',
+        type        => '',
       }
     ]
   );
@@ -304,6 +319,9 @@ subtest 'Obsolete incident' => sub {
       isActive    => true,
       embargoed   => false,
       priority    => undef,
+      scminfo     => '',
+      url         => '',
+      type        => '',
     }
   );
   $t->get_ok('/api/incidents/16860' => $auth_headers)->status_is(404)->json_is({error => 'Incident not found'});
@@ -324,6 +342,9 @@ subtest 'Update individual incidents' => sub {
       isActive    => true,
       embargoed   => false,
       priority    => undef,
+      scminfo     => '18bfa2a23fb7985d5d0cc356474a96a19d91d2d8652442badf7f13bc07cd1f3d',
+      url         => 'https://src.suse.de/products/SLFO/pulls/124',
+      type        => 'git',
     }
   )->status_is(200)->json_is({message => 'Ok'});
 
@@ -341,6 +362,9 @@ subtest 'Update individual incidents' => sub {
       isActive    => true,
       embargoed   => false,
       priority    => undef,
+      scminfo     => '',
+      url         => '',
+      type        => '',
     }
   );
   $t->get_ok('/api/incidents/16862' => $auth_headers)->status_is(200)->json_is(
@@ -357,6 +381,9 @@ subtest 'Update individual incidents' => sub {
       isActive    => true,
       embargoed   => false,
       priority    => undef,
+      scminfo     => '18bfa2a23fb7985d5d0cc356474a96a19d91d2d8652442badf7f13bc07cd1f3d',
+      url         => 'https://src.suse.de/products/SLFO/pulls/124',
+      type        => 'git',
     }
   );
 
@@ -374,6 +401,9 @@ subtest 'Update individual incidents' => sub {
       isActive    => true,
       embargoed   => true,
       priority    => undef,
+      scminfo     => '18bfa2a23fb7985d5d0cc356474a96a19d91d2d8652442badf7f13bc07cd1f3d',
+      url         => 'https://src.suse.de/products/SLFO/pulls/124',
+      type        => 'git',
     }
   )->status_is(200)->json_is({message => 'Ok'});
 
@@ -392,6 +422,9 @@ subtest 'Update individual incidents' => sub {
         isActive    => true,
         embargoed   => false,
         priority    => undef,
+        scminfo     => '',
+        url         => '',
+        type        => '',
       },
       {
         number      => 16862,
@@ -406,6 +439,9 @@ subtest 'Update individual incidents' => sub {
         isActive    => true,
         embargoed   => true,
         priority    => undef,
+        scminfo     => '18bfa2a23fb7985d5d0cc356474a96a19d91d2d8652442badf7f13bc07cd1f3d',
+        url         => 'https://src.suse.de/products/SLFO/pulls/124',
+        type        => 'git',
       }
     ]
   );
@@ -424,6 +460,9 @@ subtest 'Update individual incidents' => sub {
       isActive    => false,
       embargoed   => false,
       priority    => undef,
+      scminfo     => '',
+      url         => '',
+      type        => '',
     }
   )->status_is(200)->json_is({message => 'Ok'});
   $t->get_ok('/api/incidents/16862' => $auth_headers)->status_is(404)->json_is({error => 'Incident not found'});
