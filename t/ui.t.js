@@ -56,7 +56,7 @@ t.test('Test dashboard ui', skip, async t => {
     t.match(await page.innerText('tbody tr:nth-of-type(4) td:nth-of-type(2) span'), /approved/);
   });
 
-  await t.test('Incicdent details', async t => {
+  await t.test('Incident details', async t => {
     await page.click('text=16860:perl-Mojolicious');
     t.equal(page.url(), `${url}/incident/16860`);
     t.match(await page.innerText('.packages ul'), /perl-Mojolicious/);
