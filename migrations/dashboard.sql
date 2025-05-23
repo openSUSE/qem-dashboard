@@ -117,3 +117,9 @@ CREATE TABLE IF NOT EXISTS job_remarks (
   text          TEXT NOT NULL
 );
 CREATE UNIQUE INDEX ON job_remarks(openqa_job_id, incident_id);
+
+--9 up
+ALTER TABLE incidents
+  ADD COLUMN scminfo TEXT NOT NULL DEFAULT '',
+  ADD COLUMN url TEXT NOT NULL DEFAULT '',
+  ADD COLUMN type TEXT NOT NULL DEFAULT '';

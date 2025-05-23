@@ -56,7 +56,7 @@ t.test('Test dashboard ui', skip, async t => {
     t.match(await page.innerText('tbody tr:nth-of-type(4) td:nth-of-type(2) span'), /approved/);
   });
 
-  await t.test('Incicdent details', async t => {
+  await t.test('Incident details', async t => {
     await page.click('text=16860:perl-Mojolicious');
     t.equal(page.url(), `${url}/incident/16860`);
     t.match(await page.innerText('.packages ul'), /perl-Mojolicious/);
@@ -68,7 +68,7 @@ t.test('Test dashboard ui', skip, async t => {
 
     await page.goto(`${url}/obsolete_jobs`);
     await page.goto(`${url}/incident/16860`);
-    await page.click('text=16860:perl-Mojolicious');
+    await page.click('text=230066:perl-Mojolicious');
     t.match(await page.innerText('.packages ul'), /perl-Mojolicious/);
     t.match(await page.innerText('.incident-results mark'), /1 passed, 1 waiting/);
   });
