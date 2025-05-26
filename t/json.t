@@ -45,7 +45,10 @@ subtest 'List incidents' => sub {
         "packages"    => ["perl-Mojolicious"],
         "priority"    => undef,
         "project"     => "SUSE:Maintenance:16860",
-        "rr_number"   => 230066
+        "rr_number"   => 230066,
+        "scminfo"     => "",
+        "url"         => "",
+        "type"        => "",
       },
       {
         "approved"    => 0,
@@ -59,7 +62,10 @@ subtest 'List incidents' => sub {
         "packages"    => ["perl-Minion", "perl-Mojo-Pg"],
         "priority"    => undef,
         "project"     => "SUSE:Maintenance:16861",
-        "rr_number"   => undef
+        "rr_number"   => undef,
+        "scminfo"     => "",
+        "url"         => "",
+        "type"        => "",
       },
       {
         "approved"    => 1,
@@ -73,7 +79,10 @@ subtest 'List incidents' => sub {
         "packages"    => ["curl"],
         "priority"    => undef,
         "project"     => "SUSE:Maintenance:16862",
-        "rr_number"   => undef
+        "rr_number"   => undef,
+        "scminfo"     => "",
+        "url"         => "",
+        "type"        => "",
       },
       {
         "approved" => 0,
@@ -96,7 +105,10 @@ subtest 'List incidents' => sub {
         "packages"    => ["multipath-tools"],
         "priority"    => 700,
         "project"     => "SUSE:Maintenance:29722 ",
-        "rr_number"   => 302772
+        "rr_number"   => 302772,
+        "scminfo"     => "",
+        "url"         => "",
+        "type"        => "",
       }
     ]
   );
@@ -120,7 +132,10 @@ subtest 'Blocked by Tests' => sub {
           "project"    => "SUSE:Maintenance:16860",
           "review"     => 1,
           "review_qam" => 1,
-          "rr_number"  => 230066
+          "rr_number"  => 230066,
+          "scminfo"    => "",
+          "url"        => "",
+          "type"       => "",
         },
         "incident_results" => {
           "55" => {
@@ -182,7 +197,10 @@ subtest 'Blocked by Tests' => sub {
           "project"    => "SUSE:Maintenance:29722 ",
           "review"     => 1,
           "review_qam" => 1,
-          "rr_number"  => 302772
+          "rr_number"  => 302772,
+          "scminfo"    => "",
+          "url"        => "",
+          "type"       => "",
         },
         "incident_results" => {},
         "update_results"   => {
@@ -295,7 +313,10 @@ subtest 'Incident Details' => sub {
       "project"    => "SUSE:Maintenance:16860",
       "review"     => 1,
       "review_qam" => 1,
-      "rr_number"  => 230066
+      "rr_number"  => 230066,
+      "scminfo"    => "",
+      "url"        => "",
+      "type"       => "",
     }
     )
     ->json_is(

@@ -10,7 +10,7 @@
           </li>
         </ul>
       </div>
-      <div class="smelt-link">
+      <div class="smelt-link" v-if="(incident.type ?? 'smelt') === 'smelt'">
         <h4>Link to Smelt</h4>
         <p>
           <SmeltLink :incident="incident" />
@@ -40,7 +40,13 @@
     <div class="details">
       <h4>Further details</h4>
       <table>
-        <tr v-for="field in ['Approved', 'Active', 'Embargoed', 'Priority', 'Project']" :key="field">
+        <tr v-if="incident.url.length > 0">
+          <th>URL</th>
+          <td>
+            <a :href="incident.url" target="_blank">{{ incident.url }}</a>
+          </td>
+        </tr>
+        <tr v-for="field in ['Approved', 'Active', 'Embargoed', 'Priority', 'Project', 'Type', 'Scminfo']" :key="field">
           <th>{{ field }}</th>
           <td>{{ renderFieldValue(incident, field) }}</td>
         </tr>
