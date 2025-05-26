@@ -10,7 +10,7 @@
           </li>
         </ul>
       </div>
-      <div class="smelt-link" v-if="(incident.type ?? 'smelt') === 'smelt'">
+      <div class="smelt-link" v-if="(incident.type || 'smelt') === 'smelt'">
         <h4>Link to Smelt</h4>
         <p>
           <SmeltLink :incident="incident" />
