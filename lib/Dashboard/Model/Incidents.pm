@@ -20,9 +20,9 @@ has [qw(log pg)];
 
 sub blocked ($self) {
   my $incidents = $self->pg->db->query(
-    'SELECT * FROM incidents
-     WHERE active = TRUE AND approved = FALSE AND review_qam = TRUE AND rr_number IS NOT NULL
-     ORDER BY number'
+    "SELECT * FROM incidents
+     WHERE active = TRUE AND approved = FALSE AND review_qam = TRUE AND (rr_number IS NOT NULL OR type = 'git')
+     ORDER BY number"
   )->hashes->to_array;
   return [
     map {
