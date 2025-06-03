@@ -19,7 +19,7 @@
     "@fortawesome/fontawesome-free": "^6.7.2",
     "@mojojs/core": "^1.26.10",
     "@mojojs/path": "^1.7.0",
-    "@mojolicious/server-starter": "^2.1.2",
+    "@mojolicious/server-starter": "^2.2.0",
     "axios": "^1.9.0",
     "babel-loader": "^10.0.0",
     "bootstrap": "^5.3.6",
