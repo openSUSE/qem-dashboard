@@ -164,11 +164,12 @@ sub repos ($self) {
   return \%titles;
 }
 
-sub sync ($self, $incidents) {
+sub sync ($self, $incidents, $types = []) {
+  push @$types, '', 'smelt' unless @$types;
   my $db = $self->pg->db;
   my $tx = $db->begin;
 
-  $db->query('UPDATE incidents SET active = FALSE');
+  $db->update(incidents => {active => 0}, {type => {'=' => $types}});
   for my $incident (@$incidents) { $self->_update($db, $incident) }
 
   $tx->commit;

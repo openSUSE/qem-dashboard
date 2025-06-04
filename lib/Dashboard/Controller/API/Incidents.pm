@@ -51,7 +51,7 @@ sub sync ($self) {
   my @errors = $jv->validate($incidents);
   return $self->render(json => {error => "Incidents do not match the JSON schema: @errors"}, status => 400) if @errors;
 
-  $self->incidents->sync($incidents);
+  $self->incidents->sync($incidents, $self->every_param('type'));
 
   # Disabled to test without cleanup in production
   #$self->jobs->cleanup_aggregates;
