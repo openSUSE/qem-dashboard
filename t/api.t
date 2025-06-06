@@ -266,6 +266,28 @@ subtest 'Update incident' => sub {
 
 subtest 'Obsolete incident' => sub {
   $t->patch_ok(
+    '/api/incidents?type=git' => $auth_headers => json => [
+      {
+        number      => 42,
+        project     => 'SLFO',
+        packages    => ['bc'],
+        channels    => ['foo'],
+        isActive    => true,
+        embargoed   => false,
+        rr_number   => undef,
+        inReview    => false,
+        inReviewQAM => false,
+        approved    => false,
+        emu         => false,
+        type        => 'git'
+      }
+    ]
+  );
+  $t->status_is(200)->json_is({message => 'Ok'});
+  $t->get_ok('/api/incidents/16860' => $auth_headers);
+  $t->status_is(200, 'SMELT incidents not obsoleted when type=git specified');
+
+  $t->patch_ok(
     '/api/incidents' => $auth_headers => json => [
       {
         number      => 16861,
@@ -282,6 +304,15 @@ subtest 'Obsolete incident' => sub {
       }
     ]
   )->status_is(200)->json_is({message => 'Ok'});
+  $t->get_ok('/api/incidents/16860' => $auth_headers);
+  $t->status_is(404, 'SMELT incidents obsoleted when no type specified');
+  $t->get_ok('/api/incidents/42' => $auth_headers);
+  $t->status_is(200, 'Git incidents not obsoleted when no type specified');
+
+  $t->patch_ok('/api/incidents?type=foo&type=git&type=bar' => $auth_headers => json => []);
+  $t->status_is(200)->json_is({message => 'Ok'});
+  $t->get_ok('/api/incidents/42' => $auth_headers);
+  $t->status_is(404, 'Git incident obsoleted when type=git specified among other types');
 
   $t->get_ok('/api/incidents' => $auth_headers)->status_is(200)->json_is(
     [
