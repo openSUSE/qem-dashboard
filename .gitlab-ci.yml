@@ -1,0 +1,28 @@
+
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE =~ "/schedule|web/"
+
+stages:
+  - mirror
+
+default:
+  image: registry.opensuse.org/home/okurz/container/ca/containers/tumbleweed:curl-jq-ssh-git
+
+mirror-from-github:
+  stage: mirror
+  rules:
+    - if: $CI_PUSH_TOKEN
+    - when: never
+  retry: 2
+  script:
+    - git config user.email "you@example.com"
+    - git config user.name "Your Name"    
+    - DIR=$(mktemp -d)
+    - curl -sSL https://gitlab.suse.de/qe/git-sha-verify/-/raw/main/checkout-latest-signed-commit?ref_type=heads > $DIR/git-sha-verify
+    - chmod +x $DIR/git-sha-verify
+    - $DIR/git-sha-verify $DIR/qem-dashboard https://github.com/openSUSE/qem-dashboard.git
+    - cd $DIR/qem-dashboard
+    - git remote add filtered ${CI_SERVER_PROTOCOL}://gitlab-ci-token:${CI_PUSH_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git
+    - git branch filtered_branch
+    - git push -f filtered filtered_branch:main
