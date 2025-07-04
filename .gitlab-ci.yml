@@ -24,8 +24,8 @@ mirror-from-github:
     - cd $DIR/qem-dashboard
     - LOCAL_CHECKOUT=$(git rev-parse HEAD)
     - >- 
-      [[ $LOCAL_CHECKOUT -eq $GIT_COMMIT_SHA ]] && exit 0
-    - git fetch --unshallow main
+      [[ $LOCAL_CHECKOUT == "$GIT_COMMIT_SHA" ]] && exit 0
+    - git fetch --unshallow origin
     - git remote add filtered ${CI_SERVER_PROTOCOL}://gitlab-ci-token:${CI_PUSH_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git
     - git branch filtered_branch
     - git push -f filtered filtered_branch:main
