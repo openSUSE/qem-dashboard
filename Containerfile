@@ -18,7 +18,7 @@ COPY . .
 # RUN git clone https://github.com/openSUSE/qem-dashboard .
 
 # Install node dependencies
-RUN npm install
+RUN npm install --ignore-scripts
 RUN npx playwright install
 
 EXPOSE 3000

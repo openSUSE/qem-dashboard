@@ -9,7 +9,7 @@ help:
 
 .PHONY: install-deps-js
 install-deps-js:
-	npm install
+	npm install --ignore-scripts
 	npx playwright install --with-deps
 
 .PHONY: install-deps-ubuntu
