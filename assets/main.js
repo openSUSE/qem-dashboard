@@ -3,7 +3,6 @@ import 'bootstrap';
 import 'bootstrap/dist/css/bootstrap.css';
 import router from './router.js';
 import App from './vue/App.vue';
-import axios from 'axios';
 import {createApp} from 'vue';
 
 const backToTop = function () {
@@ -31,13 +30,10 @@ const backToTop = function () {
   mybutton.addEventListener('click', scrollUp);
 };
 
-window.addEventListener('load', () => {
-  axios('/app-config').then(response => {
-    const config = response.data;
-    const app = createApp(App);
-    app.config.globalProperties.appConfig = config;
-    app.use(router).mount('#app');
-
-    backToTop();
-  });
+window.addEventListener('load', async () => {
+  const config = await fetch('/app-config').then(res => res.json());
+  const app = createApp(App);
+  app.config.globalProperties.appConfig = config;
+  app.use(router).mount('#app');
+  backToTop();
 });
