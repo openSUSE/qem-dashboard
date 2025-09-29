@@ -7,7 +7,7 @@ pull_request_rules:
         - "#check-failure=0"
         - "#check-pending=0"
         - linear-history
-      - and: &manual_review
+      - and:
         - "#approved-reviews-by>=2"
         - "#changes-requested-reviews-by=0"
         # https://doc.mergify.io/examples.html#require-all-requested-reviews-to-be-approved
@@ -33,7 +33,6 @@ pull_request_rules:
         - base=main
         - author=dependabot[bot]
         - "label=waited"
-      - and: *manual_review
     actions:
       rebase:
       merge:
@@ -44,7 +43,7 @@ pull_request_rules:
     actions:
       comment:
         message: This pull request is now in conflicts. Could you fix it? 🙏
-  - name: Wait for 2 days before validating merge
+  - name: Wait for some time before validating merge
     actions:
       label:
         add:
@@ -53,5 +52,5 @@ pull_request_rules:
           - waiting
     conditions:
       - and:
-          - updated-at<2 days ago
+          - updated-at<4 days ago
           - author=dependabot[bot]
