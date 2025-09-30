@@ -161,7 +161,9 @@ t.test('Test dashboard ui', skip, async t => {
     }
   });
 
-  t.same(errorLogs, []);
+  if (errorLogs.length > 0) {
+    t.fail(`Unexpected console errors found:\n${errorLogs.join('\n')}`);
+  }
 
   await context.close();
   await browser.close();
