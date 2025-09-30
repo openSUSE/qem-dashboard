@@ -4,7 +4,6 @@ merge_queue:
 queue_rules:
   - name: default
     batch_size: 1
-    autoqueue: true
 
 pull_request_rules:
   - name: automatic merge
