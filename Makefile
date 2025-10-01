@@ -1,3 +1,8 @@
+MOJO_MODE ?= production
+TEST_ONLINE ?= postgresql://postgres:postgres@localhost:5432/postgres
+HARNESS_PERL_SWITCHES ?= -MDevel::Cover=-ignore,^blib/,-ignore,^template/
+TEST_WRAPPER_COVERAGE ?= 1
+
 .PHONY: all
 all: help
 
@@ -28,16 +33,16 @@ install-deps: install-deps-js install-deps-ubuntu install-deps-cpanm
 
 .PHONY: test-unit
 test-unit:
-	MOJO_MODE=production \
-	TEST_ONLINE=postgresql://postgres:postgres@localhost:5432/postgres \
-	HARNESS_PERL_SWITCHES=-MDevel::Cover \
+	MOJO_MODE=$(MOJO_MODE) \
+	TEST_ONLINE=$(TEST_ONLINE) \
+	HARNESS_PERL_SWITCHES=$(HARNESS_PERL_SWITCHES) \
 	prove -l t/*.t
 
 .PHONY: test-ui
 test-ui:
-	MOJO_MODE=production \
-	TEST_ONLINE=postgresql://postgres:postgres@localhost:5432/postgres \
-	TEST_WRAPPER_COVERAGE=1 \
+	MOJO_MODE=$(MOJO_MODE) \
+	TEST_ONLINE=$(TEST_ONLINE) \
+	TEST_WRAPPER_COVERAGE=$(TEST_WRAPPER_COVERAGE) \
 	prove -l -v t/*.t.js
 
 .PHONY: test
