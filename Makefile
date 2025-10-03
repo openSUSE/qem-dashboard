@@ -31,6 +31,10 @@ install-deps-cpanm:
 .PHONY: install-deps
 install-deps: install-deps-js install-deps-ubuntu install-deps-cpanm
 
+.PHONY: tidy
+tidy:
+	bash -c 'shopt -s extglob globstar nullglob; perltidy --pro=.../.perltidyrc -b -bext='/' **/*.p[lm] **/*.t && git diff --exit-code'
+
 .PHONY: test-unit
 test-unit:
 	MOJO_MODE=$(MOJO_MODE) \
