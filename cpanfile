@@ -5,3 +5,4 @@ requires 'Cpanel::JSON::XS', '>= 4.09';
 requires 'JSON::Validator';
 requires 'IO::Socket::SSL', '>= 2.009';
 requires 'Test::Harness', '>= 3.48';
+requires 'Test::Output';

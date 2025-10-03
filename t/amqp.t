@@ -20,6 +20,7 @@ use lib "$FindBin::Bin/lib";
 
 use Test::More;
 use Test::Mojo;
+use Test::Output 'stderr_like';
 use Dashboard::Test;
 use Mojo::JSON qw(false true);
 
@@ -46,66 +47,74 @@ sub _set_default() {
 
 subtest 'Handle done job' => sub {
   _set_default();
-  $t->app->amqp->handle(
-    'suse.openqa.job.done',
-    {
-      "ARCH"      => "x86_64",
-      "BUILD"     => "721304-Bogdan.Lezhepekov_branch_mr_4",
-      "FLAVOR"    => "qemu",
-      "HDD_1"     => "carwos-Bogdan.Lezhepekov_branch_mr_4-721304.qcow2",
-      "MACHINE"   => "64bit",
-      "TEST"      => "carwos-futex-performance",
-      "bugref"    => undef,
-      "group_id"  => 54,
-      "id"        => 4953203,
-      "newbuild"  => undef,
-      "reason"    => undef,
-      "remaining" => 0,
-      "result"    => "user_cancelled"
-    }
-  );
+  stderr_like {
+    $t->app->amqp->handle(
+      'suse.openqa.job.done',
+      {
+        "ARCH"      => "x86_64",
+        "BUILD"     => "721304-Bogdan.Lezhepekov_branch_mr_4",
+        "FLAVOR"    => "qemu",
+        "HDD_1"     => "carwos-Bogdan.Lezhepekov_branch_mr_4-721304.qcow2",
+        "MACHINE"   => "64bit",
+        "TEST"      => "carwos-futex-performance",
+        "bugref"    => undef,
+        "group_id"  => 54,
+        "id"        => 4953203,
+        "newbuild"  => undef,
+        "reason"    => undef,
+        "remaining" => 0,
+        "result"    => "user_cancelled"
+      }
+    )
+  }
+  qr/\[i\].*stopped/, 'amqp log message';
   _is_field('status', 'stopped');
 };
 
 subtest 'Handle cancel job' => sub {
   _set_default();
-  $t->app->amqp->handle(
-    'suse.openqa.job.cancel',
-    {
-      "ARCH"      => "x86_64",
-      "BUILD"     => "721304-Bogdan.Lezhepekov_branch_mr_4",
-      "FLAVOR"    => "qemu",
-      "HDD_1"     => "carwos-Bogdan.Lezhepekov_branch_mr_4-721304.qcow2",
-      "MACHINE"   => "64bit",
-      "TEST"      => "carwos-futex-performance",
-      "group_id"  => 328,
-      "id"        => 4953203,
-      "remaining" => 0
-    }
-  );
+  stderr_like {
+    $t->app->amqp->handle(
+      'suse.openqa.job.cancel',
+      {
+        "ARCH"      => "x86_64",
+        "BUILD"     => "721304-Bogdan.Lezhepekov_branch_mr_4",
+        "FLAVOR"    => "qemu",
+        "HDD_1"     => "carwos-Bogdan.Lezhepekov_branch_mr_4-721304.qcow2",
+        "MACHINE"   => "64bit",
+        "TEST"      => "carwos-futex-performance",
+        "group_id"  => 328,
+        "id"        => 4953203,
+        "remaining" => 0
+      }
+    )
+  }
+  qr/\[i\].*stopped/, 'amqp log message';
   _is_field('status', 'stopped');
 };
 
 subtest 'Handle restart job' => sub {
   _set_default();
-  $t->app->amqp->handle(
-    'suse.openqa.job.restart',
-    {
-      "ARCH"      => "x86_64",
-      "BUILD"     => "721304-Bogdan.Lezhepekov_branch_mr_4",
-      "FLAVOR"    => "qemu",
-      "HDD_1"     => "carwos-Bogdan.Lezhepekov_branch_mr_4-721304.qcow2",
-      "MACHINE"   => "64bit",
-      "TEST"      => "carwos-futex-performance",
-      "auto"      => 0,
-      "bugref"    => undef,
-      "group_id"  => 328,
-      "id"        => 4953203,
-      "remaining" => 1,
-      "result"    => {"4953203" => 7764022}
-    }
-  );
-
+  stderr_like {
+    $t->app->amqp->handle(
+      'suse.openqa.job.restart',
+      {
+        "ARCH"      => "x86_64",
+        "BUILD"     => "721304-Bogdan.Lezhepekov_branch_mr_4",
+        "FLAVOR"    => "qemu",
+        "HDD_1"     => "carwos-Bogdan.Lezhepekov_branch_mr_4-721304.qcow2",
+        "MACHINE"   => "64bit",
+        "TEST"      => "carwos-futex-performance",
+        "auto"      => 0,
+        "bugref"    => undef,
+        "group_id"  => 328,
+        "id"        => 4953203,
+        "remaining" => 1,
+        "result"    => {"4953203" => 7764022}
+      }
+    )
+  }
+  qr/\[i\].*restart/, 'amqp log message';
   _is_field('status', 'waiting');
   _is_field('job_id', 7764022);
 };
@@ -113,19 +122,22 @@ subtest 'Handle restart job' => sub {
 subtest 'Handle delete job' => sub {
   _set_default();
   _is_count(1);
-  $t->app->amqp->handle(
-    'suse.openqa.job.delete',
-    {
-      "BUILD"     => "721304-Bogdan.Lezhepekov_branch_mr_4",
-      "FLAVOR"    => "qemu",
-      "HDD_1"     => "carwos-Bogdan.Lezhepekov_branch_mr_4-721304.qcow2",
-      "MACHINE"   => "64bit",
-      "TEST"      => "carwos-futex-performance",
-      "group_id"  => 328,
-      "id"        => 4953203,
-      "remaining" => 1,
-    }
-  );
+  stderr_like {
+    $t->app->amqp->handle(
+      'suse.openqa.job.delete',
+      {
+        "BUILD"     => "721304-Bogdan.Lezhepekov_branch_mr_4",
+        "FLAVOR"    => "qemu",
+        "HDD_1"     => "carwos-Bogdan.Lezhepekov_branch_mr_4-721304.qcow2",
+        "MACHINE"   => "64bit",
+        "TEST"      => "carwos-futex-performance",
+        "group_id"  => 328,
+        "id"        => 4953203,
+        "remaining" => 1,
+      }
+    )
+  }
+  qr/\[i\].*delete/, 'amqp log message';
   _is_count(0);
 };
 
