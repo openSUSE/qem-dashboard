@@ -23,6 +23,4 @@ jobs:
         run: perltidy --version
       - name: Run perltidy
         shell: bash
-        run: |
-          shopt -s extglob globstar nullglob
-          perltidy --pro=.../.perltidyrc -b -bext='/' **/*.p[lm] **/*.t && git diff --exit-code
+        run: make tidy
