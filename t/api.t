@@ -612,7 +612,7 @@ subtest 'Replace openQA job' => sub {
   $t->put_ok('/api/jobs' => $auth_headers => json => \%json)->status_is(200);
   $t->json_is({message => 'Ok'});
   $t->get_ok('/api/jobs/4953193' => $auth_headers)->status_is(200);
-  $t->json_is(undef, \%json, 'job updated');
+  $t->json_is('', \%json, 'job updated');
   $t->get_ok('/api/jobs/4953193/remarks' => $auth_headers)->status_is(200);
   $t->json_has('/remarks/0', 'remark still present if openQA job ID does not change (1)');
   $t->json_has('/remarks/1', 'remark still present if openQA job ID does not change (2)');
@@ -623,7 +623,7 @@ subtest 'Replace openQA job' => sub {
   $t->json_is({message => 'Ok'});
 
   $t->get_ok('/api/jobs/4953293' => $auth_headers)->status_is(200);
-  $t->json_is(undef, \%json, 'job replaced');
+  $t->json_is('', \%json, 'job replaced');
 
   $t->get_ok('/api/jobs/4953293/remarks' => $auth_headers)->status_is(200);
   $t->json_is('/remarks', [], 'remark on job being replaced was removed');
