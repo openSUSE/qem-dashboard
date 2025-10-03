@@ -20,6 +20,7 @@ use lib "$FindBin::Bin/lib";
 
 use Test::More;
 use Test::Mojo;
+use Test::Output 'stderr_like';
 use Dashboard::Test;
 use Mojo::JSON qw(false true);
 
@@ -325,25 +326,28 @@ subtest 'Update individual incidents' => sub {
     }
   );
 
-  $t->patch_ok(
-    '/api/incidents/16862' => $auth_headers => json => {
-      number      => 16862,
-      project     => 'SUSE:Maintenance:16862',
-      packages    => ['perl-Mojo-Pg'],
-      channels    => ['Test4'],
-      rr_number   => 54321,
-      inReview    => false,
-      inReviewQAM => false,
-      approved    => false,
-      emu         => false,
-      isActive    => true,
-      embargoed   => true,
-      priority    => undef,
-      scminfo     => '18bfa2a23fb7985d5d0cc356474a96a19d91d2d8652442badf7f13bc07cd1f3d',
-      url         => 'https://src.suse.de/products/SLFO/pulls/124',
-      type        => 'git',
-    }
-  )->status_is(200)->json_is({message => 'Ok'});
+  stderr_like {
+    $t->patch_ok(
+      '/api/incidents/16862' => $auth_headers => json => {
+        number      => 16862,
+        project     => 'SUSE:Maintenance:16862',
+        packages    => ['perl-Mojo-Pg'],
+        channels    => ['Test4'],
+        rr_number   => 54321,
+        inReview    => false,
+        inReviewQAM => false,
+        approved    => false,
+        emu         => false,
+        isActive    => true,
+        embargoed   => true,
+        priority    => undef,
+        scminfo     => '18bfa2a23fb7985d5d0cc356474a96a19d91d2d8652442badf7f13bc07cd1f3d',
+        url         => 'https://src.suse.de/products/SLFO/pulls/124',
+        type        => 'git',
+      }
+    )->status_is(200)->json_is({message => 'Ok'})
+  }
+  qr/Cleaning up old jobs/, 'log message';
 
   $t->get_ok('/api/incidents' => $auth_headers)->status_is(200)->json_is(
     [
