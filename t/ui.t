@@ -20,6 +20,7 @@ use lib "$FindBin::Bin/lib";
 
 use Test::More;
 use Test::Mojo;
+use Test::Warnings ':report_warnings';
 use Dashboard::Test;
 
 plan skip_all => 'set TEST_ONLINE to enable this test' unless $ENV{TEST_ONLINE};

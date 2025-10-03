@@ -9,6 +9,7 @@ use lib "$FindBin::Bin/lib";
 use Test::More;
 use Test::Mojo;
 use Test::Output 'stderr_like';
+use Test::Warnings ':report_warnings';
 use Dashboard::Test;
 use Mojo::JSON qw(false true);
 
