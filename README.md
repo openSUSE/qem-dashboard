@@ -30,7 +30,7 @@ and ignore the missing dependencies
 
 ### Postgres Database
 
-The postgresql-server package installation in the previous step, created a database called `postgres` by the user `postgres`.
+The postgresql-server package installation in the previous step created a database called `postgres` by the user `postgres`.
 
 Allow this user to connect to the local postgres server by modifying `/var/lib/psgql/data/pg_hba.conf`
 
