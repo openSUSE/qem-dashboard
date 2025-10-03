@@ -51,6 +51,13 @@ host    replication     all             127.0.0.1/32            reject
 host    replication     all             ::1/128                 reject
 ```
 
+Alternatively use a postgres container which is especially useful for testing,
+e.g. from https://hub.docker.com/_/postgres/:
+
+```
+podman run -p 5432:5432 -e POSTGRES_PASSWORD=postgres -d docker.io/library/postgres
+```
+
 Make sure the config file `dashboard.yml` points to your PostgreSQL database (and other services where appropriate):
 
     ---
