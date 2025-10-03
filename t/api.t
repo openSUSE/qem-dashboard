@@ -20,6 +20,8 @@ use lib "$FindBin::Bin/lib";
 
 use Test::More;
 use Test::Mojo;
+use Test::Output 'stderr_like';
+use Test::Warnings ':report_warnings';
 use Dashboard::Test;
 use Mojo::JSON qw(false true);
 
@@ -418,25 +420,28 @@ subtest 'Update individual incidents' => sub {
     }
   );
 
-  $t->patch_ok(
-    '/api/incidents/16862' => $auth_headers => json => {
-      number      => 16862,
-      project     => 'SUSE:Maintenance:16862',
-      packages    => ['perl-Mojo-Pg'],
-      channels    => ['Test4'],
-      rr_number   => 54321,
-      inReview    => false,
-      inReviewQAM => false,
-      approved    => false,
-      emu         => false,
-      isActive    => true,
-      embargoed   => true,
-      priority    => undef,
-      scminfo     => '18bfa2a23fb7985d5d0cc356474a96a19d91d2d8652442badf7f13bc07cd1f3d',
-      url         => 'https://src.suse.de/products/SLFO/pulls/124',
-      type        => 'git',
-    }
-  )->status_is(200)->json_is({message => 'Ok'});
+  stderr_like {
+    $t->patch_ok(
+      '/api/incidents/16862' => $auth_headers => json => {
+        number      => 16862,
+        project     => 'SUSE:Maintenance:16862',
+        packages    => ['perl-Mojo-Pg'],
+        channels    => ['Test4'],
+        rr_number   => 54321,
+        inReview    => false,
+        inReviewQAM => false,
+        approved    => false,
+        emu         => false,
+        isActive    => true,
+        embargoed   => true,
+        priority    => undef,
+        scminfo     => '18bfa2a23fb7985d5d0cc356474a96a19d91d2d8652442badf7f13bc07cd1f3d',
+        url         => 'https://src.suse.de/products/SLFO/pulls/124',
+        type        => 'git',
+      }
+    )->status_is(200)->json_is({message => 'Ok'})
+  }
+  qr/Cleaning up old jobs/, 'log message';
 
   $t->get_ok('/api/incidents' => $auth_headers)->status_is(200)->json_is(
     [
@@ -705,7 +710,7 @@ subtest 'Replace openQA job' => sub {
   $t->put_ok('/api/jobs' => $auth_headers => json => \%json)->status_is(200);
   $t->json_is({message => 'Ok'});
   $t->get_ok('/api/jobs/4953193' => $auth_headers)->status_is(200);
-  $t->json_is(undef, \%json, 'job updated');
+  $t->json_is('', \%json, 'job updated');
   $t->get_ok('/api/jobs/4953193/remarks' => $auth_headers)->status_is(200);
   $t->json_has('/remarks/0', 'remark still present if openQA job ID does not change (1)');
   $t->json_has('/remarks/1', 'remark still present if openQA job ID does not change (2)');
@@ -716,7 +721,7 @@ subtest 'Replace openQA job' => sub {
   $t->json_is({message => 'Ok'});
 
   $t->get_ok('/api/jobs/4953293' => $auth_headers)->status_is(200);
-  $t->json_is(undef, \%json, 'job replaced');
+  $t->json_is('', \%json, 'job replaced');
 
   $t->get_ok('/api/jobs/4953293/remarks' => $auth_headers)->status_is(200);
   $t->json_is('/remarks', [], 'remark on job being replaced was removed');
