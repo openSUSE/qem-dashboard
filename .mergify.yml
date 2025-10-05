@@ -57,7 +57,8 @@ pull_request_rules:
           - waited
         remove:
           - waiting
-      rebase:
+      comment:
+        message: "@dependabot rebase"
     conditions:
       - and:
           - updated-at<4 days ago
@@ -67,3 +68,10 @@ pull_request_rules:
       - label = rebase
     actions:
       rebase:
+  - name: let dependabot rebase on `rebase` label
+    conditions:
+      - label = rebase
+      - author=dependabot[bot]
+    actions:
+      comment:
+        message: "@dependabot rebase"
