@@ -43,7 +43,7 @@ pull_request_rules:
     actions:
       queue:
       merge:
-        method: rebase
+        method: squash
   - name: ask to resolve conflict
     conditions:
       - conflict
@@ -62,3 +62,8 @@ pull_request_rules:
       - and:
           - updated-at<4 days ago
           - author=dependabot[bot]
+  - name: continuously rebase pull requests when it's labeled with `rebase`
+    conditions:
+      - label = rebase
+    actions:
+      rebase:
