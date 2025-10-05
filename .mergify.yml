@@ -41,10 +41,9 @@ pull_request_rules:
         - author=dependabot[bot]
         - "label=waited"
     actions:
-      rebase:
       queue:
       merge:
-        method: squash
+        method: rebase
   - name: ask to resolve conflict
     conditions:
       - conflict
@@ -58,6 +57,7 @@ pull_request_rules:
           - waited
         remove:
           - waiting
+      rebase:
     conditions:
       - and:
           - updated-at<4 days ago
