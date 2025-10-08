@@ -8,6 +8,7 @@ use lib "$FindBin::Bin/lib";
 
 use Test::More;
 use Test::Mojo;
+use Test::Output 'stderr_like';
 use Dashboard::Test;
 use Mojo::JSON qw(false true);
 
@@ -177,7 +178,7 @@ subtest 'Clean up jobs after rr_number change (during sync)' => sub {
 
   subtest 'Job with remark can be cleaned up' => sub {
     my $jobs = $app->jobs;
-    $jobs->delete_job(4953600);
+    stderr_like { $jobs->delete_job(4953600) } qr/\[i\] delete/, 'amqp log message';
     is $jobs->internal_job_id(4953600),                                      undef, 'job no longer exists';
     is $app->pg->db->query('SELECT count(id) FROM job_remarks')->array->[0], 0,     'remark removed as well';
   };
