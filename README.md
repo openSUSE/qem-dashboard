@@ -91,8 +91,8 @@ with a code change proposal.
 
 ### Local Testing
 
-To execute all tests a PostgreSQL instance is needed and needs to specified in the environment variable `TEST_ONLINE`.
-For a local PostgreSQL instance with a username and password one could call:
+To execute all tests a PostgreSQL instance is needed and needs to be specified in the environment variable
+`TEST_ONLINE`. For a local PostgreSQL instance with a username and password one could call:
 
 ```
 TEST_ONLINE=postgresql://postgres:postgres@localhost:5432/postgres prove -l t/*.t t/*.t.js
