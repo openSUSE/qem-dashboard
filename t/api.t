@@ -31,6 +31,22 @@ my $t              = Test::Mojo->new(Dashboard => $config);
 $dashboard_test->no_fixtures($t->app);
 my $auth_headers = {Authorization => 'Token test_token', Accept => 'application/json'};
 
+my $mock_incident = {
+  number   => 16860,
+  project  => 'SUSE:Maintenance:16860',
+  packages =>
+    ['salt', 'cobbler', 'spacecmd', 'mgr-daemon', 'spacewalk-abrt', 'yum-rhn-plugin', 'spacewalk-client-tools'],
+  channels    => ['Test'],
+  rr_number   => undef,
+  inReview    => true,
+  inReviewQAM => true,
+  approved    => false,
+  emu         => true,
+  isActive    => true,
+  embargoed   => false,
+  priority    => 123,
+};
+
 subtest 'Migrations' => sub {
   is $t->app->pg->migrations->latest, 9, 'latest version';
   is $t->app->pg->migrations->active, 9, 'active version';
@@ -55,67 +71,21 @@ subtest 'JSON schema validation failed' => sub {
   $t->patch_ok('/api/incidents' => $auth_headers => json => [{number => 16861}])->status_is(400);
   like $t->tx->res->json('/error'), qr/Incidents do not match the JSON schema:.+/, 'right error';
 
-  $t->patch_ok(
-    '/api/incidents' => $auth_headers => json => [
-      {
-        number      => 16860,
-        project     => 'SUSE:Maintenance:16860',
-        packages    => [],
-        channels    => ['Test'],
-        rr_number   => undef,
-        inReview    => true,
-        inReviewQAM => true,
-        approved    => false,
-        emu         => true,
-        isActive    => true,
-        embargoed   => true,
-        priority    => undef,
-      }
-    ]
-  )->status_is(400);
+  $t->patch_ok('/api/incidents' => $auth_headers => json =>
+      [{%$mock_incident, packages => [], embargoed => true, priority => undef,}])->status_is(400);
   like $t->tx->res->json('/error'), qr/Incidents do not match the JSON schema:.+/, 'right error';
 
-  $t->patch_ok(
-    '/api/incidents/16860' => $auth_headers => json => {
-      number      => 16860,
-      project     => 'SUSE:Maintenance:16860',
-      packages    => [],
-      channels    => ['Test'],
-      rr_number   => undef,
-      inReview    => true,
-      inReviewQAM => true,
-      approved    => false,
-      emu         => true,
-      isActive    => true,
-      embargoed   => false,
-      priority    => undef,
-    }
-  )->status_is(400);
+  $t->patch_ok('/api/incidents/16860' => $auth_headers => json => {%$mock_incident, packages => [], priority => undef})
+    ->status_is(400);
   like $t->tx->res->json('/error'), qr/Incident does not match the JSON schema:.+/, 'right error';
 
-  $t->patch_ok(
-    '/api/incidents' => $auth_headers => json => [
-      {
-        number   => 16860,
-        project  => 'SUSE:Maintenance:16860',
-        packages =>
-          ['salt', 'cobbler', 'spacecmd', 'mgr-daemon', 'spacewalk-abrt', 'yum-rhn-plugin', 'spacewalk-client-tools'],
-        channels    => ['Test'],
-        rr_number   => undef,
-        inReview    => true,
-        inReviewQAM => [],
-        approved    => false,
-        emu         => true,
-        isActive    => true,
-        embargoed   => false,
-        priority    => undef,
-      }
-    ]
-  )->status_is(400);
+  $t->patch_ok('/api/incidents' => $auth_headers => json => [{%$mock_incident, inReviewQAM => [], priority => undef}])
+    ->status_is(400);
   like $t->tx->res->json('/error'), qr/Expected boolean - got array/, 'right error';
 
   $t->patch_ok(
     '/api/incidents/16862' => $auth_headers => json => {
+      %$mock_incident,
       number      => 16862,
       project     => 'SUSE:Maintenance:16862',
       packages    => ['perl-Mojo-Pg'],
@@ -123,10 +93,7 @@ subtest 'JSON schema validation failed' => sub {
       rr_number   => 12345,
       inReview    => false,
       inReviewQAM => [],
-      approved    => false,
       emu         => false,
-      isActive    => true,
-      embargoed   => false,
       priority    => undef,
     }
   )->status_is(400);
@@ -134,86 +101,26 @@ subtest 'JSON schema validation failed' => sub {
 };
 
 subtest 'Add incident' => sub {
-  $t->patch_ok(
-    '/api/incidents' => $auth_headers => json => [
-      {
-        number   => 16860,
-        project  => 'SUSE:Maintenance:16860',
-        packages =>
-          ['salt', 'cobbler', 'spacecmd', 'mgr-daemon', 'spacewalk-abrt', 'yum-rhn-plugin', 'spacewalk-client-tools'],
-        channels    => ['Test'],
-        rr_number   => undef,
-        inReview    => true,
-        inReviewQAM => true,
-        approved    => false,
-        emu         => true,
-        isActive    => true,
-        embargoed   => false,
-        priority    => 123,
-      }
-    ]
-  )->status_is(200)->json_is({message => 'Ok'});
-
-  $t->get_ok('/api/incidents' => $auth_headers)->status_is(200)->json_is(
-    [
-      {
-        number   => 16860,
-        project  => 'SUSE:Maintenance:16860',
-        packages =>
-          ['salt', 'cobbler', 'spacecmd', 'mgr-daemon', 'spacewalk-abrt', 'yum-rhn-plugin', 'spacewalk-client-tools'],
-        channels    => ['Test'],
-        rr_number   => undef,
-        inReview    => true,
-        inReviewQAM => true,
-        approved    => false,
-        emu         => true,
-        isActive    => true,
-        embargoed   => false,
-        priority    => 123,
-        scminfo     => '',
-        url         => '',
-        type        => '',
-      }
-    ]
-  );
-
-  $t->get_ok('/api/incidents/16860' => $auth_headers)->status_is(200)->json_is(
-    {
-      number   => 16860,
-      project  => 'SUSE:Maintenance:16860',
-      packages =>
-        ['salt', 'cobbler', 'spacecmd', 'mgr-daemon', 'spacewalk-abrt', 'yum-rhn-plugin', 'spacewalk-client-tools'],
-      channels    => ['Test'],
-      rr_number   => undef,
-      inReview    => true,
-      inReviewQAM => true,
-      approved    => false,
-      emu         => true,
-      isActive    => true,
-      embargoed   => false,
-      priority    => 123,
-      scminfo     => '',
-      url         => '',
-      type        => '',
-    }
-  );
-  $t->get_ok('/api/incidents/1' => $auth_headers)->status_is(404)->json_is({error => 'Incident not found'});
+  $t->patch_ok('/api/incidents' => $auth_headers => json => [$mock_incident])
+    ->status_is(200)
+    ->json_is({message => 'Ok'});
+  my $expected = {%$mock_incident, type => '', url => '', scminfo => ''};
+  $t->get_ok('/api/incidents'       => $auth_headers)->status_is(200)->json_is([$expected]);
+  $t->get_ok('/api/incidents/16860' => $auth_headers)->status_is(200)->json_is($expected);
+  $t->get_ok('/api/incidents/1'     => $auth_headers)->status_is(404)->json_is({error => 'Incident not found'});
 };
 
 subtest 'Update incident' => sub {
   $t->patch_ok(
     '/api/incidents' => $auth_headers => json => [
       {
-        number      => 16860,
-        project     => 'SUSE:Maintenance:16860',
+        %$mock_incident,
         packages    => ['salt', 'cobbler', 'spacecmd', 'mgr-daemon', 'yum-rhn-plugin', 'spacewalk-client-tools'],
         channels    => ['Test', 'Test2',   'Test3'],
         rr_number   => 228241,
         inReview    => false,
         inReviewQAM => false,
-        approved    => false,
         emu         => false,
-        isActive    => true,
         embargoed   => true,
         priority    => 456,
       }
@@ -901,44 +808,12 @@ subtest "Get jobs by settings" => sub {
 subtest 'Authentication' => sub {
   $t->get_ok('/api/incidents')->status_is(200);
   $t->get_ok('/api/incidents' => $auth_headers)->status_is(200);
-  $t->patch_ok(
-    '/api/incidents' => json => [
-      {
-        number   => 16860,
-        project  => 'SUSE:Maintenance:16860',
-        packages =>
-          ['salt', 'cobbler', 'spacecmd', 'mgr-daemon', 'spacewalk-abrt', 'yum-rhn-plugin', 'spacewalk-client-tools'],
-        channels    => ['Test'],
-        rr_number   => undef,
-        inReview    => true,
-        inReviewQAM => true,
-        approved    => false,
-        emu         => true,
-        isActive    => true,
-        embargoed   => true,
-        priority    => undef,
-      }
-    ]
-  )->status_is(403)->json_is({error => 'Permission denied'});
-  $t->patch_ok(
-    '/api/incidents' => $auth_headers => json => [
-      {
-        number   => 16860,
-        project  => 'SUSE:Maintenance:16860',
-        packages =>
-          ['salt', 'cobbler', 'spacecmd', 'mgr-daemon', 'spacewalk-abrt', 'yum-rhn-plugin', 'spacewalk-client-tools'],
-        channels    => ['Test'],
-        rr_number   => undef,
-        inReview    => true,
-        inReviewQAM => true,
-        approved    => false,
-        emu         => true,
-        isActive    => true,
-        embargoed   => false,
-        priority    => undef,
-      }
-    ]
-  )->status_is(200)->json_is({message => 'Ok'});
+  $t->patch_ok('/api/incidents' => json => [{%$mock_incident, embargoed => true,}])
+    ->status_is(403)
+    ->json_is({error => 'Permission denied'});
+  $t->patch_ok('/api/incidents' => $auth_headers => json => [{%$mock_incident}])
+    ->status_is(200)
+    ->json_is({message => 'Ok'});
 };
 
 
