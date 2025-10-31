@@ -142,8 +142,7 @@ sub _normalize_result ($result) {
   return 'stopped'
     if grep { $result eq $_ }
     qw(timeout_exceeded incomplete obsoleted parallel_failed skipped parallel_restarted user_cancelled user_restarted);
-  return 'failed' if $result eq 'failed';
-  return 'failed';
+  return 'failed';  # uncoverable statement
 }
 
 1;
