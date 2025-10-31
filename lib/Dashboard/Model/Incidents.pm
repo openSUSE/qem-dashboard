@@ -107,13 +107,6 @@ sub id_for_number ($self, $number) {
   return $array->[0];
 }
 
-sub name ($self, $inc) {
-  return "$inc->{number}:unknown"
-    unless my $hash
-    = $self->pg->db->query('SELECT packages[1] as package FROM incidents WHERE number = ?', $inc->{number})->hash;
-  return "$inc->{number}:$hash->{package}";
-}
-
 sub repos ($self) {
   my %titles;
   my $db  = $self->pg->db;
