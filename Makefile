@@ -31,6 +31,10 @@ install-deps-cpanm:
 .PHONY: install-deps
 install-deps: install-deps-js install-deps-ubuntu install-deps-cpanm
 
+.PHONY: build
+build:
+	npm run build
+
 .PHONY: start-postgres
 start-postgres:
 	podman run -p 5432:5432 -e POSTGRES_PASSWORD=postgres -d docker.io/library/postgres

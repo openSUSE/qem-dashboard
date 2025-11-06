@@ -9,10 +9,11 @@ import webpack from 'webpack';
 const assetsDir = process.env.WEBPACK_ASSETS_DIR || Path.currentFile().sibling('assets').toString();
 const isDev = process.env.NODE_ENV !== 'production';
 
-const output = {};
-output.filename = isDev ? '[name].development.js' : '[name].[chunkhash].js';
-output.path = process.env.WEBPACK_OUT_DIR || Path.currentFile().sibling('dist').toString();
-output.publicPath = '';
+const output = {
+  filename: isDev ? '[name].development.js' : '[name].[chunkhash].js',
+  path: process.env.WEBPACK_OUT_DIR || Path.currentFile().sibling('public', 'asset').toString(),
+  publicPath: ''
+};
 
 const entry = new Path(assetsDir, 'main.js').toString();
 

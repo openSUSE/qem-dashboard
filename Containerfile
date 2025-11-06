@@ -17,9 +17,10 @@ COPY . .
 # Alternatively, use sources from git (also needs git added to dependencies)
 # RUN git clone https://github.com/openSUSE/qem-dashboard .
 
-# Install node dependencies
-RUN npm install --ignore-scripts
-RUN npx playwright install
+# Install node dependencies and bundle assets
+RUN npm install --ignore-scripts && \
+    npm run build && \
+    npx playwright install
 
 EXPOSE 3000
-ENTRYPOINT ["mojo", "webpack", "script/dashboard"]
+ENTRYPOINT ["script/dashboard", "daemon"]

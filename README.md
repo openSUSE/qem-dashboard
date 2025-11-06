@@ -75,10 +75,12 @@ Make sure the config file `dashboard.yml` points to your PostgreSQL database (an
     smelt:
       url: https://smelt.suse.de
 
-And finally use the `mojo webpack` development web server to make the web application available under
+Call `npm run build` to bundle assets.
+
+And finally use the `script/dashboard daemon` development web server to make the web application available under
 `http://127.0.0.1:3000`.
 
-    $ mojo webpack script/dashboard
+    $ script/dashboard daemon
     Web application available at http://127.0.0.1:3000
 
 ## Contribute

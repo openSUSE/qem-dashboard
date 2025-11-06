@@ -66,7 +66,7 @@ sub startup ($self) {
 
   $self->plugin('Dashboard::Plugin::JSON');
   $self->plugin('Dashboard::Plugin::Helpers');
-  $self->plugin(Webpack => {process => [qw(js css sass vue)]});
+  $self->plugin('Webpack', {process => []});    # pass empty array as Webpack defaults to processing JS files
 
   # Compress dynamically generated content
   $self->renderer->compress(1);
