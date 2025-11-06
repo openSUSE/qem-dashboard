@@ -17,10 +17,14 @@ package Dashboard;
 use Mojo::Base 'Mojolicious', -signatures;
 
 use Mojo::Pg;
+use Mojo::File qw(curfile);
 use Dashboard::Model::Incidents;
 use Dashboard::Model::Jobs;
 use Dashboard::Model::Settings;
 use Dashboard::Model::AMQP;
+
+# Avoid installing random npm packages bypassing package-lock.json
+BEGIN { $ENV{MOJO_NPM_BINARY} = curfile->sibling('../script/npm-noop') }
 
 # This method will run once at server start
 sub startup ($self) {
