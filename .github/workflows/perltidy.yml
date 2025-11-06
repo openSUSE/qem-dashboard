@@ -12,7 +12,7 @@ jobs:
     container:
       image: perl:5.32
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v5
       - name: Fix git permissions
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
       - name: perl -V
