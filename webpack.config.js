@@ -10,7 +10,7 @@ const assetsDir = process.env.WEBPACK_ASSETS_DIR || Path.currentFile().sibling('
 const isDev = process.env.NODE_ENV !== 'production';
 
 const output = {
-  filename: isDev ? '[name].development.js' : '[name].[chunkhash].js',
+  filename: isDev ? 'js/[name].development.js' : 'js/[name].[chunkhash].js',
   path: process.env.WEBPACK_OUT_DIR || Path.currentFile().sibling('public', 'asset').toString(),
   publicPath: ''
 };
@@ -63,7 +63,7 @@ const config = {
     new CopyWebpackPlugin({
       patterns: [{from: './node_modules/@fortawesome/fontawesome-free/webfonts', to: './webfonts'}]
     }),
-    new MiniCssExtractPlugin({filename: isDev ? '[name].development.css' : '[name].[contenthash].css'}),
+    new MiniCssExtractPlugin({filename: isDev ? 'css/[name].development.css' : 'css/[name].[contenthash].css'}),
     new VueLoaderPlugin(),
     new webpack.DefinePlugin({
       __VUE_PROD_DEVTOOLS__: JSON.stringify(isDev)

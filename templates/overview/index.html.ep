@@ -5,8 +5,8 @@
 
     <title>This application requires JavaScript!</title>
 
-    %= asset 'qem-dashboard.js'
-    %= asset 'qem-dashboard.css'
+    %= asset 'js/qem-dashboard.js'
+    %= asset 'css/qem-dashboard.css'
 
   </head>
   <body>
