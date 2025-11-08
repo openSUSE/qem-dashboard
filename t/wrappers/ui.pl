@@ -1,12 +1,5 @@
 use Mojo::Base -strict, -signatures;
 
-# Coverage
-BEGIN {
-  if ($ENV{TEST_WRAPPER_COVERAGE}) {
-    require Devel::Cover;
-    Devel::Cover->import;
-  }
-}
 
 use FindBin;
 use lib "$FindBin::Bin/../lib";
