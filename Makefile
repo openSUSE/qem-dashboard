@@ -57,7 +57,7 @@ test-ui:
 	TEST_ONLINE=$(TEST_ONLINE) \
 	TEST_WRAPPER_COVERAGE=$(TEST_WRAPPER_COVERAGE) \
 $(if $(TEST_WRAPPER_COVERAGE),$(COVERAGE_OPTS)) \
-	prove -l -v t/*.t.js
+	prove -l t/*.t.js
 
 .PHONY: test
 test: test-unit test-ui
