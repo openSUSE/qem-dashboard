@@ -61,3 +61,7 @@ $(if $(TEST_WRAPPER_COVERAGE),$(COVERAGE_OPTS)) \
 
 .PHONY: test
 test: test-unit test-ui
+
+.PHONY: coverage
+coverage: test
+	cover
