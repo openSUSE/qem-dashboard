@@ -40,7 +40,7 @@
     "playwright": "^1.56.1",
     "prettier": "^3.6.2",
     "sass": "^1.93.2",
-    "sass-loader": "^16.0.5",
+    "sass-loader": "^16.0.6",
     "tap": "^21.1.0",
     "terser-webpack-plugin": "^5.3.14",
     "vue": "^3.5.18",
