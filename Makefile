@@ -1,6 +1,7 @@
 MOJO_MODE ?= production
 TEST_ONLINE ?= postgresql://postgres:postgres@localhost:5432/postgres
 HARNESS_PERL_SWITCHES ?= -MDevel::Cover=-ignore,^blib/,-ignore,^template/
+COVERAGE_OPTS ?= PERL5OPT='$(HARNESS_PERL_SWITCHES)'
 TEST_WRAPPER_COVERAGE ?= 1
 
 .PHONY: all
@@ -55,7 +56,12 @@ test-ui:
 	MOJO_MODE=$(MOJO_MODE) \
 	TEST_ONLINE=$(TEST_ONLINE) \
 	TEST_WRAPPER_COVERAGE=$(TEST_WRAPPER_COVERAGE) \
-	prove -l -v t/*.t.js
+$(if $(TEST_WRAPPER_COVERAGE),$(COVERAGE_OPTS)) \
+	prove -l t/*.t.js
 
 .PHONY: test
 test: test-unit test-ui
+
+.PHONY: coverage
+coverage: test
+	cover
