@@ -1,19 +1,19 @@
 <template>
   <a v-if="failed > 0" :href="link" class="btn btn-danger" target="_blank">
     {{ result.name }} <span class="badge bg-light text-dark">{{ failed }}/{{ total }}</span>
-    <span class="sr-only">failed jobs</span>
+    <span class="visually-hidden">failed jobs</span>
   </a>
   <a v-else-if="stopped > 0" :href="link" class="btn btn-secondary" target="_blank">
     {{ result.name }} <span class="badge bg-light text-dark">{{ stopped }}/{{ total }}</span>
-    <span class="sr-only">stopped jobs</span>
+    <span class="visually-hidden">stopped jobs</span>
   </a>
   <a v-else-if="waiting > 0" :href="link" class="btn btn-primary" target="_blank">
     {{ result.name }} <span class="badge bg-light text-dark">{{ waiting }}/{{ total }}</span>
-    <span class="sr-only">stopped jobs</span>
+    <span class="visually-hidden">stopped jobs</span>
   </a>
   <a v-else-if="passed == total" :href="link" class="btn btn-success" target="_blank">
     {{ result.name }} <span class="badge bg-light text-dark">{{ total }}</span>
-    <span class="sr-only">passed jobs</span>
+    <span class="visually-hidden">passed jobs</span>
   </a>
   <a v-else> {{ result.name }} is problematic </a>
 </template>
