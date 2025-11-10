@@ -24,7 +24,6 @@ use Dashboard::Test;
 
 plan skip_all => 'set TEST_ONLINE to enable this test' unless $ENV{TEST_ONLINE};
 
-$ENV{MOJO_WEBPACK_BUILD} = 1;
 my $dashboard_test = Dashboard::Test->new(online => $ENV{TEST_ONLINE}, schema => 'ui_test');
 my $config         = $dashboard_test->default_config;
 my $t              = Test::Mojo->new(Dashboard => $config);
