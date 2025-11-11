@@ -18,7 +18,7 @@ COPY . .
 # RUN git clone https://github.com/openSUSE/qem-dashboard .
 
 # Install node dependencies and bundle assets
-RUN npm install --ignore-scripts && \
+RUN npm clean-install --ignore-scripts && \
     npm run build && \
     npx playwright install
 
