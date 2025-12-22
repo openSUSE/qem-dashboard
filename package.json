@@ -20,7 +20,7 @@
     "@babel/plugin-transform-runtime": "^7.28.5",
     "@babel/preset-env": "^7.28.5",
     "@fortawesome/fontawesome-free": "^7.1.0",
-    "@mojojs/core": "^1.26.10",
+    "@mojojs/core": "^1.26.12",
     "@mojojs/path": "^1.7.0",
     "@mojolicious/server-starter": "^2.2.0",
     "babel-loader": "^10.0.0",
