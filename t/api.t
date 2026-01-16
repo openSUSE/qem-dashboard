@@ -58,6 +58,9 @@ subtest 'Compression available' => sub {
 };
 
 subtest 'JSON schema validation failed' => sub {
+  $t->patch_ok('/api/incidents' => $auth_headers)
+    ->status_is(400)
+    ->json_is({error => 'Incidents in JSON format required'});
   $t->patch_ok('/api/incidents' => $auth_headers => json => [{number => 16861}])->status_is(400);
   like $t->tx->res->json('/error'), qr/Incidents do not match the JSON schema:.+/, 'right error';
 
@@ -65,6 +68,9 @@ subtest 'JSON schema validation failed' => sub {
       [{%$mock_incident, packages => [], embargoed => true, priority => undef,}])->status_is(400);
   like $t->tx->res->json('/error'), qr/Incidents do not match the JSON schema:.+/, 'right error';
 
+  $t->patch_ok('/api/incidents/16860' => $auth_headers)
+    ->status_is(400)
+    ->json_is({error => 'Incident in JSON format required'});
   $t->patch_ok('/api/incidents/16860' => $auth_headers => json => {%$mock_incident, packages => [], priority => undef})
     ->status_is(400);
   like $t->tx->res->json('/error'), qr/Incident does not match the JSON schema:.+/, 'right error';
@@ -400,6 +406,12 @@ subtest 'Update individual incidents' => sub {
 };
 
 subtest 'Add incident settings' => sub {
+  $t->put_ok('/api/incident_settings' => $auth_headers)
+    ->status_is(400)
+    ->json_is({error => 'Incident settings in JSON format required'});
+  $t->put_ok('/api/incident_settings' => $auth_headers => json => {incident => 16861})->status_is(400);
+  like $t->tx->res->json('/error'), qr/Incident settings do not match the JSON schema:.+/, 'right error';
+
   $t->get_ok('/api/incident_settings/1'     => $auth_headers)->status_is(400)->json_is({error => 'Incident not found'});
   $t->get_ok('/api/incident_settings/16861' => $auth_headers)->status_is(200)->json_is([]);
 
@@ -430,6 +442,12 @@ subtest 'Add incident settings' => sub {
 };
 
 subtest 'Add update settings' => sub {
+  $t->put_ok('/api/update_settings' => $auth_headers)
+    ->status_is(400)
+    ->json_is({error => 'Update settings in JSON format required'});
+  $t->put_ok('/api/update_settings' => $auth_headers => json => {product => 'foo'})->status_is(400);
+  like $t->tx->res->json('/error'), qr/Update settings do not match the JSON schema:.+/, 'right error';
+
   $t->get_ok('/api/update_settings/1'     => $auth_headers)->status_is(400)->json_is({error => 'Incident not found'});
   $t->get_ok('/api/update_settings/16861' => $auth_headers)->status_is(200)->json_is([]);
 
@@ -460,6 +478,10 @@ subtest 'Add update settings' => sub {
 };
 
 subtest 'Add openQA job' => sub {
+  $t->put_ok('/api/jobs' => $auth_headers)->status_is(400)->json_is({error => 'Job in JSON format required'});
+  $t->put_ok('/api/jobs' => $auth_headers => json => {name => 'foo'})->status_is(400);
+  like $t->tx->res->json('/error'), qr/Job does not match the JSON schema:.+/, 'right error';
+
   $t->get_ok('/api/jobs/1' => $auth_headers)->status_is(400)->json_is({error => 'Job not found'});
 
   $t->put_ok(
@@ -499,6 +521,8 @@ subtest 'Add openQA job' => sub {
 };
 
 subtest 'Modify openQA job' => sub {
+  $t->patch_ok('/api/jobs/4953193' => $auth_headers)->status_is(400)->json_is({error => 'Job in JSON format required'});
+
   $t->get_ok('/api/jobs/4953193' => $auth_headers)->status_is(200)->json_is(
     {
       incident_settings => 1,
@@ -648,6 +672,14 @@ subtest 'Search update settings' => sub {
   $t->get_ok('/api/update_settings' => $auth_headers)
     ->status_is(400)
     ->json_is({error => 'Invalid request parameters (arch, product)'});
+
+  $t->get_ok('/api/update_settings?product=foo' => $auth_headers)
+    ->status_is(400)
+    ->json_is({error => 'Invalid request parameters (arch)'});
+
+  $t->get_ok('/api/update_settings?arch=foo' => $auth_headers)
+    ->status_is(400)
+    ->json_is({error => 'Invalid request parameters (product)'});
 
   $t->get_ok('/api/update_settings?product=SLES-15-GA&arch=x86_64' => $auth_headers)->status_is(200)->json_is(
     [
