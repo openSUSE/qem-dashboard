@@ -1,6 +1,6 @@
 MOJO_MODE ?= production
 TEST_ONLINE ?= postgresql://postgres:postgres@localhost:5432/postgres
-HARNESS_PERL_SWITCHES ?= -MDevel::Cover=-ignore,^blib/,-ignore,^template/
+HARNESS_PERL_SWITCHES ?= -MDevel::Cover=-ignore,^blib/,-ignore,^templates/,-ignore,Net/SSLeay
 COVERAGE_OPTS ?= PERL5OPT='$(HARNESS_PERL_SWITCHES)'
 TEST_WRAPPER_COVERAGE ?= 1
 
