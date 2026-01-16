@@ -16,7 +16,7 @@
     "node": ">= 18"
   },
   "dependencies": {
-    "@babel/core": "^7.28.5",
+    "@babel/core": "^7.28.6",
     "@babel/plugin-transform-runtime": "^7.28.5",
     "@babel/preset-env": "^7.28.5",
     "@fortawesome/fontawesome-free": "^7.1.0",
