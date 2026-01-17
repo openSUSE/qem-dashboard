@@ -44,6 +44,8 @@ jobs:
         run: make test-unit
       - name: Run UI tests
         run: make test-ui
+      - name: Ensure full coverage
+        run: make test-coverage
       - name: Check assets
         run: ls public/asset
       - name: Coveralls
