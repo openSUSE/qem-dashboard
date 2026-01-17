@@ -50,5 +50,9 @@
     "webpack": "^5.104.1",
     "webpack-cli": "^6.0.1",
     "regenerator-transform": "^0.15.2"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.11.0",
+    "eslint-plugin-vuejs-accessibility": "^2.4.1"
   }
 }
