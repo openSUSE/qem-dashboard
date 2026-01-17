@@ -49,8 +49,8 @@ start-postgres:
 	podman run -p 5432:5432 -e POSTGRES_PASSWORD=postgres -d docker.io/library/postgres
 
 .PHONY: run-mock
-run-mock:
-	MOJO_MODE=$(MOJO_MODE) \
+run-mock: build
+	MOJO_MODE=development \
 	TEST_ONLINE=$(TEST_ONLINE) \
 	./script/run-mock
 
