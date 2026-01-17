@@ -111,17 +111,21 @@ sub update_result ($self, $id, $result) {
      WHERE job_id = ?
      RETURNING job_id', $normalized, $id
   )->hash;
-  $self->log->info("$id: $normalized ($result)");
+  $self->_log(info => {job_id => $id, status => $normalized, original_result => $result, type => 'job_update'});
 }
 
 sub restart_job ($self, $old_id, $new_id) {
-  $self->log->info("restart $old_id -> $new_id");
+  $self->_log(info => {old_job_id => $old_id, new_job_id => $new_id, type => 'job_restart'});
   $self->pg->db->query("UPDATE openqa_jobs set job_id=?, status='waiting' where job_id=?", $new_id, $old_id);
 }
 
 sub delete_job ($self, $id) {
-  $self->log->info("delete $id");
+  $self->_log(info => {job_id => $id, type => 'job_delete'});
   $self->pg->db->query("DELETE FROM openqa_jobs WHERE job_id=?", $id);
+}
+
+sub _log ($self, $level, $data) {
+  $self->log->$level(Mojo::JSON::encode_json($data));
 }
 
 sub _normalize_result ($result) {

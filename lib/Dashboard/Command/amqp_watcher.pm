@@ -13,18 +13,43 @@ has description => 'Watch message bus for job results';
 has usage       => sub { shift->extract_usage };
 
 sub run ($self, @args) {    # uncoverable statement
-  my $amqp = $self->app->amqp;
   Mojo::IOLoop->singleton->reactor->unsubscribe('error');
+  $self->_connect(0);
+  Mojo::IOLoop->start unless Mojo::IOLoop->is_running;
+}
+
+sub _connect ($self, $backoff) {
+  my $amqp = $self->app->amqp;
+  my $log  = $self->app->log;
 
   my $client = Mojo::RabbitMQ::Client->new(url => $self->app->config->{rabbitmq});
   my $queue_name;
-  my $promise = $client->connect_p->then(sub ($client) { $client->acquire_channel_p })->then(
+
+  $client->on(
+    close => sub {
+      my $next_backoff = $backoff ? $backoff * 2 : 1;
+      $next_backoff = 60 if $next_backoff > 60;
+      $log->info(
+        Mojo::JSON::encode_json(
+          {type => 'amqp_reconnect', delay => $next_backoff, message => 'AMQP connection closed'}
+        )
+      );
+      Mojo::IOLoop->timer($next_backoff => sub { $self->_connect($next_backoff) });
+    }
+  );
+
+  $client->connect_p->then(
+    sub ($client) {
+      $log->info(Mojo::JSON::encode_json({type => 'amqp_connected', message => 'RabbitMQ watcher connected'}));
+      return $client->acquire_channel_p;
+    }
+  )->then(
     sub ($channel) {
-      $channel->declare_exchange_p(exchange => 'pubsub', type => 'topic', passive => 1, durable => 1);
+      return $channel->declare_exchange_p(exchange => 'pubsub', type => 'topic', passive => 1, durable => 1);
     }
   )->then(
     sub ($channel, @args) {
-      $channel->declare_queue_p(exclusive => 1);
+      return $channel->declare_queue_p(exclusive => 1);
     }
   )->then(
     sub ($channel, $result) {
@@ -33,20 +58,27 @@ sub run ($self, @args) {    # uncoverable statement
     }
   )->then(
     sub ($channel, @) {
-      my $promise  = Mojo::Promise->new;
       my $consumer = $channel->consume(queue => $queue_name, no_ack => 1);
-      $consumer->on(error => sub { $promise->reject('Consumer error') });
       $consumer->on(
         message => sub ($consumer, $frame) {
           my $message = $frame->{body}->to_raw_payload;
           my $key     = $frame->{deliver}{method_frame}{routing_key};
-          my $data    = decode_json $message;
+          my $data    = eval { decode_json $message };
+          if ($@) {
+            $log->error(
+              Mojo::JSON::encode_json({type => 'amqp_error', error => $@, message => 'Failed to decode AMQP message'}));
+            return;
+          }
           $amqp->handle($key, $data);
         }
       );
       $consumer->deliver;
-
-      return $promise;
+    }
+  )->catch(
+    sub {
+      my $err = shift;
+      $log->error(Mojo::JSON::encode_json({type => 'amqp_error', error => "$err", message => 'AMQP connection error'}));
+      $client->emit('close');
     }
   );
 
@@ -56,11 +88,6 @@ sub run ($self, @args) {    # uncoverable statement
       Mojo::IOLoop->timer(0 => sub { $stream->timeout(120) });
     }
   );
-
-  my $log = $self->app->log;
-  $log->info('RabbitMQ watcher started');
-  $promise->catch(sub { $log->error(@_) })->wait;
-
 }
 
 1;

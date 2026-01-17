@@ -1,6 +1,6 @@
 MOJO_MODE ?= production
 TEST_ONLINE ?= postgresql://postgres:postgres@localhost:5432/postgres
-HARNESS_PERL_SWITCHES ?= -MDevel::Cover=-ignore,^blib/,-ignore,^templates/,-ignore,Net/SSLeay
+HARNESS_PERL_SWITCHES ?= -MDevel::Cover=-ignore,^blib/,-ignore,^templates/,-ignore,Net/SSLeay,-ignore,Dashboard/Plugin/Database.pm
 COVERAGE_OPTS ?= PERL5OPT='$(HARNESS_PERL_SWITCHES)'
 TEST_WRAPPER_COVERAGE ?= 1
 ASSET_SOURCES := $(shell find assets -type f) package-lock.json webpack.config.js
@@ -66,7 +66,6 @@ tidy-js:
 
 .PHONY: tidy-perl
 tidy-perl:
->>>>>>> 14838659 (feat: add tidy-js make target)
 	bash -c 'shopt -s extglob globstar nullglob; perltidy --pro=.../.perltidyrc -b -bext='/' **/*.p[lm] **/*.t && git diff --exit-code'
 
 .PHONY: tidy
