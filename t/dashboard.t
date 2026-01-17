@@ -1,0 +1,46 @@
+# Copyright SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
+
+use Mojo::Base -strict, -signatures;
+
+use FindBin;
+use lib "$FindBin::Bin/lib";
+
+use Test::More;
+use Test::Mojo;
+use Test::Warnings ':report_warnings';
+use Dashboard::Test;
+use Time::HiRes ();
+
+plan skip_all => 'set TEST_ONLINE to enable this test' unless $ENV{TEST_ONLINE};
+
+my $dashboard_test = Dashboard::Test->new(online => $ENV{TEST_ONLINE}, schema => 'dashboard_test');
+my $config         = $dashboard_test->default_config;
+
+subtest 'Production mode' => sub {
+  local $ENV{MOJO_MODE} = 'production';
+  my $t = Test::Mojo->new(Dashboard => $config);
+  is $t->app->mode, 'production', 'app is in production mode';
+  ok $t->app->log->short, 'short logging is enabled';
+  is $t->app->log->level, 'info', 'log level is info';
+  $t->get_ok('/')->status_is(200);
+};
+
+subtest 'Zero elapsed time log' => sub {
+  local $ENV{MOJO_MODE} = 'production';
+  my $t = Test::Mojo->new(Dashboard => $config);
+  no warnings 'redefine';
+  local *Time::HiRes::tv_interval = sub { return 0 };
+  $t->get_ok('/')->status_is(200);
+};
+
+subtest 'App config endpoint' => sub {
+  my $t = Test::Mojo->new(Dashboard => $config);
+  $t->get_ok('/app-config')
+    ->status_is(200)
+    ->json_is('/openqaUrl', 'https://openqa.suse.de/tests/overview')
+    ->json_is('/obsUrl',    'https://build.suse.de')
+    ->json_is('/smeltUrl',  'https://smelt.suse.de');
+};
+
+done_testing();
