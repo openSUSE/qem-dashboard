@@ -65,3 +65,7 @@ test: test-unit test-ui
 .PHONY: coverage
 coverage: test
 	cover
+
+.PHONY: test-coverage
+test-coverage:
+	./script/check-coverage
