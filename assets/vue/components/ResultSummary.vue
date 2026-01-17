@@ -1,21 +1,28 @@
 <template>
   <a v-if="failed > 0" :href="link" class="btn btn-danger" target="_blank">
+    <i class="fas fa-times-circle me-1" aria-hidden="true"></i>
     {{ result.name }} <span class="badge bg-light text-dark">{{ failed }}/{{ total }}</span>
     <span class="visually-hidden">failed jobs</span>
   </a>
   <a v-else-if="stopped > 0" :href="link" class="btn btn-secondary" target="_blank">
+    <i class="fas fa-stop-circle me-1" aria-hidden="true"></i>
     {{ result.name }} <span class="badge bg-light text-dark">{{ stopped }}/{{ total }}</span>
     <span class="visually-hidden">stopped jobs</span>
   </a>
   <a v-else-if="waiting > 0" :href="link" class="btn btn-primary" target="_blank">
+    <i class="fas fa-clock me-1" aria-hidden="true"></i>
     {{ result.name }} <span class="badge bg-light text-dark">{{ waiting }}/{{ total }}</span>
     <span class="visually-hidden">waiting jobs</span>
   </a>
-  <a v-else-if="passed == total" :href="link" class="btn btn-success" target="_blank">
+  <a v-else-if="passed == total && total > 0" :href="link" class="btn btn-success" target="_blank">
+    <i class="fas fa-check-circle me-1" aria-hidden="true"></i>
     {{ result.name }} <span class="badge bg-light text-dark">{{ total }}</span>
     <span class="visually-hidden">passed jobs</span>
   </a>
-  <a v-else> {{ result.name }} is problematic </a>
+  <a v-else>
+    <i class="fas fa-exclamation-triangle me-1" aria-hidden="true"></i>
+    {{ result.name }} is problematic
+  </a>
 </template>
 
 <script>
