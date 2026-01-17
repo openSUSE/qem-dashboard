@@ -396,4 +396,19 @@ subtest 'Incident Details' => sub {
     ->json_is('/details/build_nr'         => '20250317-1');
 };
 
+subtest 'Plugin::JSON' => sub {
+  $t->get_ok('/non_existent' => {Accept => 'application/json'})
+    ->status_is(404, 'trigger 404 for JSON client')
+    ->json_is({error => 'Resource not found'});
+
+  $t->get_ok('/non_existent' => {Accept => 'text/html'})
+    ->status_is(404, 'trigger 404 for non-JSON client (should not return JSON error)')
+    ->content_unlike(qr/Resource not found/);
+
+  $t->app->routes->get('/die' => sub { die "intentional death" });
+  $t->get_ok('/die' => {Accept => 'application/json'})
+    ->status_is(500, 'trigger exception (by accessing a route that dies)')
+    ->json_is({error => 'Unexpected server error'});
+};
+
 done_testing();
