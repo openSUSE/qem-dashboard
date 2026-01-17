@@ -438,7 +438,7 @@ None
   "flavor": "Server-DVD-Incidents",
   "arch": "x86_64",
   "version": "12-SP5",
-  "build": ":17063:wpa_supplicant",
+  "build": ":16860:wpa_supplicant",
   "obsolete": false
 }
 ```
@@ -469,7 +469,7 @@ None
   "flavor": "Server-DVD-Incidents",
   "arch": "x86_64",
   "version": "12-SP5",
-  "build": ":17063:wpa_supplicant"
+  "build": ":16860:wpa_supplicant"
 }
 ```
 
@@ -543,7 +543,7 @@ None
     "flavor": "Server-DVD-Incidents",
     "arch": "x86_64",
     "version": "12-SP5",
-    "build": ":17063:wpa_supplicant"
+    "build": ":16860:wpa_supplicant"
   },
   ...
 ]
@@ -579,7 +579,7 @@ None
     "flavor": "Server-DVD-Incidents",
     "arch": "x86_64",
     "version": "12-SP5",
-    "build": ":17063:wpa_supplicant"
+    "build": ":16860:wpa_supplicant"
   },
   ...
 ]

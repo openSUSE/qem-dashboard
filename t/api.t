@@ -532,7 +532,7 @@ subtest 'Add openQA job' => sub {
         flavor            => 'Server-DVD-Incidents',
         arch              => 'x86_64',
         version           => '12-SP5',
-        build             => ':17063:wpa_supplicant'
+        build             => ':16860:wpa_supplicant'
       }
     )->status_is(200)->json_is({message => 'Ok'});
 
@@ -549,7 +549,7 @@ subtest 'Add openQA job' => sub {
         flavor            => 'Server-DVD-Incidents',
         arch              => 'x86_64',
         version           => '12-SP5',
-        build             => ':17063:wpa_supplicant',
+        build             => ':16860:wpa_supplicant',
         obsolete          => false
       }
     );
@@ -576,7 +576,7 @@ subtest 'Modify openQA job' => sub {
         flavor            => 'Server-DVD-Incidents',
         arch              => 'x86_64',
         version           => '12-SP5',
-        build             => ':17063:wpa_supplicant',
+        build             => ':16860:wpa_supplicant',
         obsolete          => false
       }
     );
@@ -598,7 +598,7 @@ subtest 'Modify openQA job' => sub {
         flavor            => 'Server-DVD-Incidents',
         arch              => 'x86_64',
         version           => '12-SP5',
-        build             => ':17063:wpa_supplicant',
+        build             => ':16860:wpa_supplicant',
         obsolete          => true
       }
     );
@@ -617,7 +617,7 @@ subtest 'Modify openQA job' => sub {
         flavor            => 'Server-DVD-Incidents',
         arch              => 'x86_64',
         version           => '12-SP5',
-        build             => ':17063:wpa_supplicant',
+        build             => ':16860:wpa_supplicant',
         obsolete          => true
       }
     );
@@ -669,7 +669,7 @@ subtest 'Replace openQA job' => sub {
       flavor            => 'Server-DVD-Incidents',
       arch              => 'x86_64',
       version           => '12-SP5',
-      build             => ':17063:wpa_supplicant',
+      build             => ':16860:wpa_supplicant',
       obsolete          => true,
     );
     $t->put_ok('/api/jobs' => $auth_headers => json => \%json)->status_is(200);
@@ -801,7 +801,7 @@ subtest 'Job validation' => sub {
         flavor            => 'Server-DVD-Incidents',
         arch              => 'x86_64',
         version           => '12-SP5',
-        build             => ':17063:wpa_supplicant'
+        build             => ':16860:wpa_supplicant'
       }
     )->status_is(400)->json_is({error => 'Referenced incident settings (1000) do not exist'});
 
@@ -818,7 +818,7 @@ subtest 'Job validation' => sub {
         flavor            => 'Server-DVD-Incidents',
         arch              => 'x86_64',
         version           => '12-SP5',
-        build             => ':17063:wpa_supplicant'
+        build             => ':16860:wpa_supplicant'
       }
     )->status_is(400)->json_is({error => 'Referenced update settings (1000) do not exist'});
 
@@ -835,7 +835,7 @@ subtest 'Job validation' => sub {
         flavor            => 'Server-DVD-Incidents',
         arch              => 'x86_64',
         version           => '12-SP5',
-        build             => ':17063:wpa_supplicant'
+        build             => ':16860:wpa_supplicant'
       }
     )->status_is(400)->json_is({error => 'Job needs to reference incident settings or update settings'});
   }
@@ -858,7 +858,7 @@ subtest "Get jobs by settings" => sub {
           flavor            => 'Server-DVD-Incidents',
           arch              => 'x86_64',
           version           => '12-SP5',
-          build             => ':17063:wpa_supplicant'
+          build             => ':16860:wpa_supplicant'
         }
       ]
     );
@@ -877,7 +877,7 @@ subtest "Get jobs by settings" => sub {
           flavor            => 'Server-DVD-Incidents',
           arch              => 'x86_64',
           version           => '12-SP5',
-          build             => ':17063:wpa_supplicant'
+          build             => ':16860:wpa_supplicant'
         }
       ]
     );

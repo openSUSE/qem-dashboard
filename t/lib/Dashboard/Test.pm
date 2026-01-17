@@ -118,7 +118,7 @@ sub minimal_fixtures ($self, $app) {
       flavor        => 'Server-DVD-HA-Incidents-Install',
       arch          => 'x86_64',
       withAggregate => true,
-      settings      => {DISTRI => 'sle', VERSION => '12-SP5', BUILD => ':17063:perl-Mojolicious'}
+      settings      => {DISTRI => 'sle', VERSION => '12-SP5', BUILD => ':16860:perl-Mojolicious'}
     }
   );
   my $settings_two_id = $settings->add_incident_settings(
@@ -129,7 +129,7 @@ sub minimal_fixtures ($self, $app) {
       flavor        => 'Server-DVD-HA-Incidents-Install',
       arch          => 'x86_64',
       withAggregate => true,
-      settings      => {DISTRI => 'sle', VERSION => '12-SP4', BUILD => ':17063:perl-Mojolicious'}
+      settings      => {DISTRI => 'sle', VERSION => '12-SP4', BUILD => ':16860:perl-Mojolicious'}
     }
   );
   my $settings_three_id = $settings->add_incident_settings(
@@ -140,7 +140,7 @@ sub minimal_fixtures ($self, $app) {
       flavor        => 'Server-DVD-HA-Incidents-Install',
       arch          => 'aarch64',
       withAggregate => true,
-      settings      => {DISTRI => 'sle', VERSION => '12-SP5', BUILD => ':17063:perl-Mojolicious'}
+      settings      => {DISTRI => 'sle', VERSION => '12-SP5', BUILD => ':16860:perl-Mojolicious'}
     }
   );
   my $settings_four_id = $settings->add_incident_settings(
@@ -151,7 +151,7 @@ sub minimal_fixtures ($self, $app) {
       flavor        => 'Server-DVD-HA-Incidents-Install',
       arch          => 'aarch64',
       withAggregate => true,
-      settings      => {DISTRI => 'sle', VERSION => '12-SP7', BUILD => ':17063:perl-Mojolicious'}
+      settings      => {DISTRI => 'sle', VERSION => '12-SP7', BUILD => ':16861:perl-Mojolicious'}
     }
   );
   my $settings_five_id = $settings->add_incident_settings(
@@ -162,7 +162,7 @@ sub minimal_fixtures ($self, $app) {
       flavor        => 'Server-DVD-HA-Incidents-Install',
       arch          => 'aarch64',
       withAggregate => true,
-      settings      => {DISTRI => 'sle', VERSION => '13-SP7', BUILD => ':17063:curl'}
+      settings      => {DISTRI => 'sle', VERSION => '13-SP7', BUILD => ':16862:curl'}
     }
   );
 
@@ -180,7 +180,7 @@ sub minimal_fixtures ($self, $app) {
       flavor            => 'Server-DVD-Incidents',
       arch              => 'x86_64',
       version           => '12-SP5',
-      build             => ':17063:perl-Mojolicious'
+      build             => ':16860:perl-Mojolicious'
     }
   );
   $jobs->add(
@@ -196,7 +196,7 @@ sub minimal_fixtures ($self, $app) {
       flavor            => 'Server-DVD-Incidents',
       arch              => 'x86_64',
       version           => '12-SP4',
-      build             => ':17063:perl-Mojolicious'
+      build             => ':16860:perl-Mojolicious'
     }
   );
   $jobs->add(
@@ -212,7 +212,7 @@ sub minimal_fixtures ($self, $app) {
       flavor            => 'Server-DVD-Incidents',
       arch              => 'aarch64',
       version           => '12-SP5',
-      build             => ':17063:perl-Mojolicious'
+      build             => ':16860:perl-Mojolicious'
     }
   );
   $jobs->add(
@@ -228,7 +228,7 @@ sub minimal_fixtures ($self, $app) {
       flavor            => 'Server-DVD-Incidents',
       arch              => 'aarch64',
       version           => '12-SP7',
-      build             => ':17063:perl-Mojolicious'
+      build             => ':16861:perl-Mojolicious'
     }
   );
   $jobs->add(
@@ -244,7 +244,7 @@ sub minimal_fixtures ($self, $app) {
       flavor            => 'Server-DVD-Incidents',
       arch              => 'aarch64',
       version           => '12-SP7',
-      build             => ':17063:curl'
+      build             => ':16862:curl'
     }
   );
 

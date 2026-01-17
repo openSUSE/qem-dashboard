@@ -145,18 +145,18 @@ subtest 'Blocked by Tests' => sub {
               "passed"   => 2
             },
             "282" => {
-              "linkinfo" => {"build" => ":17063:perl-Mojolicious", "distri" => "sle", "groupid" => 282},
+              "linkinfo" => {"build" => ":16860:perl-Mojolicious", "distri" => "sle", "groupid" => 282},
               "name"     => "SLE 12 SP5",
               "waiting"  => 1
             },
             "283" => {
-              "linkinfo" => {"build" => ":17063:perl-Mojolicious", "distri" => "sle", "groupid" => 283},
+              "linkinfo" => {"build" => ":16860:perl-Mojolicious", "distri" => "sle", "groupid" => 283},
               "name"     => "SLE 12 SP5 Kernel",
               "passed"   => 1
             },
             "284" => {
               "failed"   => 1,
-              "linkinfo" => {"build" => ":17063:perl-Mojolicious", "distri" => "sle", "groupid" => 284},
+              "linkinfo" => {"build" => ":16860:perl-Mojolicious", "distri" => "sle", "groupid" => 284},
               "name"     => "SLE 12 SP4"
             }
           },
