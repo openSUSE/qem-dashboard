@@ -16,10 +16,12 @@
     <i v-if="incident.emu" class="fas fa-truck-medical text-danger" title="Emergency Maintenance Update"></i>
     <span v-if="incident.priority" :class="priorityClass" :title="'Priority: ' + incident.priority">
       <i class="fas fa-arrow-up-z-a"></i>
-      <small>{{ incident.priority }}</small>
+      <span class="badge" :class="priorityBadgeClass">{{ incident.priority }}</span>
     </span>
-    <i v-if="incident.type === 'git'" class="fas fa-code-branch text-primary" title="Type: Git"></i>
-    <i v-if="incident.type === 'smelt'" class="fas fa-database text-primary" title="Type: Smelt"></i>
+    <span v-if="incident.type" class="text-primary" :title="'Type: ' + incident.type">
+      <i :class="incident.type === 'git' ? 'fas fa-code-branch' : 'fas fa-database'"></i>
+      <span class="badge bg-info ms-1">{{ incident.type }}</span>
+    </span>
     <i
       v-if="incident.project"
       class="fas fa-project-diagram text-secondary"
@@ -42,6 +44,11 @@ export default {
       if (this.incident.priority > 650) return 'text-danger fw-bold';
       if (this.incident.priority > 300) return 'text-warning';
       return 'text-secondary';
+    },
+    priorityBadgeClass() {
+      if (this.incident.priority > 650) return 'bg-danger';
+      if (this.incident.priority > 300) return 'bg-warning text-dark';
+      return 'bg-secondary';
     }
   }
 };
@@ -54,6 +61,5 @@ export default {
 .incident-details-icons span {
   display: flex;
   align-items: center;
-  gap: 2px;
 }
 </style>
