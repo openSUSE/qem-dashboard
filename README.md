@@ -94,6 +94,25 @@ For development and manual testing of the UI without a full production environme
    ```
 3. The dashboard will be available at `http://127.0.0.1:3000` with multiple incidents and job results already loaded.
 
+### Frontend Development
+
+When modifying Vue components or stylesheets:
+
+- **Rebuilding Assets:** `make run-mock` automatically runs `make build` (which
+  calls `npm run build`). If you are running the server via `script/dashboard
+  daemon`, you must manually run `npm run build` to see your changes.
+- **Browser Caching:** Since development asset filenames are static
+  (`qem-dashboard.development.js`), browsers often cache them. **Always
+  perform a hard refresh (Ctrl+F5 or Cmd+Shift+R)** after rebuilding to ensure
+  you see the latest changes.
+- **Automatic Rebuilding (Recommended):** For a faster workflow, keep your
+  server running and open a second terminal to run:
+  ```bash
+  npm run watch
+  ```
+  This will instantly rebuild assets whenever you save a file. You will still
+  need to refresh your browser.
+
 ## Contribute
 
 This project lives on GitHub at https://github.com/openSUSE/qem-dashboard. Feel free to add issues or send pull
