@@ -63,7 +63,7 @@ t.test('Test dashboard ui', skip, async t => {
     t.match(await page.innerText('.incident-results p'), /1\s*passed\s*1\s*failed\s*1\s*waiting/);
     t.equal(
       await page.locator('text=openqa').getAttribute('href'),
-      'https://openqa.suse.de/tests/overview?build=%3A17063%3Aperl-Mojolicious'
+      'https://openqa.suse.de/tests/overview?build=%3A16860%3Aperl-Mojolicious'
     );
 
     await page.goto(`${url}/obsolete_jobs`);
