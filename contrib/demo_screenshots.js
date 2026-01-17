@@ -13,7 +13,7 @@ const __dirname = path.dirname(__filename);
 async function run() {
   const server = await ServerStarter.newServer();
   // Using t/wrappers/ui.pl which provides mock data
-  await server.launch('perl', [path.join(__dirname, 'wrappers', 'ui.pl')]);
+  await server.launch('perl', [path.join(__dirname, '..', 't', 'wrappers', 'ui.pl')]);
   const browser = await chromium.launch();
   const context = await browser.newContext({viewport: {width: 1280, height: 720}});
   const page = await context.newPage();
