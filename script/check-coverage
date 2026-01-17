@@ -3,16 +3,17 @@ set -euo pipefail
 
 echo "Generating coverage report…"
 cover -report text > coverage_check.txt
-echo "Checking statement coverage for lib/ files…"
+echo "Checking statement coverage for lib/ and t/ files…"
 SUMMARY=$(sed -n '/File *stmt/,/Total/p' coverage_check.txt)
-UNCOVERED=$(echo "$SUMMARY" | grep "^lib/" | awk '$2 != "100.0" {print $0}')
+# We exclude .js files as they are not covered by Devel::Cover
+UNCOVERED=$(echo "$SUMMARY" | grep -E "^(lib/|t/)" | grep -v "\.js" | awk '$2 != "100.0" {print $0}')
 if [ -n "$UNCOVERED" ]; then
-    echo "FAILED: Some lib files have incomplete statement coverage:"
+    echo "FAILED: Some files have less than complete statement coverage:"
     echo "$UNCOVERED"
     rm coverage_check.txt
     exit 1
 fi
 
-echo "SUCCESS: All lib files have complete statement coverage (considering uncoverable annotations)."
+echo "SUCCESS: All backend and test files (lib/ and t/) have complete statement coverage."
 rm coverage_check.txt
 exit 0
