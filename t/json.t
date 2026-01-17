@@ -1,17 +1,5 @@
-# Copyright (C) SUSE LLC
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, see <http://www.gnu.org/licenses/>.
+# Copyright SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
 
 use Mojo::Base -strict, -signatures;
 
@@ -20,6 +8,7 @@ use lib "$FindBin::Bin/lib";
 
 use Test::More;
 use Test::Mojo;
+use Test::Warnings ':report_warnings';
 use Dashboard::Test;
 
 plan skip_all => 'set TEST_ONLINE to enable this test' unless $ENV{TEST_ONLINE};
@@ -405,6 +394,21 @@ subtest 'Incident Details' => sub {
     )
     ->json_is('/details/incident_summary' => {waiting => 1, failed => 2, passed => 2})
     ->json_is('/details/build_nr'         => '20250317-1');
+};
+
+subtest 'Plugin::JSON' => sub {
+  $t->get_ok('/non_existent' => {Accept => 'application/json'})
+    ->status_is(404, 'trigger 404 for JSON client')
+    ->json_is({error => 'Resource not found'});
+
+  $t->get_ok('/non_existent' => {Accept => 'text/html'})
+    ->status_is(404, 'trigger 404 for non-JSON client (should not return JSON error)')
+    ->content_unlike(qr/Resource not found/);
+
+  $t->app->routes->get('/die' => sub { die "intentional death" });
+  $t->get_ok('/die' => {Accept => 'application/json'})
+    ->status_is(500, 'trigger exception (by accessing a route that dies)')
+    ->json_is({error => 'Unexpected server error'});
 };
 
 done_testing();

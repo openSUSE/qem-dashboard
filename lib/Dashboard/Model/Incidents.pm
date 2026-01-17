@@ -1,17 +1,5 @@
-# Copyright (C) 2020 SUSE LLC
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, see <http://www.gnu.org/licenses/>.
+# Copyright SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
 
 package Dashboard::Model::Incidents;
 use Mojo::Base -base, -signatures;
@@ -105,6 +93,13 @@ sub id_for_number ($self, $number) {
   return undef
     unless my $array = $self->pg->db->query('select id from incidents where number = ? limit 1', $number)->array;
   return $array->[0];
+}
+
+sub name ($self, $inc) {
+  my $number   = $inc->{number};
+  my $packages = $inc->{packages} // [];
+  my $package  = $packages->[0]   // 'unknown';
+  return "$number:$package";
 }
 
 sub repos ($self) {

@@ -1,17 +1,5 @@
-# Copyright (C) 2020 SUSE LLC
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, see <http://www.gnu.org/licenses/>.
+# Copyright SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
 
 package Dashboard::Test;
 use Mojo::Base -base, -signatures;
@@ -33,13 +21,6 @@ sub new ($class, %options) {
   return $self;
 }
 
-sub cleanup_fixtures ($self, $app) {
-  $self->minimal_fixtures($app);
-
-  # Some aggregate jobs are older than 90 days
-  $self->expire_aggregate_jobs($app, [4953203, 4953200]);
-}
-
 sub default_config ($self) {
   return {
     secrets                 => ['just_a_test'],
@@ -50,11 +31,6 @@ sub default_config ($self) {
     smelt                   => {url => 'https://smelt.suse.de'},
     days_to_keep_aggregates => 90
   };
-}
-
-sub expire_aggregate_jobs ($self, $app, $ids) {
-  $app->pg->db->query(q{UPDATE openqa_jobs SET updated = NOW() - (INTERVAL '1 day' * ?) WHERE job_id = any(?)},
-    $app->config->{days_to_keep_aggregates} + 1, $ids);
 }
 
 sub minimal_fixtures ($self, $app) {
