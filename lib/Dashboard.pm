@@ -46,48 +46,48 @@ sub _setup_logging ($self) {
 
     # All interesting log messages are "info" or higher
     $self->log->level('info');
-
-    # Structured JSON logging
-    $self->hook(
-      before_dispatch => sub ($c) {
-        $c->stash(
-          request_id => $c->req->request_id // Mojo::Util::monkey_patch(
-            'Mojo::Transaction', 'request_id' =>
-              sub { shift->{request_id} ||= Mojo::Util::md5_sum(Time::HiRes::time() . rand()) } # uncoverable subroutine
-          )
-        );
-      }
-    );
-
-    $self->hook(
-      before_routes => sub ($c) {
-        my $req     = $c->req;
-        my $method  = $req->method;
-        my $url     = $req->url->to_abs->to_string;
-        my $started = [Time::HiRes::gettimeofday];
-        $c->tx->on(
-          finish => sub ($tx, @args) {
-            my $code    = $tx->res->code;
-            my $elapsed = Time::HiRes::tv_interval($started, [Time::HiRes::gettimeofday()]);
-            my $rps     = $elapsed == 0 ? '??' : sprintf '%.3f', 1 / $elapsed;
-            $self->log->info(
-              Mojo::JSON::encode_json(
-                {
-                  method     => $method,
-                  url        => $url,
-                  code       => $code,
-                  elapsed    => $elapsed,
-                  rps        => $rps,
-                  request_id => $c->stash('request_id'),
-                  type       => 'access_log'
-                }
-              )
-            );
-          }
-        );
-      }
-    );
   }
+
+  # Structured JSON logging
+  $self->hook(
+    before_dispatch => sub ($c) {
+      $c->stash(
+        request_id => $c->req->request_id // Mojo::Util::monkey_patch(
+          'Mojo::Transaction', 'request_id' =>
+            sub { shift->{request_id} ||= Mojo::Util::md5_sum(Time::HiRes::time() . rand()) }   # uncoverable subroutine
+        )
+      );
+    }
+  );
+
+  $self->hook(
+    before_routes => sub ($c) {
+      my $req     = $c->req;
+      my $method  = $req->method;
+      my $url     = $req->url->to_abs->to_string;
+      my $started = [Time::HiRes::gettimeofday];
+      $c->tx->on(
+        finish => sub ($tx, @args) {
+          my $code    = $tx->res->code;
+          my $elapsed = Time::HiRes::tv_interval($started, [Time::HiRes::gettimeofday()]);
+          my $rps     = $elapsed == 0 ? '??' : sprintf '%.3f', 1 / $elapsed;
+          $self->log->info(
+            Mojo::JSON::encode_json(
+              {
+                method     => $method,
+                url        => $url,
+                code       => $code,
+                elapsed    => $elapsed,
+                rps        => $rps,
+                request_id => $c->stash('request_id'),
+                type       => 'access_log'
+              }
+            )
+          );
+        }
+      );
+    }
+  );
 }
 
 sub _setup_helpers ($self, $config) {
@@ -97,6 +97,7 @@ sub _setup_helpers ($self, $config) {
 
   $self->plugin('Dashboard::Plugin::JSON');
   $self->plugin('Dashboard::Plugin::Helpers');
+  $self->plugin('Dashboard::Plugin::Database', $config);
   $self->plugin('Webpack', {process => []});    # pass empty array as Webpack defaults to processing JS files
 
   # Compress dynamically generated content
@@ -104,7 +105,6 @@ sub _setup_helpers ($self, $config) {
 
   # Model
   my $log = $self->log;
-  $self->helper(pg => sub { state $pg = Mojo::Pg->new($config->{pg})->max_connections(1) });
   $self->helper(
     incidents => sub ($c) { state $incidents = Dashboard::Model::Incidents->new(log => $log, pg => $c->pg) });
   $self->helper(

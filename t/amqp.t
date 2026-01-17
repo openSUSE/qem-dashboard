@@ -60,7 +60,7 @@ subtest 'Handle done job' => sub {
       }
     )
   }
-  qr/\[i\].*stopped/, 'amqp log message';
+  qr/job_update/, 'amqp log message';
   _is_field('status', 'stopped');
 };
 
@@ -69,7 +69,7 @@ subtest 'Handle cancel job' => sub {
   stderr_like {
     $t->app->amqp->handle('suse.openqa.job.cancel', {%$msg, "group_id" => 328, "remaining" => 0})
   }
-  qr/\[i\].*stopped/, 'amqp log message';
+  qr/job_update/, 'amqp log message';
   _is_field('status', 'stopped');
 };
 
@@ -79,7 +79,7 @@ subtest 'Handle restart job' => sub {
     $t->app->amqp->handle('suse.openqa.job.restart',
       {%$msg, "auto" => 0, "bugref" => undef, "group_id" => 328, "remaining" => 1, "result" => {"4953203" => 7764022}})
   }
-  qr/\[i\].*restart/, 'amqp log message';
+  qr/job_restart/, 'amqp log message';
   _is_field('status', 'waiting');
   _is_field('job_id', 7764022);
 };
@@ -90,7 +90,7 @@ subtest 'Handle delete job' => sub {
   stderr_like {
     $t->app->amqp->handle('suse.openqa.job.delete', {%$msg, "group_id" => 328, "remaining" => 1,})
   }
-  qr/\[i\].*delete/, 'amqp log message';
+  qr/job_delete/, 'amqp log message';
   _is_count(0);
 };
 

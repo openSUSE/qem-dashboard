@@ -8,26 +8,7 @@ sub add ($self) {
   return $self->render(json => {error => 'Job in JSON format required'}, status => 400)
     unless my $job = $self->req->json;
 
-  my $jv = $self->schema(
-    {
-      type     => 'object',
-      required => ['name', 'job_group', 'job_id', 'group_id', 'status', 'distri', 'flavor', 'version', 'arch', 'build'],
-      properties => {
-        incident_settings => {anyOf => [{type => 'integer', minimum => 1}, {type => 'null'}]},
-        update_settings   => {anyOf => [{type => 'integer', minimum => 1}, {type => 'null'}]},
-        name              => {type => 'string'},
-        job_group         => {type => 'string'},
-        job_id            => {type => 'integer', minimum => 1},
-        group_id          => {type => 'integer', minimum => 1},
-        status            => {type => 'string',  enum    => ['unknown', 'waiting', 'passed', 'failed', 'stopped']},
-        distri            => {type => 'string'},
-        flavor            => {type => 'string'},
-        version           => {type => 'string'},
-        arch              => {type => 'string'},
-        build             => {type => 'string'}
-      }
-    }
-  );
+  my $jv     = $self->schema('job');
   my @errors = $jv->validate($job);
   return $self->render(json => {error => "Job does not match the JSON schema: @errors"}, status => 400) if @errors;
 
