@@ -78,7 +78,7 @@ sub startup ($self) {
 
   # Migrations
   my $path = $self->home->child('migrations', 'dashboard.sql');
-  $self->pg->auto_migrate(1)->migrations->name('dashboard')->from_file($path);
+  $self->pg->auto_migrate($config->{auto_migrate} // 1)->migrations->name('dashboard')->from_file($path);
 
   # Authentication
   my $public = $self->routes;
