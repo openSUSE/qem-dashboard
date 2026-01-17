@@ -40,11 +40,7 @@ jobs:
           make install-deps-ubuntu install-deps-cpanm
       - name: Build assets
         run: make build
-      - name: Run tests
-        run: make test-unit
-      - name: Run UI tests
-        run: make test-ui
-      - name: Ensure full coverage
+      - name: Run tests with coverage
         run: make test-coverage
       - name: Check assets
         run: ls public/asset

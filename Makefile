@@ -67,5 +67,5 @@ coverage: test
 	cover
 
 .PHONY: test-coverage
-test-coverage:
+test-coverage: test
 	./script/check-coverage
