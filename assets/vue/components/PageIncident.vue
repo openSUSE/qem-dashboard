@@ -7,7 +7,7 @@
 
     <div class="external-links" v-if="incident">
       <div class="packages">
-        <h4>Packages</h4>
+        <h2>Packages</h2>
         <ul>
           <li v-for="pkg in incident.packages" :key="pkg">
             {{ pkg }}
@@ -15,13 +15,13 @@
         </ul>
       </div>
       <div class="smelt-link" v-if="(incident.type || 'smelt') === 'smelt'">
-        <h4>Link to Smelt</h4>
+        <h2>Link to Smelt</h2>
         <p>
           <SmeltLink :incident="incident" />
         </p>
       </div>
       <div class="request-link">
-        <h4>Source Link</h4>
+        <h2>Source Link</h2>
         <p>
           <RequestLink :incident="incident" />
         </p>
@@ -29,7 +29,7 @@
     </div>
 
     <div class="incident-results" v-if="incident">
-      <h4>Per Incident Results</h4>
+      <h2>Per Incident Results</h2>
       <p v-if="!incident.buildNr">No incident build found</p>
       <p v-else>
         <mark>{{ results }}</mark> - see <a :href="openqaLink" target="_blank">openQA</a> for details
@@ -37,12 +37,12 @@
     </div>
 
     <div class="incident-aggregates" v-if="!!sortedBuilds.length">
-      <h4>Aggregate Runs Including This Incident</h4>
+      <h2>Aggregate Runs Including This Incident</h2>
       <IncidentBuildSummary v-for="build in sortedBuilds" :key="build" :build="build" :jobs="jobs[build]" />
     </div>
 
     <div class="details">
-      <h4>Further details</h4>
+      <h2>Further details</h2>
       <table class="table table-sm">
         <tr v-if="incident.url.length > 0">
           <th>URL</th>
