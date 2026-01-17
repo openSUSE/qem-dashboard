@@ -3,6 +3,7 @@ import js from "@eslint/js";
 import eslintConfigPrettier from "eslint-config-prettier";
 import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended";
 import eslintPluginVue from 'eslint-plugin-vue'
+import vuejsAccessibility from 'eslint-plugin-vuejs-accessibility'
 
 // disable import plugin for now (until https://github.com/import-js/eslint-plugin-import/issues/2948
 // and https://github.com/import-js/eslint-plugin-import/issues/2556 have been resolved)
@@ -38,6 +39,7 @@ export default [
   eslintConfigPrettier,
   eslintPluginPrettierRecommended,
   ...eslintPluginVue.configs["flat/strongly-recommended"],
+  ...vuejsAccessibility.configs["flat/recommended"],
   {
     rules: {
       "vue/max-attributes-per-line": "off",
