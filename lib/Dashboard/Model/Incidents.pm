@@ -95,6 +95,13 @@ sub id_for_number ($self, $number) {
   return $array->[0];
 }
 
+sub name ($self, $inc) {
+  my $number   = $inc->{number};
+  my $packages = $inc->{packages} // [];
+  my $package  = $packages->[0]   // 'unknown';
+  return "$number:$package";
+}
+
 sub repos ($self) {
   my %titles;
   my $db  = $self->pg->db;
