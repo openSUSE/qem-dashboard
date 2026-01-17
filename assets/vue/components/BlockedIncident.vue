@@ -1,7 +1,10 @@
 <template>
   <tr :class="{'high-priority': incident.priority > 650}">
     <td>
-      <IncidentLink :incident="incident" :high-priority="incident.priority > 650" />
+      <div class="d-flex flex-column gap-1">
+        <IncidentLink :incident="incident" :high-priority="incident.priority > 650" />
+        <IncidentDetailsIcons :incident="incident" />
+      </div>
     </td>
     <td>
       <div v-if="Object.keys(incidentResults).length + Object.keys(updateResults).length === 0">No data yet</div>
@@ -28,12 +31,14 @@
 import BlockedIncidentIncResult from './BlockedIncidentIncResult.vue';
 import BlockedIncidentUpdResult from './BlockedIncidentUpdResult.vue';
 import IncidentLink from './IncidentLink.vue';
+import IncidentDetailsIcons from './IncidentDetailsIcons.vue';
 import * as filtering from '../helpers/filtering.js';
 
 export default {
   name: 'BlockedIncident',
   components: {
     IncidentLink,
+    IncidentDetailsIcons,
     BlockedIncidentIncResult,
     BlockedIncidentUpdResult
   },
