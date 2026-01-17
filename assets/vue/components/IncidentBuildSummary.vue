@@ -1,13 +1,17 @@
 <template>
   <div class="card mb-3">
     <div class="card-header">
-      Build {{ build }} <span class="badge bg-success">{{ NumberOfPassed }} passed</span>
+      Build {{ build }}
+      <span class="badge bg-success"
+        ><i class="fas fa-check-circle me-1" aria-hidden="true"></i>{{ NumberOfPassed }} passed</span
+      >
     </div>
     <div class="card-body text-left">
       <p v-for="group of interestingGroups" :key="group.build">
         <a :href="group.link" target="_blank">{{ group.build }}</a>
         -
         <span v-for="part in group.summary" :key="part.text" :class="['badge', part.class, 'me-1']">
+          <i :class="['fas', part.icon, 'me-1']" aria-hidden="true"></i>
           {{ part.count }} {{ part.text }}
         </span>
       </p>
@@ -32,6 +36,12 @@ export default {
         stopped: 'bg-secondary',
         waiting: 'bg-primary'
       };
+      const statusIcons = {
+        passed: 'fa-check-circle',
+        failed: 'fa-times-circle',
+        stopped: 'fa-stop-circle',
+        waiting: 'fa-clock'
+      };
       for (const job of this.jobs) {
         if (job.status === 'passed') continue;
         const key = `${job.job_group}@${job.flavor}`;
@@ -51,7 +61,12 @@ export default {
       for (const [build, stat] of groups) {
         const summary = [];
         for (const [key, value] of stat.entries()) {
-          summary.push({count: value, text: key, class: statusClasses[key] || 'bg-dark'});
+          summary.push({
+            count: value,
+            text: key,
+            class: statusClasses[key] || 'bg-dark',
+            icon: statusIcons[key] || 'fa-exclamation-triangle'
+          });
         }
         const searchParams = new URLSearchParams(links.get(build));
         ret.push({
