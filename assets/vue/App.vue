@@ -3,9 +3,9 @@
     <a href="#main-content" class="skip-link">Skip to main content</a>
     <nav class="navbar navbar-expand-lg navbar-light bg-light mb-3 border-bottom">
       <div class="container-fluid">
-        <router-link :to="{name: 'home'}" exact class="navbar-brand">
-          <i class="fab fa-suse" style="color: green" aria-hidden="true" />
-          <i class="fas fa-vial" style="color: purple" aria-hidden="true" />
+        <router-link :to="{name: 'home'}" exact class="navbar-brand" aria-label="QEM Dashboard Home">
+          <i class="fab fa-suse" style="color: green" aria-hidden="true" role="img" />
+          <i class="fas fa-vial" style="color: purple" aria-hidden="true" role="img" />
         </router-link>
         <button
           class="navbar-toggler"
@@ -58,19 +58,18 @@
           <router-view @last-updated="update" />
         </div>
       </div>
-      </a>
     </main>
 
-      <a
-        id="back-to-top"
-        href="#"
-        class="btn btn-primary btn-lg back-to-top"
-        role="button"
-        title="Click to return to the top"
-        aria-label="Back to top"
-      >
-        <i class="fas fa-angle-up" aria-hidden="true" />
-      </a>
+    <a
+      id="back-to-top"
+      href="#"
+      class="btn btn-primary btn-lg back-to-top"
+      role="button"
+      title="Click to return to the top"
+      aria-label="Back to top"
+    >
+      <i class="fas fa-angle-up" aria-hidden="true" role="img" />
+    </a>
   </div>
 </template>
 
