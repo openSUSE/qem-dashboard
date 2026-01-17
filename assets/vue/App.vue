@@ -3,8 +3,8 @@
     <nav class="navbar navbar-expand-lg navbar-light bg-light mb-3 border-bottom">
       <div class="container-fluid">
         <router-link :to="{name: 'home'}" exact class="navbar-brand">
-          <i class="fab fa-suse" style="color: green" />
-          <i class="fas fa-vial" style="color: purple" />
+          <i class="fab fa-suse" style="color: green" aria-hidden="true" />
+          <i class="fas fa-vial" style="color: purple" aria-hidden="true" />
         </router-link>
         <button
           class="navbar-toggler"
@@ -47,7 +47,7 @@
     <div class="container">
       <div class="row">
         <div class="col-md-12 title">
-          <h2>{{ title }}</h2>
+          <h1>{{ title }}</h1>
           {{ lastUpdatedText }}
         </div>
       </div>
@@ -64,8 +64,9 @@
         class="btn btn-primary btn-lg back-to-top"
         role="button"
         title="Click to return to the top"
+        aria-label="Back to top"
       >
-        <i class="fas fa-angle-up" />
+        <i class="fas fa-angle-up" aria-hidden="true" />
       </a>
     </div>
   </div>
