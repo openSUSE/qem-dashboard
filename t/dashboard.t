@@ -8,6 +8,7 @@ use lib "$FindBin::Bin/lib";
 
 use Test::More;
 use Test::Mojo;
+use Test::Output qw(stdout_like);
 use Test::Warnings ':report_warnings';
 use Dashboard::Test;
 use Time::HiRes ();
@@ -41,6 +42,26 @@ subtest 'App config endpoint' => sub {
     ->json_is('/openqaUrl', 'https://openqa.suse.de/tests/overview')
     ->json_is('/obsUrl',    'https://build.suse.de')
     ->json_is('/smeltUrl',  'https://smelt.suse.de');
+};
+
+subtest 'Migrate command' => sub {
+  require Dashboard::Command::migrate;
+  my $t = Test::Mojo->new(Dashboard => $config);
+  subtest 'when already migrated' => sub {
+    my $migrate = Dashboard::Command::migrate->new(app => $t->app);
+    is $migrate->description, 'Migrate the database to latest version', 'correct description';
+    like $migrate->usage, qr/Usage: APPLICATION migrate/, 'correct usage';
+    stdout_like { $migrate->run } qr/Nothing to do/, 'already migrated';
+  };
+
+  subtest 'actual migration (dropping schema and running again)' => sub {
+    my $dashboard_test_mig = Dashboard::Test->new(online => $ENV{TEST_ONLINE}, schema => 'migrate_cmd_test');
+    my $mig_config         = {%{$dashboard_test_mig->default_config}, auto_migrate => 0};
+    my $t_mig              = Test::Mojo->new(Dashboard => $mig_config);
+    $t_mig->app->pg->db->query('DROP TABLE IF EXISTS migrations');
+    my $migrate_fresh = Dashboard::Command::migrate->new(app => $t_mig->app);
+    stdout_like { $migrate_fresh->run } qr/Migrated from 0 to \d+/, 'migrated from fresh';
+  };
 };
 
 done_testing();
