@@ -98,7 +98,10 @@ sub _setup_helpers ($self, $config) {
   $self->plugin('Dashboard::Plugin::JSON');
   $self->plugin('Dashboard::Plugin::Helpers');
   $self->plugin('Dashboard::Plugin::Database', $config);
-  $self->plugin('Webpack', {process => []});    # pass empty array as Webpack defaults to processing JS files
+
+  # Automatic Webpack asset rebuilding in development mode
+  my $process = $self->mode eq 'development' ? [qw(js vue scss sass)] : [];
+  $self->plugin('Webpack', {process => $process});
 
   # Compress dynamically generated content
   $self->renderer->compress(1);
