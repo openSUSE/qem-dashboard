@@ -1,15 +1,14 @@
 <template>
   <div class="card mb-3">
     <div class="card-header">
-      Build {{ build }} <span class="badge bg-secondary">{{ NumberOfPassed }} passed</span>
+      Build {{ build }} <span class="badge bg-success">{{ NumberOfPassed }} passed</span>
     </div>
     <div class="card-body text-left">
       <p v-for="group of interestingGroups" :key="group.build">
         <a :href="group.link" target="_blank">{{ group.build }}</a>
         -
-        <span v-for="(element, index) in group.summary" :key="element">
-          <span v-if="index != 0">, </span>
-          <mark>{{ element }}</mark>
+        <span v-for="part in group.summary" :key="part.text" :class="['badge', part.class, 'me-1']">
+          {{ part.count }} {{ part.text }}
         </span>
       </p>
     </div>
@@ -27,6 +26,12 @@ export default {
     interestingGroups() {
       const groups = new Map(),
         links = new Map();
+      const statusClasses = {
+        passed: 'bg-success',
+        failed: 'bg-danger',
+        stopped: 'bg-secondary',
+        waiting: 'bg-primary'
+      };
       for (const job of this.jobs) {
         if (job.status === 'passed') continue;
         const key = `${job.job_group}@${job.flavor}`;
@@ -46,10 +51,14 @@ export default {
       for (const [build, stat] of groups) {
         const summary = [];
         for (const [key, value] of stat.entries()) {
-          summary.push(`${value} ${key}`);
+          summary.push({count: value, text: key, class: statusClasses[key] || 'bg-dark'});
         }
         const searchParams = new URLSearchParams(links.get(build));
-        ret.push({build, link: `${this.appConfig.openqaUrl}?${searchParams.toString()}`, summary: summary.sort()});
+        ret.push({
+          build,
+          link: `${this.appConfig.openqaUrl}?${searchParams.toString()}`,
+          summary: summary.sort((a, b) => a.text.localeCompare(b.text))
+        });
       }
       return ret.sort((a, b) => a.build.localeCompare(b.build));
     }
