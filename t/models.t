@@ -33,6 +33,98 @@ subtest 'Dashboard::Model::Incidents' => sub {
     is $incidents->name($inc),              '16860:perl-Mojolicious', 'correct name for 16860';
     is $incidents->name({number => 99999}), '99999:unknown',          'correct name for unknown incident';
   };
+
+  subtest 'job filtering' => sub {
+    my $dashboard_test_filter = Dashboard::Test->new(online => $ENV{TEST_ONLINE}, schema => 'models_filter_test');
+    my $app_filter            = Test::Mojo->new(Dashboard => $dashboard_test_filter->default_config)->app;
+    $dashboard_test_filter->no_fixtures($app_filter);
+
+    my $incs     = $app_filter->incidents;
+    my $settings = $app_filter->settings;
+    my $jobs     = $app_filter->jobs;
+
+    $incs->sync(
+      [
+        {number => 1001, project => 'P1001', packages => ['pkg1'], isActive => 1},
+        {number => 1002, project => 'P1002', packages => ['pkg2'], isActive => 1}
+      ]
+    );
+
+    my $inc1001_id = $incs->id_for_number(1001);
+    my $inc1002_id = $incs->id_for_number(1002);
+
+    # Both incidents in the same update
+    my $update_settings_id = $settings->add_update_settings(
+      [$inc1001_id, $inc1002_id],
+      {
+        product  => 'Prod',
+        arch     => 'x86_64',
+        build    => '20260117-1',
+        repohash => 'hash1',
+        settings => {BUILD => '20260117-1'}
+      }
+    );
+
+    # Job for 1001
+    $jobs->add(
+      {
+        update_settings => $update_settings_id,
+        name            => 'job_for_1001',
+        job_group       => 'Group A',
+        status          => 'failed',
+        job_id          => 100101,
+        group_id        => 100,
+        distri          => 'd',
+        flavor          => 'f',
+        version         => 'v',
+        arch            => 'x86_64',
+        build           => ':1001:some-build'
+      }
+    );
+
+    # Generic job
+    $jobs->add(
+      {
+        update_settings => $update_settings_id,
+        name            => 'generic_job',
+        job_group       => 'Group A',
+        status          => 'passed',
+        job_id          => 100102,
+        group_id        => 100,
+        distri          => 'd',
+        flavor          => 'f',
+        version         => 'v',
+        arch            => 'x86_64',
+        build           => '20260117-1'
+      }
+    );
+
+    # Obsolete job for 1001
+    $jobs->add(
+      {
+        update_settings => $update_settings_id,
+        name            => 'obsolete_job',
+        job_group       => 'Group A',
+        status          => 'failed',
+        job_id          => 100103,
+        group_id        => 100,
+        distri          => 'd',
+        flavor          => 'f',
+        version         => 'v',
+        arch            => 'x86_64',
+        build           => ':1001:obsolete'
+      }
+    );
+    $jobs->modify(100103, {obsolete => 1});
+
+    my $res1001 = $incs->_update_openqa_jobs({id => $inc1001_id, number => 1001});
+    is $res1001->{"100 f v"}{failed}, 1, 'Incident 1001 sees its failed job';
+    is $res1001->{"100 f v"}{passed}, 1, 'Incident 1001 sees generic job';
+
+    my $res1002 = $incs->_update_openqa_jobs({id => $inc1002_id, number => 1002});
+    is $res1002->{"100 f v"}{failed}, undef, 'Incident 1002 does NOT see failed job of 1001';
+    is $res1002->{"100 f v"}{passed}, 1,     'Incident 1002 sees generic job';
+  };
 };
 
 subtest 'Dashboard::Model::Jobs' => sub {

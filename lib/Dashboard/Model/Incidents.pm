@@ -182,6 +182,7 @@ sub _group_nick ($group) {
 sub _incident_openqa_jobs ($self, $inc) {
   my $db      = $self->pg->db;
   my $inc_id  = $inc->{id};
+  my $inc_nr  = $inc->{number};
   my $results = $db->query(
     "WITH openqa_status_for_incident AS (
      SELECT
@@ -203,11 +204,12 @@ sub _incident_openqa_jobs ($self, $inc) {
          JOIN openqa_jobs oj ON oj.incident_settings = os.id
          JOIN openqa_status_for_incident osfi ON oj.id = osfi.openqa_job_id
      WHERE
-         os.incident = ?
+         os.incident = ? AND oj.obsolete = false
+         AND (oj.build !~ ':[0-9]+:' OR oj.build ~ (':' || ? || ':'))
      GROUP BY
          oj.job_group,
          oj.group_id,
-         osfi.incident_status", $inc_id, $inc_id
+         osfi.incident_status", $inc_id, $inc_id, $inc_nr
   )->hashes;
   my %ret;
   for my $result ($results->each) {
@@ -231,6 +233,7 @@ sub _incident_openqa_jobs ($self, $inc) {
 sub _update_openqa_jobs ($self, $inc) {
   my $db     = $self->pg->db;
   my $inc_id = $inc->{id};
+  my $inc_nr = $inc->{number};
   my $ids
     = $db->query('SELECT settings FROM incident_in_update WHERE incident = ?', $inc_id)->arrays->flatten->to_array;
 
@@ -260,7 +263,8 @@ sub _update_openqa_jobs ($self, $inc) {
          JOIN openqa_jobs oj ON oj.update_settings = us.id
          JOIN openqa_status_for_incident osfi ON oj.id = osfi.openqa_job_id
      WHERE
-         us.id = ANY (?)
+         us.id = ANY (?) AND oj.obsolete = false
+         AND (oj.build !~ ':[0-9]+:' OR oj.build ~ (':' || ? || ':'))
      GROUP BY
          oj.job_group,
          oj.group_id,
@@ -269,7 +273,7 @@ sub _update_openqa_jobs ($self, $inc) {
          oj.flavor,
          oj.arch,
          oj.version,
-         osfi.incident_status", $inc_id, $ids
+         osfi.incident_status", $inc_id, $ids, $inc_nr
   )->hashes;
   my %ret;
   for my $result ($results->each) {
