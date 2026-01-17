@@ -33,6 +33,7 @@
       <p v-if="!incident.buildNr">No incident build found</p>
       <p v-else>
         <span v-for="part in results" :key="part.text" :class="['badge', part.class, 'me-1']">
+          <i :class="['fas', part.icon, 'me-1']" aria-hidden="true"></i>
           {{ part.count }} {{ part.text }}
         </span>
         - see <a :href="openqaLink" target="_blank">openQA</a> for details
@@ -92,13 +93,29 @@ export default {
         stopped: 'bg-secondary',
         waiting: 'bg-primary'
       };
+      const statusIcons = {
+        passed: 'fa-check-circle',
+        failed: 'fa-times-circle',
+        stopped: 'fa-stop-circle',
+        waiting: 'fa-clock'
+      };
 
       if (this.summary.passed) {
-        parts.push({count: this.summary.passed, text: 'passed', class: statusClasses.passed});
+        parts.push({
+          count: this.summary.passed,
+          text: 'passed',
+          class: statusClasses.passed,
+          icon: statusIcons.passed
+        });
       }
       for (const [key, value] of Object.entries(this.summary)) {
         if (key === 'passed') continue;
-        parts.push({count: value, text: key, class: statusClasses[key] || 'bg-dark'});
+        parts.push({
+          count: value,
+          text: key,
+          class: statusClasses[key] || 'bg-dark',
+          icon: statusIcons[key] || 'fa-exclamation-triangle'
+        });
       }
       return parts;
     },
