@@ -1,5 +1,6 @@
 <template>
   <div id="app">
+    <a href="#main-content" class="skip-link">Skip to main content</a>
     <nav class="navbar navbar-expand-lg navbar-light bg-light mb-3 border-bottom">
       <div class="container-fluid">
         <router-link :to="{name: 'home'}" exact class="navbar-brand">
@@ -44,7 +45,7 @@
       </div>
     </nav>
 
-    <div class="container">
+    <main id="main-content" class="container">
       <div class="row">
         <div class="col-md-12 title">
           <h1>{{ title }}</h1>
@@ -57,6 +58,8 @@
           <router-view @last-updated="update" />
         </div>
       </div>
+      </a>
+    </main>
 
       <a
         id="back-to-top"
@@ -68,7 +71,6 @@
       >
         <i class="fas fa-angle-up" aria-hidden="true" />
       </a>
-    </div>
   </div>
 </template>
 
@@ -151,6 +153,19 @@ body {
 .title {
   font-size: 0.8em;
   margin-bottom: 1.5em;
+}
+.skip-link {
+  background: #5a32a8;
+  color: #fff;
+  left: 50%;
+  padding: 8px;
+  position: absolute;
+  transform: translateY(-100%);
+  transition: transform 0.3s;
+  z-index: 1001;
+}
+.skip-link:focus {
+  transform: translateY(0%);
 }
 .summary-list {
   padding-left: 0;
