@@ -41,6 +41,12 @@ subtest 'Config override' => sub {
   is $t->app->config->{obs}{url}, 'https://override.suse.de', 'config overridden via DASHBOARD_CONF_OVERRIDE';
 };
 
+subtest 'Custom config file' => sub {
+  local $ENV{DASHBOARD_CONF} = 'dashboard.yml';
+  my $t = Test::Mojo->new(Dashboard => $config);
+  is $t->app->config->{obs}{url}, 'https://build.suse.de', 'config loaded from DASHBOARD_CONF';
+};
+
 subtest 'App config endpoint' => sub {
   my $t = Test::Mojo->new(Dashboard => $config);
   $t->get_ok('/app-config')
