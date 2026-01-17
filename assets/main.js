@@ -1,6 +1,5 @@
 import './sass/app.scss';
 import 'bootstrap';
-import 'bootstrap/dist/css/bootstrap.css';
 import router from './router.js';
 import App from './vue/App.vue';
 import {createApp} from 'vue';
