@@ -1,0 +1,18 @@
+#!/usr/bin/bash
+set -euo pipefail
+
+echo "Generating coverage report…"
+cover -report text > coverage_check.txt
+echo "Checking statement coverage for lib/ files…"
+SUMMARY=$(sed -n '/File *stmt/,/Total/p' coverage_check.txt)
+UNCOVERED=$(echo "$SUMMARY" | grep "^lib/" | awk '$2 != "100.0" {print $0}')
+if [ -n "$UNCOVERED" ]; then
+    echo "FAILED: Some lib files have incomplete statement coverage:"
+    echo "$UNCOVERED"
+    rm coverage_check.txt
+    exit 1
+fi
+
+echo "SUCCESS: All lib files have complete statement coverage (considering uncoverable annotations)."
+rm coverage_check.txt
+exit 0
