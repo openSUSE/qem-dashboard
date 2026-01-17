@@ -8,6 +8,7 @@ use lib "$FindBin::Bin/lib";
 
 use Test::More;
 use Test::Mojo;
+use Test::Output 'stderr_like';
 use Test::Warnings ':report_warnings';
 use Dashboard::Test;
 
@@ -19,10 +20,14 @@ my $t              = Test::Mojo->new(Dashboard => $config);
 $dashboard_test->minimal_fixtures($t->app);
 
 subtest 'Webpack provided under various URLs' => sub {
-  $t->get_ok('/')->status_is(200)->text_like('#app' => qr/This application requires JavaScript!/);
-  $t->get_ok('/blocked')->status_is(200)->text_like('#app' => qr/This application requires JavaScript!/);
-  $t->get_ok('/repos')->status_is(200)->text_like('#app' => qr/This application requires JavaScript!/);
-  $t->get_ok('/incident/16860')->status_is(200)->text_like('#app' => qr/This application requires JavaScript!/);
+  stderr_like {
+    $t->get_ok('/')->status_is(200)->text_like('#app' => qr/This application requires JavaScript!/);
+    $t->get_ok('/blocked')->status_is(200)->text_like('#app' => qr/This application requires JavaScript!/);
+    $t->get_ok('/repos')->status_is(200)->text_like('#app' => qr/This application requires JavaScript!/);
+    $t->get_ok('/incident/16860')->status_is(200)->text_like('#app' => qr/This application requires JavaScript!/);
+  }
+  qr/access_log/, 'access log caught';
 };
+
 
 done_testing();
