@@ -32,7 +32,10 @@
       <h2>Per Incident Results</h2>
       <p v-if="!incident.buildNr">No incident build found</p>
       <p v-else>
-        <mark>{{ results }}</mark> - see <a :href="openqaLink" target="_blank">openQA</a> for details
+        <span v-for="part in results" :key="part.text" :class="['badge', part.class, 'me-1']">
+          {{ part.count }} {{ part.text }}
+        </span>
+        - see <a :href="openqaLink" target="_blank">openQA</a> for details
       </p>
     </div>
 
@@ -82,18 +85,22 @@ export default {
   },
   computed: {
     results() {
-      let str = '';
+      const parts = [];
+      const statusClasses = {
+        passed: 'bg-success',
+        failed: 'bg-danger',
+        stopped: 'bg-secondary',
+        waiting: 'bg-primary'
+      };
+
       if (this.summary.passed) {
-        str = `${this.summary.passed} passed`;
+        parts.push({count: this.summary.passed, text: 'passed', class: statusClasses.passed});
       }
       for (const [key, value] of Object.entries(this.summary)) {
         if (key === 'passed') continue;
-        if (str) {
-          str += ', ';
-        }
-        str += `${value} ${key}`;
+        parts.push({count: value, text: key, class: statusClasses[key] || 'bg-dark'});
       }
-      return str;
+      return parts;
     },
     openqaLink() {
       const searchParams = new URLSearchParams({build: this.incident.buildNr});
