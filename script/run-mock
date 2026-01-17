@@ -1,0 +1,19 @@
+#!/usr/bin/env perl
+use Mojo::Base -strict, -signatures;
+use Mojo::File qw(curfile);
+use lib curfile->dirname->sibling('lib')->to_string;
+use lib curfile->dirname->sibling('t', 'lib')->to_string;
+use Dashboard::Test;
+use Dashboard;
+use Mojolicious::Commands;
+
+$ENV{MOJO_MODE} ||= 'production';
+die 'TEST_ONLINE environment variable must be set (e.g. postgresql://postgres:postgres@localhost:5432/postgres)'
+  unless $ENV{TEST_ONLINE};
+my $dashboard_test = Dashboard::Test->new(online => $ENV{TEST_ONLINE}, schema => 'js_ui_test');
+$ENV{DASHBOARD_CONF_OVERRIDE} = Mojo::JSON::encode_json($dashboard_test->default_config);
+my $app = Dashboard->new;
+$dashboard_test->minimal_fixtures($app);
+my $commands = Mojolicious::Commands->new(app => $app);
+@ARGV = ('daemon', @ARGV) unless @ARGV;
+$commands->run(@ARGV);

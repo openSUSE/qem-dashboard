@@ -44,6 +44,12 @@ public/asset: $(ASSET_SOURCES)
 start-postgres:
 	podman run -p 5432:5432 -e POSTGRES_PASSWORD=postgres -d docker.io/library/postgres
 
+.PHONY: run-mock
+run-mock:
+	MOJO_MODE=$(MOJO_MODE) \
+	TEST_ONLINE=$(TEST_ONLINE) \
+	./script/run-mock
+
 .PHONY: tidy
 tidy:
 	bash -c 'shopt -s extglob globstar nullglob; perltidy --pro=.../.perltidyrc -b -bext='/' **/*.p[lm] **/*.t && git diff --exit-code'
