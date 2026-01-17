@@ -41,7 +41,7 @@ sub startup ($self) {
           finish => sub ($tx, @args) {
             my $code    = $tx->res->code;
             my $elapsed = Time::HiRes::tv_interval($started, [Time::HiRes::gettimeofday()]);
-            my $rps     = $elapsed == 0 ? '??' : sprintf '%.3f', 1 / $elapsed;
+            my $rps     = $elapsed == 0 ? '??' : sprintf '%.3f', 1 / $elapsed;    # uncoverable branch
             $self->log->debug(qq{$method $url -> $code (${elapsed}s, $rps/s)});
           }
         );
