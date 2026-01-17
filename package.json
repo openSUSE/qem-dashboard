@@ -8,6 +8,7 @@
   "scripts": {
     "build": "npx webpack",
     "build:clean": "npm run clean && npm run build",
+    "watch": "npx webpack --watch",
     "clean": "rm -fr public/asset/*",
     "lint": "eslint \"assets/*.js\" \"assets/**/*.js\" \"assets/**/*.vue\" \"t/*.js\" --ignore-pattern assets/webpack.config.d",
     "lint:fix": "npm run lint -- --fix"
