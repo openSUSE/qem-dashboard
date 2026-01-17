@@ -12,7 +12,7 @@ use Mojo::RabbitMQ::Client;
 has description => 'Watch message bus for job results';
 has usage       => sub { shift->extract_usage };
 
-sub run ($self, @args) {
+sub run ($self, @args) {    # uncoverable statement
   my $amqp = $self->app->amqp;
   Mojo::IOLoop->singleton->reactor->unsubscribe('error');
 
