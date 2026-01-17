@@ -4,8 +4,10 @@
     <div class="row align-items-center">
       <div class="col-auto my-1">
         <div class="form-check">
-          <input class="form-check-input" type="checkbox" id="checkbox" v-model="groupFlavors" />
-          <label class="form-check-label" for="checkbox"> Group Flavors</label>
+          <label class="form-check-label" for="checkbox">
+            <input class="form-check-input" type="checkbox" id="checkbox" v-model="groupFlavors" />
+            Group Flavors
+          </label>
         </div>
       </div>
     </div>
@@ -13,26 +15,30 @@
       <thead>
         <tr>
           <th>
-            Incident
-            <input
-              v-model="matchText"
-              type="text"
-              class="form-control"
-              id="inlineSearchIncidents"
-              title="Partial incident# or package name are matched"
-              placeholder="Search for incident/package"
-            />
+            <label for="inlineSearchIncidents">
+              Incident
+              <input
+                v-model="matchText"
+                type="text"
+                class="form-control"
+                id="inlineSearchIncidents"
+                title="Partial incident# or package name are matched"
+                placeholder="Search for incident/package"
+              />
+            </label>
           </th>
           <th>
-            Groups
-            <input
-              v-model="groupNames"
-              type="text"
-              class="form-control"
-              id="inlineSearchGroups"
-              title="Comma separated, job group names are matched, supports regex syntax"
-              placeholder="Search for group names"
-            />
+            <label for="inlineSearchGroups">
+              Groups
+              <input
+                v-model="groupNames"
+                type="text"
+                class="form-control"
+                id="inlineSearchGroups"
+                title="Comma separated, job group names are matched, supports regex syntax"
+                placeholder="Search for group names"
+              />
+            </label>
           </th>
         </tr>
       </thead>
