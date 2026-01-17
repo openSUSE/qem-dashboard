@@ -1,4 +1,4 @@
-# Copyright (C) 2020 SUSE LLC
+# Copyright SUSE LLC
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -166,7 +166,7 @@ Stephan Kulow, C<coolo@suse.de>
 
 =head1 COPYRIGHT AND LICENSE
 
- Copyright (C) 2020 SUSE Linux GmbH
+ Copyright SUSE LLC
 
  This program is free software; you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
