@@ -74,7 +74,7 @@
 </template>
 
 <script>
-import moment from 'moment';
+import {formatDistanceToNow} from 'date-fns';
 
 export default {
   name: 'App',
@@ -100,7 +100,7 @@ export default {
       const last = this.lastUpdated;
       if (last === null) return 'Never updated';
       if (last === 0) return 'Updating...';
-      return `Last updated ${moment(this.lastUpdated).fromNow()}`;
+      return `Last updated ${formatDistanceToNow(new Date(this.lastUpdated), {addSuffix: true})}`;
     }
   },
   methods: {

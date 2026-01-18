@@ -6,9 +6,10 @@
     "lib": "lib"
   },
   "scripts": {
-    "build": "npx webpack",
+    "dev": "vite",
+    "build": "vite build",
     "build:clean": "npm run clean && npm run build",
-    "watch": "npx webpack --watch",
+    "watch": "vite build --watch",
     "clean": "rm -fr public/asset/*",
     "lint": "eslint \"assets/*.js\" \"assets/**/*.js\" \"assets/**/*.vue\" \"t/*.js\" --ignore-pattern assets/webpack.config.d",
     "lint:fix": "npm run lint -- --fix",
@@ -23,18 +24,12 @@
     "node": ">= 18"
   },
   "dependencies": {
-    "@babel/core": "^7.28.6",
-    "@babel/plugin-transform-runtime": "^7.28.5",
-    "@babel/preset-env": "^7.28.5",
     "@fortawesome/fontawesome-free": "^7.1.0",
     "@mojojs/core": "^1.26.12",
     "@mojojs/path": "^1.7.0",
     "@mojolicious/server-starter": "^2.2.0",
-    "babel-loader": "^10.0.0",
     "bootstrap": "^5.3.8",
-    "copy-webpack-plugin": "^13.0.1",
-    "css-loader": "^7.1.2",
-    "css-minimizer-webpack-plugin": "^7.0.4",
+    "date-fns": "^4.1.0",
     "eslint": "^9.39.2",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-node": "^11.1.0",
@@ -42,20 +37,13 @@
     "eslint-plugin-vue": "^10.7.0",
     "globals": "^17.0.0",
     "json5": "^2.2.3",
-    "mini-css-extract-plugin": "^2.9.4",
-    "moment": "^2.30.1",
+    "pinia": "^3.0.4",
     "playwright": "^1.58.0",
     "prettier": "^3.7.4",
-    "regenerator-transform": "^0.15.2",
     "sass": "^1.97.3",
-    "sass-loader": "^16.0.6",
     "tap": "^21.5.0",
-    "terser-webpack-plugin": "^5.3.16",
     "vue": "^3.5.26",
-    "vue-loader": "^17.4.2",
-    "vue-router": "^4.6.4",
-    "webpack": "^5.104.1",
-    "webpack-cli": "^6.0.1"
+    "vue-router": "^4.6.4"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.0",
@@ -65,6 +53,7 @@
     "husky": "^9.1.7",
     "jsdom": "^27.4.0",
     "lint-staged": "^16.2.7",
+    "vite": "^7.3.1",
     "vitest": "^4.0.17"
   }
 }
