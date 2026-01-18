@@ -21,7 +21,21 @@ $dashboard_test->minimal_fixtures($app);
 my $commands = Mojolicious::Commands->new(app => $app);
 @ARGV = ('daemon', @ARGV) unless @ARGV;
 if ($ENV{MOJO_MODE} eq 'development' && $ARGV[0] eq 'daemon' && !$ENV{DASHBOARD_NO_MORBO} && !$ENV{MORBO_INTERNAL}) {
+  my $pid = fork();
+  if ($pid == 0) {
+    # Child: Start npm run watch
+    # Use a new process group so we can terminate any sub-processes if needed
+    setpgrp(0, 0);
+    exec("npm run watch > /dev/null 2>&1") or die "Could not exec npm run watch: $!";
+  }
   $ENV{MORBO_INTERNAL} = 1;
-  exec 'morbo', $0, @ARGV;
+  my $cleanup = sub ($sig) {
+    kill 'TERM', -$pid if $pid; # Terminate the whole process group
+    exit;
+  };
+  $SIG{INT} = $SIG{TERM} = $cleanup;
+  system 'morbo', $0, @ARGV;
+  kill 'TERM', -$pid if $pid;
+  exit;
 }
 $commands->run(@ARGV);
