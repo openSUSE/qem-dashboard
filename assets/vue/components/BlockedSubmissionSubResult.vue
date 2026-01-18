@@ -15,6 +15,6 @@ defineProps({
 
 <script>
 export default {
-  name: 'BlockedIncidentIncResult'
+  name: 'BlockedSubmissionSubResult'
 };
 </script>

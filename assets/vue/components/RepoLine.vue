@@ -11,11 +11,11 @@ const props = defineProps({
 
 const modalStore = useModalStore();
 
-const incidentNumber = computed(() => props.repo.incidents.length);
+const submissionNumber = computed(() => props.repo.incidents.length);
 
 const triggerModal = () => {
-  modalStore.showIncidents(props.name, props.repo.incidents);
-  const myModal = new Modal(document.getElementById('update-incidents'));
+  modalStore.showSubmissions(props.name, props.repo.incidents);
+  const myModal = new Modal(document.getElementById('update-submissions'));
   myModal.show();
 };
 </script>
@@ -27,9 +27,9 @@ const triggerModal = () => {
       <div class="text-left">
         <button type="button" class="btn btn-primary btn-sm" @click="triggerModal">
           <span class="badge bg-light text-dark">
-            {{ incidentNumber }}
+            {{ submissionNumber }}
           </span>
-          Incidents
+          Submissions
         </button>
       </div>
     </td>
