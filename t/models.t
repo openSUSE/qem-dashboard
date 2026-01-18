@@ -60,6 +60,12 @@ subtest 'Dashboard::Model::Jobs' => sub {
   subtest 'update_result with non-existent job' => sub {
     ok !$jobs->update_result(9999999, 'passed'), 'update_result returns false for non-existent job';
   };
+
+  subtest 'keep_schema' => sub {
+    my $dashboard_test_keep
+      = Dashboard::Test->new(online => $ENV{TEST_ONLINE}, schema => 'models_keep_test', keep_schema => 1);
+    ok $dashboard_test_keep, 'Dashboard::Test->new with keep_schema works';
+  };
 };
 
 done_testing();

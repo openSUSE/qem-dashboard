@@ -23,6 +23,13 @@ sub startup ($self) {
   # Load configuration from config file
   my $file   = $ENV{DASHBOARD_CONF} || (-r $custom_file ? $custom_file : 'dashboard.yml');
   my $config = $self->plugin(NotYAMLConfig => {file => $file});
+
+  if (my $override = $ENV{DASHBOARD_CONF_OVERRIDE}) {
+    my $override_config = Mojo::JSON::decode_json($override);
+    $self->config({%{$self->config}, %$override_config});
+    $config = $self->config;
+  }
+
   $self->secrets($config->{secrets});
 
   # Short logs for systemd

@@ -35,6 +35,12 @@ subtest 'Zero elapsed time log' => sub {
   $t->get_ok('/')->status_is(200);
 };
 
+subtest 'Config override' => sub {
+  local $ENV{DASHBOARD_CONF_OVERRIDE} = '{"obs":{"url":"https://override.suse.de"}}';
+  my $t = Test::Mojo->new(Dashboard => $config);
+  is $t->app->config->{obs}{url}, 'https://override.suse.de', 'config overridden via DASHBOARD_CONF_OVERRIDE';
+};
+
 subtest 'App config endpoint' => sub {
   my $t = Test::Mojo->new(Dashboard => $config);
   $t->get_ok('/app-config')
