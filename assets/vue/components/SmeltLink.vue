@@ -1,3 +1,17 @@
+<script setup>
+import {computed} from 'vue';
+import {useConfigStore} from '@/stores/config';
+
+const props = defineProps({
+  incident: {type: Object, required: true}
+});
+
+const configStore = useConfigStore();
+
+const smeltLink = computed(() => `${configStore.smeltUrl}/incident/${props.incident.number}`);
+const packageName = computed(() => props.incident.packages[0]);
+</script>
+
 <template>
   <div class="incident-link">
     <a :href="smeltLink" target="_blank">{{ incident.number }}:{{ packageName }}</a>
@@ -6,15 +20,6 @@
 
 <script>
 export default {
-  name: 'SmeltLink',
-  props: {incident: {type: Object, required: true}},
-  computed: {
-    smeltLink() {
-      return `${this.appConfig.smeltUrl}/incident/${this.incident.number}`;
-    },
-    packageName() {
-      return this.incident.packages[0];
-    }
-  }
+  name: 'SmeltLink'
 };
 </script>

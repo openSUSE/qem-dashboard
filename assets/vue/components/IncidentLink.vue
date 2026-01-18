@@ -22,6 +22,10 @@
 <script setup>
 import {ref, computed} from 'vue';
 
+defineOptions({
+  name: 'IncidentLink'
+});
+
 const props = defineProps({
   incident: {type: Object, required: true},
   highPriority: {type: Boolean, default: false}
@@ -41,12 +45,6 @@ const copyToClipboard = async () => {
   } catch (err) {
     console.error('Failed to copy: ', err);
   }
-};
-</script>
-
-<script>
-export default {
-  name: 'IncidentLink'
 };
 </script>
 

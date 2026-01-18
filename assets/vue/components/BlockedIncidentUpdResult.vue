@@ -1,3 +1,21 @@
+<script setup>
+import {computed} from 'vue';
+import ResultSummary from './ResultSummary.vue';
+
+const props = defineProps({
+  result: {type: Object, required: true},
+  groupId: {type: String, required: true},
+  groupFlavors: Boolean
+});
+
+const title = computed(() => {
+  if (props.groupFlavors) {
+    return `Aggregate: ${props.result.linkinfo.version}`;
+  }
+  return `Aggregate: ${props.result.linkinfo.flavor}-${props.result.linkinfo.version}`;
+});
+</script>
+
 <template>
   <li :group-id="groupId" data-bs-toggle="tooltip" data-bs-placement="left" :title="title">
     <ResultSummary :result="result" />
@@ -5,19 +23,7 @@
 </template>
 
 <script>
-import ResultSummary from './ResultSummary.vue';
-
 export default {
-  name: 'BlockedIncidentUpdResult',
-  components: {ResultSummary},
-  props: {result: {type: Object, required: true}, groupId: {type: String, required: true}, groupFlavors: Boolean},
-  computed: {
-    title() {
-      if (this.groupFlavors) {
-        return `Aggregate: ${this.result.linkinfo.version}`;
-      }
-      return `Aggregate: ${this.result.linkinfo.flavor}-${this.result.linkinfo.version}`;
-    }
-  }
+  name: 'BlockedIncidentUpdResult'
 };
 </script>
