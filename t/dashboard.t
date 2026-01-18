@@ -29,6 +29,16 @@ subtest 'Production mode' => sub {
   stderr_like { $t->get_ok('/')->status_is(200) } qr/access_log/, 'access log caught';
 };
 
+subtest 'Pre-set Request ID' => sub {
+  use Mojo::Util qw(monkey_patch);
+  my $patch = monkey_patch 'Mojo::Message::Request', request_id => sub {'test-id-123'};
+  my $t     = Test::Mojo->new(Dashboard => $config);
+  stderr_like {
+    $t->get_ok('/')->status_is(200);
+  }
+  qr/request_id":"test-id-123"/, 'custom request id is preserved';
+};
+
 subtest 'Zero elapsed time log' => sub {
   local $ENV{MOJO_MODE} = 'production';
   my $t = Test::Mojo->new(Dashboard => $config);
@@ -47,6 +57,12 @@ subtest 'Custom config file' => sub {
   local $ENV{DASHBOARD_CONF} = 'dashboard.yml';
   my $t = Test::Mojo->new(Dashboard => $config);
   is $t->app->config->{obs}{url}, 'https://build.suse.de', 'config loaded from DASHBOARD_CONF';
+};
+
+subtest 'Config override' => sub {
+  local $ENV{DASHBOARD_CONF_OVERRIDE} = '{"obs":{"url":"https://override.suse.de"}}';
+  my $t = Test::Mojo->new(Dashboard => $config);
+  is $t->app->config->{obs}{url}, 'https://override.suse.de', 'config overridden via DASHBOARD_CONF_OVERRIDE';
 };
 
 subtest 'App config endpoint' => sub {
@@ -142,6 +158,15 @@ subtest 'Vite asset helper' => sub {
     like $output, qr/main.123.js/,  'correct JS link';
     like $output, qr/main.456.css/, 'correct CSS link';
   };
+};
+
+subtest 'Overview API with no jobs' => sub {
+  my $dashboard_test_empty = Dashboard::Test->new(online => $ENV{TEST_ONLINE}, schema => 'dashboard_empty_api_test');
+  my $app_empty            = Test::Mojo->new(Dashboard => $dashboard_test_empty->default_config)->app;
+  $dashboard_test_empty->no_fixtures($app_empty);
+  my $t = Test::Mojo->new($app_empty);
+
+  $t->get_ok('/app/api/list')->status_is(200)->json_is('/last_updated', undef, 'last_updated is undef when no jobs');
 };
 
 done_testing();
