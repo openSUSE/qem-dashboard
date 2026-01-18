@@ -1,6 +1,77 @@
+<script setup>
+import {ref, computed, watch} from 'vue';
+import {useRoute} from 'vue-router';
+import BlockedIncident from './BlockedIncident.vue';
+import * as filtering from '../helpers/filtering.js';
+import {useBlockedStore} from '@/stores/blocked';
+import {useConfigStore} from '@/stores/config';
+import {usePolling} from '../composables/polling';
+
+const route = useRoute();
+const blockedStore = useBlockedStore();
+const configStore = useConfigStore();
+
+const groupFlavors = ref(route.query.group_flavors !== '0');
+const matchText = ref(route.query.incident || '');
+const groupNames = ref(route.query.group_names || '');
+
+usePolling(() => blockedStore.fetchBlocked());
+
+const matchedIncidents = computed(() => {
+  const url = new URL(location);
+  const searchParams = url.searchParams;
+  let results = blockedStore.incidents;
+
+  if (matchText.value) {
+    searchParams.set('incident', matchText.value);
+    results = results.filter(incident => {
+      if (String(incident.incident.number).includes(matchText.value)) return true;
+      for (const pack of incident.incident.packages) {
+        if (pack.includes(matchText.value)) return true;
+      }
+      return false;
+    });
+  } else {
+    searchParams.delete('incident');
+  }
+
+  if (groupNames.value) {
+    url.searchParams.set('group_names', groupNames.value);
+    const filters = filtering.makeGroupNamesFilters(groupNames.value);
+    results = results.filter(
+      incident =>
+        filtering.checkResults(incident.update_results, filters) ||
+        filtering.checkResults(incident.incident_results, filters)
+    );
+  } else {
+    searchParams.delete('group_names');
+  }
+
+  if (groupFlavors.value) {
+    searchParams.delete('group_flavors');
+  } else {
+    searchParams.set('group_flavors', '0');
+  }
+
+  history.pushState({}, '', url);
+  return results.sort((a, b) => (b.incident.priority || 0) - (a.incident.priority || 0));
+});
+
+const smelt = computed(() => configStore.smeltUrl);
+
+watch(groupFlavors, enabled => {
+  const url = new URL(location);
+  const params = url.searchParams;
+  enabled ? params.delete('group_flavors') : params.set('group_flavors', '0');
+  history.pushState({}, '', url);
+});
+</script>
+
 <template>
-  <div v-if="incidents === null"><i class="fas fa-sync fa-spin"></i> Loading incidents...</div>
-  <div v-else-if="incidents.length > 0">
+  <div v-if="blockedStore.isLoading && blockedStore.incidents.length === 0">
+    <i class="fas fa-sync fa-spin"></i> Loading incidents...
+  </div>
+  <div v-else-if="blockedStore.incidents.length > 0">
     <div class="row align-items-center">
       <div class="col-auto my-1">
         <div class="form-check">
@@ -59,70 +130,7 @@
 </template>
 
 <script>
-import BlockedIncident from './BlockedIncident.vue';
-import * as filtering from '../helpers/filtering.js';
-import Refresh from '../mixins/refresh.js';
-
 export default {
-  name: 'PageBlocked',
-  mixins: [Refresh],
-  components: {BlockedIncident},
-  data() {
-    return {
-      incidents: null,
-      groupFlavors: this.$route.query.group_flavors !== '0',
-      matchText: this.$route.query.incident || '',
-      groupNames: this.$route.query.group_names || '',
-      refreshUrl: '/app/api/blocked'
-    };
-  },
-  computed: {
-    matchedIncidents() {
-      const url = new URL(location);
-      const searchParams = url.searchParams;
-      let results = this.incidents;
-      if (this.matchText) {
-        searchParams.set('incident', this.matchText);
-        results = this.incidents.filter(incident => {
-          if (String(incident.incident.number).includes(this.matchText)) return true;
-          for (const pack of incident.incident.packages) {
-            if (pack.includes(this.matchText)) return true;
-          }
-          return false;
-        });
-      } else {
-        searchParams.delete('incident');
-      }
-      if (this.groupNames) {
-        url.searchParams.set('group_names', this.groupNames);
-        const filters = filtering.makeGroupNamesFilters(this.groupNames);
-        results = results.filter(
-          incident =>
-            filtering.checkResults(incident.update_results, filters) ||
-            filtering.checkResults(incident.incident_results, filters)
-        );
-      } else {
-        searchParams.delete('group_names');
-      }
-      history.pushState({}, '', url);
-      return results.sort((a, b) => (b.incident.priority || 0) - (a.incident.priority || 0));
-    },
-    smelt() {
-      return this.appConfig.smeltUrl;
-    }
-  },
-  methods: {
-    refreshData(data) {
-      this.incidents = data.blocked;
-    }
-  },
-  watch: {
-    groupFlavors: function (enabled) {
-      const url = new URL(location);
-      const params = url.searchParams;
-      enabled ? params.delete('group_flavors') : params.set('group_flavors', '0');
-      history.pushState({}, '', url);
-    }
-  }
+  name: 'PageBlocked'
 };
 </script>

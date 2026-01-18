@@ -3,6 +3,8 @@ import 'bootstrap';
 import router from './router.js';
 import App from './vue/App.vue';
 import {createApp} from 'vue';
+import {createPinia} from 'pinia';
+import {useConfigStore} from './stores/config';
 
 const backToTop = function () {
   const mybutton = document.getElementById('back-to-top');
@@ -30,9 +32,13 @@ const backToTop = function () {
 };
 
 window.addEventListener('load', async () => {
-  const config = await fetch('/app-config').then(res => res.json());
   const app = createApp(App);
-  app.config.globalProperties.appConfig = config;
+  const pinia = createPinia();
+  app.use(pinia);
+
+  const configStore = useConfigStore();
+  await configStore.fetchConfig();
+
   app.use(router).mount('#app');
   backToTop();
 });
