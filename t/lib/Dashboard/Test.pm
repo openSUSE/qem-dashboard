@@ -16,7 +16,7 @@ sub new ($class, %options) {
   # Database
   my $self = $class->SUPER::new(options => \%options);
   $self->{pg}       = Mojo::Pg->new($options{online});
-  $self->{db_guard} = $self->_prepare_schema($options{schema});
+  $self->{db_guard} = $self->_prepare_schema($options{schema}, $options{keep_schema});
 
   return $self;
 }
@@ -541,10 +541,14 @@ sub postgres_url ($self) {
   return Mojo::URL->new($self->{options}{online})->query([search_path => [$self->{options}{schema}]])->to_unsafe_string;
 }
 
-sub _prepare_schema ($self, $name) {
+sub _prepare_schema ($self, $name, $keep_schema = 0) {
 
   # Isolate tests
   my $pg = $self->{pg};
+  if ($keep_schema) {
+    $pg->db->query("CREATE SCHEMA IF NOT EXISTS $name");
+    return undef;
+  }
   $pg->db->query("DROP SCHEMA IF EXISTS $name CASCADE");
   $pg->db->query("CREATE SCHEMA $name");
 
