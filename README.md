@@ -102,10 +102,11 @@ When modifying Vue components or stylesheets:
   the background. Changes will be instantly rebuilt whenever you save a file.
   If you are running the server via `script/dashboard daemon`, you must
   manually run `npm run build` or `npm run watch` to see your changes.
-- **Browser Caching:** Since development asset filenames are static
-  (`qem-dashboard.development.js`), browsers often cache them. **Always
-  perform a hard refresh (Ctrl+F5 or Cmd+Shift+R)** after rebuilding to ensure
-  you see the latest changes.
+- **Browser Caching:** The dashboard automatically detects server restarts via a
+  `boot_id`. On every route navigation, it verifies if the server has restarted
+  and will perform a full browser reload if necessary to ensure you see the
+  latest changes. Manual "force-refreshes" (Ctrl+F5) should no longer be
+  routinely required.
 - **Automatic Rebuilding (Legacy/Manual):** While `make run-mock` handles
   rebuilding automatically, you can still run it manually in a second
   terminal if needed:

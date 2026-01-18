@@ -33,6 +33,8 @@ sub startup ($self) {
 
   $self->secrets($config->{secrets});
 
+  $self->{boot_id} = Mojo::Util::md5_sum(Time::HiRes::time() . rand());
+
   $self->_setup_logging;
   $self->_setup_helpers($config);
   $self->_register_routes($config);
@@ -173,6 +175,7 @@ sub _register_routes ($self, $config) {
       my $config = $c->app->config;
       $c->render(
         json => {
+          bootId    => $self->{boot_id},
           openqaUrl => $c->openqa_url->path('/tests/overview'),
           obsUrl    => $config->{obs}{url},
           smeltUrl  => $config->{smelt}{url}

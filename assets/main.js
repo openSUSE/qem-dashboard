@@ -39,6 +39,30 @@ const initApp = async () => {
   const configStore = useConfigStore();
   await configStore.fetchConfig();
 
+  let isInitialLoad = true;
+  router.beforeEach(async (to, from, next) => {
+    if (isInitialLoad) {
+      isInitialLoad = false;
+      next();
+      return;
+    }
+
+    // Only check if we are already loaded and moving between routes
+    if (configStore.isLoaded) {
+      try {
+        const config = await fetch('/app-config').then(res => res.json());
+        if (config.bootId && config.bootId !== configStore.bootId) {
+          console.log('Server restart detected, reloading...');
+          window.location.reload();
+          return;
+        }
+      } catch (e) {
+        console.error('Failed to check bootId', e);
+      }
+    }
+    next();
+  });
+
   app.use(router).mount('#app');
   backToTop();
 };
