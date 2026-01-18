@@ -99,9 +99,30 @@ sub _setup_helpers ($self, $config) {
   $self->plugin('Dashboard::Plugin::Helpers');
   $self->plugin('Dashboard::Plugin::Database', $config);
 
-  # Automatic Webpack asset rebuilding in development mode
-  my $process = $self->mode eq 'development' ? [qw(js vue scss sass)] : [];
-  $self->plugin('Webpack', {process => $process});
+  # OpenAPI documentation
+  # $self->plugin(OpenAPI => {url => $self->home->child('resources', 'openapi.json'), validate => 0});
+
+  # Vite asset helper
+  $self->helper(
+    vite_asset => sub ($c, $entry) {
+      if ($self->mode eq 'development') {
+        return Mojo::ByteStream->new(qq{<script type="module" src="http://localhost:5173/asset/$entry"></script>});
+      }
+
+      state $manifest = eval {
+        my $path = $self->home->child('public', 'asset', '.vite', 'manifest.json');
+        $path = $self->home->child('public', 'asset', 'manifest.json') unless -r $path;    # Vite < 5 compatibility
+        Mojo::JSON::decode_json($path->slurp);
+      };
+
+      my $asset = $manifest->{$entry} or return '';
+      my $res   = qq{<script type="module" src="/asset/$asset->{file}"></script>};
+      if (my $css = $asset->{css}) {
+        $res .= qq{<link rel="stylesheet" href="/asset/$_">} for @$css;
+      }
+      return Mojo::ByteStream->new($res);
+    }
+  );
 
   # Compress dynamically generated content
   $self->renderer->compress(1);
