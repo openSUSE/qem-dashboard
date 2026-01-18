@@ -27,12 +27,12 @@ const linkText = computed(() => {
 });
 
 const sourceIcon = computed(() => {
-  return this.incident.type === 'git' ? 'fas fa-code-branch' : 'fas fa-box-open';
+  return props.incident.type === 'git' ? 'fas fa-code-branch' : 'fas fa-box-open';
 });
 </script>
 
 <template>
-  <div class="incident-link">
+  <div class="submission-link">
     <a :href="sourceUrl" target="_blank" class="rr-link">
       <i :class="sourceIcon"></i>
       {{ linkText }}
