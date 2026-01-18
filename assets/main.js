@@ -31,7 +31,7 @@ const backToTop = function () {
   mybutton.addEventListener('click', scrollUp);
 };
 
-window.addEventListener('load', async () => {
+const initApp = async () => {
   const app = createApp(App);
   const pinia = createPinia();
   app.use(pinia);
@@ -41,4 +41,6 @@ window.addEventListener('load', async () => {
 
   app.use(router).mount('#app');
   backToTop();
-});
+};
+
+initApp();
