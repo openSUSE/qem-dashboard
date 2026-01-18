@@ -12,6 +12,8 @@ use Test::Output qw(stderr_like stdout_like);
 use Test::Warnings ':report_warnings';
 use Dashboard::Test;
 use Time::HiRes ();
+use File::Temp  ();
+use Mojo::File;
 
 plan skip_all => 'set TEST_ONLINE to enable this test' unless $ENV{TEST_ONLINE};
 
@@ -76,6 +78,69 @@ subtest 'Migrate command' => sub {
     $t_mig->app->pg->db->query('DROP TABLE IF EXISTS migrations');
     my $migrate_fresh = Dashboard::Command::migrate->new(app => $t_mig->app);
     stdout_like { $migrate_fresh->run } qr/Migrated from 0 to \d+/, 'migrated from fresh';
+  };
+};
+
+subtest 'Vite asset helper' => sub {
+  my $minimal_config = {%$config, secrets => ['test']};
+
+  subtest 'development mode, no server, no manifest' => sub {
+    local $ENV{MOJO_MODE}       = 'development';
+    local $ENV{VITE_DEV_SERVER} = 0;
+    my $t = Test::Mojo->new(Dashboard => $minimal_config);
+    $t->app->home(Mojo::Home->new(File::Temp::tempdir(CLEANUP => 1)));
+
+    my $output = $t->app->vite_asset('main.js');
+    like $output, qr/localhost:5173/, 'fallback to dev server link in dev mode without manifest';
+  };
+
+  subtest 'development mode with server' => sub {
+    local $ENV{MOJO_MODE}       = 'development';
+    local $ENV{VITE_DEV_SERVER} = 1;
+    my $t      = Test::Mojo->new(Dashboard => $minimal_config);
+    my $output = $t->app->vite_asset('main.js');
+    like $output, qr/localhost:5173/, 'dev server link used when VITE_DEV_SERVER is set';
+  };
+
+  subtest 'production mode, missing manifest' => sub {
+    local $ENV{MOJO_MODE} = 'production';
+    my $t = Test::Mojo->new(Dashboard => $minimal_config);
+    $t->app->home(Mojo::Home->new(File::Temp::tempdir(CLEANUP => 1)));
+    my $output = $t->app->vite_asset('main.js');
+    like $output, qr/vite_asset: manifest not found/, 'manifest not found comment in production';
+  };
+
+  subtest 'production mode, missing entry' => sub {
+    my $dir          = File::Temp::tempdir(CLEANUP => 1);
+    my $manifest_dir = Mojo::File->new($dir)->child('public', 'asset', '.vite');
+    $manifest_dir->make_path;
+    $manifest_dir->child('manifest.json')->spurt('{"main.js": {"file": "main.123.js"}}');
+
+    local $ENV{MOJO_MODE} = 'production';
+    my $t = Test::Mojo->new(Dashboard => $minimal_config);
+    $t->app->home(Mojo::Home->new($dir));
+
+    my $output = $t->app->vite_asset('missing.js');
+    like $output, qr/vite_asset: entry missing.js not found/, 'entry not found comment';
+
+    $output = $t->app->vite_asset('main.js');
+    like $output,   qr/main.123.js/,           'correct asset link from manifest';
+    unlike $output, qr/link rel="stylesheet"/, 'no CSS link if not present in manifest';
+  };
+
+  subtest 'production mode with CSS' => sub {
+    my $dir          = File::Temp::tempdir(CLEANUP => 1);
+    my $manifest_dir = Mojo::File->new($dir)->child('public', 'asset', '.vite');
+    $manifest_dir->make_path;
+    $manifest_dir->child('manifest.json')->spurt('{"main.js": {"file": "main.123.js", "css": ["main.456.css"]}}');
+
+    local $ENV{MOJO_MODE} = 'production';
+    my $t = Test::Mojo->new(Dashboard => $minimal_config);
+    $t->app->home(Mojo::Home->new($dir));
+
+    my $output = $t->app->vite_asset('main.js');
+    like $output, qr/main.123.js/,  'correct JS link';
+    like $output, qr/main.456.css/, 'correct CSS link';
   };
 };
 
