@@ -1,3 +1,10 @@
+<script setup>
+import {useModalStore} from '@/stores/modal';
+import IncidentLink from './IncidentLink.vue';
+
+const modalStore = useModalStore();
+</script>
+
 <template>
   <div
     tabindex="-1"
@@ -10,12 +17,12 @@
     <div class="modal-dialog" role="document">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="modal-title">Incidents for {{ title }}</h5>
+          <h5 class="modal-title" id="modal-title">Incidents for {{ modalStore.title }}</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
           <ul>
-            <li v-for="incident in incidents" :key="incident.number">
+            <li v-for="incident in modalStore.incidents" :key="incident.number">
               <IncidentLink :incident="incident" />
             </li>
           </ul>
@@ -29,16 +36,7 @@
 </template>
 
 <script>
-import IncidentLink from './IncidentLink.vue';
-
 export default {
-  name: 'RepoIncidentDialog',
-  components: {IncidentLink},
-  data() {
-    return {
-      incidents: [],
-      title: ''
-    };
-  }
+  name: 'RepoIncidentDialog'
 };
 </script>
