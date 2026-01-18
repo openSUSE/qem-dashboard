@@ -1,3 +1,25 @@
+<script setup>
+import {computed} from 'vue';
+import {useModalStore} from '@/stores/modal';
+import ResultSummary from './ResultSummary.vue';
+import {Modal} from 'bootstrap';
+
+const props = defineProps({
+  repo: {type: Object, required: true},
+  name: {type: String, required: true}
+});
+
+const modalStore = useModalStore();
+
+const incidentNumber = computed(() => props.repo.incidents.length);
+
+const triggerModal = () => {
+  modalStore.showIncidents(props.name, props.repo.incidents);
+  const myModal = new Modal(document.getElementById('update-incidents'));
+  myModal.show();
+};
+</script>
+
 <template lang="html">
   <tr>
     <td>
@@ -13,7 +35,7 @@
     </td>
     <td>
       <ul class="summary-list">
-        <li v-for="result in repo.summaries" :result="result" :key="result.name">
+        <li v-for="result in repo.summaries" :key="result.name">
           <ResultSummary :result="result" />
         </li>
       </ul>
@@ -22,26 +44,7 @@
 </template>
 
 <script>
-import ResultSummary from './ResultSummary.vue';
-import {Modal} from 'bootstrap';
-
 export default {
-  name: 'RepoLine',
-  components: {ResultSummary},
-  props: {repo: {type: Object, required: true}, name: {type: String, required: true}},
-  computed: {
-    incidentNumber() {
-      return this.repo.incidents.length;
-    }
-  },
-  methods: {
-    triggerModal() {
-      const dialog = this.$parent.$refs.incidentsDialog;
-      dialog.title = this.name;
-      dialog.incidents = this.repo.incidents;
-      const myModal = new Modal(document.getElementById('update-incidents'));
-      myModal.show();
-    }
-  }
+  name: 'RepoLine'
 };
 </script>

@@ -1,32 +1,28 @@
-import PageActive from './vue/components/PageActive.vue';
-import PageBlocked from './vue/components/PageBlocked.vue';
-import PageIncident from './vue/components/PageIncident.vue';
-import PageRepos from './vue/components/PageRepos.vue';
 import {createRouter, createWebHistory} from 'vue-router';
 
 const routes = [
   {
     path: '/',
     name: 'home',
-    component: PageActive,
+    component: () => import('./vue/components/PageActive.vue'),
     meta: {title: 'Active Incidents'}
   },
   {
     path: '/blocked',
     name: 'blocked',
-    component: PageBlocked,
+    component: () => import('./vue/components/PageBlocked.vue'),
     meta: {title: 'Blocked by Tests'}
   },
   {
     path: '/repos',
     name: 'repos',
-    component: PageRepos,
+    component: () => import('./vue/components/PageRepos.vue'),
     meta: {title: 'Test Repos'}
   },
   {
     path: '/incident/:id',
     name: 'incident',
-    component: PageIncident,
+    component: () => import('./vue/components/PageIncident.vue'),
     meta: {title: 'Details for Incident'}
   }
 ];
