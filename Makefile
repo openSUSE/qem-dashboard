@@ -3,7 +3,7 @@ TEST_ONLINE ?= postgresql://postgres:postgres@localhost:5432/postgres
 HARNESS_PERL_SWITCHES ?= -MDevel::Cover=-ignore,^blib/,-ignore,^templates/,-ignore,Net/SSLeay,-ignore,Dashboard/Plugin/Database.pm
 COVERAGE_OPTS ?= PERL5OPT='$(HARNESS_PERL_SWITCHES)'
 TEST_WRAPPER_COVERAGE ?= 1
-ASSET_SOURCES := $(shell find assets -type f) package-lock.json webpack.config.js
+ASSET_SOURCES := $(shell find assets -type f) package-lock.json vite.config.js
 
 .PHONY: all
 all: help
