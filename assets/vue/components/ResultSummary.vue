@@ -1,3 +1,33 @@
+<script setup>
+import {computed} from 'vue';
+import {useConfigStore} from '@/stores/config';
+
+const props = defineProps({
+  result: {type: Object, required: true}
+});
+
+const configStore = useConfigStore();
+
+const stopped = computed(() => props.result.stopped || 0);
+const passed = computed(() => props.result.passed || 0);
+const waiting = computed(() => props.result.waiting || 0);
+const failed = computed(() => props.result.failed || 0);
+const total = computed(() => stopped.value + failed.value + waiting.value + passed.value);
+
+const link = computed(() => {
+  const searchParams = new URLSearchParams(props.result.linkinfo);
+  // Arrays are handled incompatible to how openQA expects it
+  if (Array.isArray(props.result.linkinfo.flavor)) {
+    searchParams.delete('flavor');
+    props.result.linkinfo.flavor.forEach(flavor => {
+      searchParams.append('flavor', flavor);
+    });
+  }
+  searchParams.delete('distri');
+  return `${configStore.openqaUrl}?${searchParams.toString()}`;
+});
+</script>
+
 <template>
   <a v-if="failed > 0" :href="link" class="btn btn-danger" target="_blank">
     <i class="fas fa-times-circle me-1" aria-hidden="true"></i>
@@ -27,36 +57,6 @@
 
 <script>
 export default {
-  name: 'ResultSummary',
-  props: {result: {type: Object, required: true}},
-  computed: {
-    link() {
-      const searchParams = new URLSearchParams(this.result.linkinfo);
-      // Arrays are handled incompatible to how openQA expects it
-      if (Array.isArray(this.result.linkinfo.flavor)) {
-        searchParams.delete('flavor');
-        this.result.linkinfo.flavor.forEach(flavor => {
-          searchParams.append('flavor', flavor);
-        });
-      }
-      searchParams.delete('distri');
-      return `${this.appConfig.openqaUrl}?${searchParams.toString()}`;
-    },
-    stopped() {
-      return this.result.stopped || 0;
-    },
-    passed() {
-      return this.result.passed || 0;
-    },
-    waiting() {
-      return this.result.waiting || 0;
-    },
-    failed() {
-      return this.result.failed || 0;
-    },
-    total() {
-      return this.stopped + this.failed + this.waiting + this.passed;
-    }
-  }
+  name: 'ResultSummary'
 };
 </script>

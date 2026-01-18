@@ -1,3 +1,26 @@
+<script setup>
+import {computed} from 'vue';
+
+const props = defineProps({
+  incident: {
+    type: Object,
+    required: true
+  }
+});
+
+const priorityClass = computed(() => {
+  if (props.incident.priority > 650) return 'text-danger fw-bold';
+  if (props.incident.priority > 300) return 'text-warning';
+  return 'text-secondary';
+});
+
+const priorityBadgeClass = computed(() => {
+  if (props.incident.priority > 650) return 'bg-danger';
+  if (props.incident.priority > 300) return 'bg-warning text-dark';
+  return 'bg-secondary';
+});
+</script>
+
 <template>
   <div class="incident-details-icons d-inline-flex gap-2">
     <i
@@ -74,25 +97,7 @@
 
 <script>
 export default {
-  name: 'IncidentDetailsIcons',
-  props: {
-    incident: {
-      type: Object,
-      required: true
-    }
-  },
-  computed: {
-    priorityClass() {
-      if (this.incident.priority > 650) return 'text-danger fw-bold';
-      if (this.incident.priority > 300) return 'text-warning';
-      return 'text-secondary';
-    },
-    priorityBadgeClass() {
-      if (this.incident.priority > 650) return 'bg-danger';
-      if (this.incident.priority > 300) return 'bg-warning text-dark';
-      return 'bg-secondary';
-    }
-  }
+  name: 'IncidentDetailsIcons'
 };
 </script>
 
