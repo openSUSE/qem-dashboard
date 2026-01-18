@@ -1,5 +1,5 @@
 requires 'Mojolicious', '>= 9.39';
-requires 'Mojolicious::Plugin::Webpack';
+requires 'Mojolicious::Plugin::OpenAPI';
 requires 'Mojo::Pg', '>= 4.25';
 requires 'CPAN::Audit';
 requires 'Cpanel::JSON::XS', '>= 4.40';
