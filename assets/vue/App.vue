@@ -26,9 +26,7 @@ const lastUpdatedText = computed(() => {
   const last = incidentStore.lastUpdated;
   if (last === null) return 'Never updated';
   // Force reactivity by using 'now'
-
-  now.value;
-  return `Last updated ${formatDistanceToNow(last, {addSuffix: true})}`;
+  return `Last updated ${formatDistanceToNow(last, {addSuffix: true, baseDate: now.value})}`;
 });
 
 onMounted(() => {

@@ -99,23 +99,26 @@ sub _setup_helpers ($self, $config) {
   $self->plugin('Dashboard::Plugin::Helpers');
   $self->plugin('Dashboard::Plugin::Database', $config);
 
-  # OpenAPI documentation
-  # $self->plugin(OpenAPI => {url => $self->home->child('resources', 'openapi.json'), validate => 0});
-
   # Vite asset helper
   $self->helper(
     vite_asset => sub ($c, $entry) {
-      if ($self->mode eq 'development') {
-        return Mojo::ByteStream->new(qq{<script type="module" src="http://localhost:5173/asset/$entry"></script>});
-      }
+      state $is_dev = $self->mode eq 'development' && $ENV{VITE_DEV_SERVER};
+      return Mojo::ByteStream->new(qq{<script type="module" src="http://localhost:5173/asset/$entry"></script>})
+        if $is_dev;
 
       state $manifest = eval {
         my $path = $self->home->child('public', 'asset', '.vite', 'manifest.json');
-        $path = $self->home->child('public', 'asset', 'manifest.json') unless -r $path;    # Vite < 5 compatibility
-        Mojo::JSON::decode_json($path->slurp);
+        $path = $self->home->child('public', 'asset', 'manifest.json') unless -e $path;
+        -e $path ? Mojo::JSON::decode_json($path->slurp) : undef;
       };
 
-      my $asset = $manifest->{$entry} or return '';
+      if (!$manifest && $self->mode eq 'development') {
+        return Mojo::ByteStream->new(qq{<script type="module" src="http://localhost:5173/asset/$entry"></script>});
+      }
+
+      return Mojo::ByteStream->new('<!-- vite_asset: manifest not found -->') unless $manifest;
+
+      my $asset = $manifest->{$entry} or return Mojo::ByteStream->new("<!-- vite_asset: entry $entry not found -->");
       my $res   = qq{<script type="module" src="/asset/$asset->{file}"></script>};
       if (my $css = $asset->{css}) {
         $res .= qq{<link rel="stylesheet" href="/asset/$_">} for @$css;
