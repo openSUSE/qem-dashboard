@@ -125,6 +125,29 @@ subtest 'Dashboard::Model::Incidents' => sub {
     is $res1002->{"100 f v"}{failed}, undef, 'Incident 1002 does NOT see failed job of 1001';
     is $res1002->{"100 f v"}{passed}, 1,     'Incident 1002 sees generic job';
   };
+
+  subtest 'openqa_summary_only_aggregates branch coverage' => sub {
+    my $incs     = $t->app->incidents;
+    my $settings = $t->app->settings;
+    my $inc      = $incs->incident_for_number(16860);
+
+    # Add another update for 16860 with an existing build number (20201107-1)
+    $settings->add_update_settings([$inc->{id}],
+      {product => 'ExtraProd', arch => 'x86_64', build => '20201107-1', repohash => 'h2', settings => {}});
+
+    ok $incs->openqa_summary_only_aggregates($inc),
+      'works for incident with multiple aggregate jobs sharing same build';
+  };
+
+  subtest 'repos branch coverage' => sub {
+    my $incs     = $t->app->incidents;
+    my $settings = $t->app->settings;
+
+    # Add a repo (update settings) with NO jobs to trigger line 120 branch
+    $settings->add_update_settings([1],
+      {product => 'NoJobsProduct', arch => 'x86_64', build => '123', repohash => 'h', settings => {}});
+    ok $incs->repos, 'repos works even with a repo having no jobs';
+  };
 };
 
 subtest 'Dashboard::Model::Jobs' => sub {

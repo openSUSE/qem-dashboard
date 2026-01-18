@@ -43,6 +43,10 @@ subtest 'Tokens configured' => sub {
       ->json_is({error => 'Permission denied'});
     $t->patch_ok('/api/incidents' => {Authorization => 'Token test_token'} => json => [])
       ->status_is(200, 'correct token');
+
+    # Extra coverage for Auth::Token branches
+    $t->patch_ok('/api/incidents' => {Authorization => 'Token '} => json => [])->status_is(403, 'token is empty');
+    $t->patch_ok('/api/incidents' => {Authorization => 'Token'}  => json => [])->status_is(403, 'token prefix only');
   }
   qr/access_log/, 'access log caught';
 };
