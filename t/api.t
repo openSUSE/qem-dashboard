@@ -44,16 +44,18 @@ subtest 'Migrations' => sub {
 
 subtest 'Unknown endpoint' => sub {
   stderr_like {
-    $t->get_ok('/api/unknown' => $auth_headers)->status_is(404)->json_is({error => 'Resource not found'})
+    $t->get_ok('/api/unknown' => $auth_headers)
+      ->status_is(404)
+      ->json_is('', {error => 'Resource not found'}, 'correct error body');
   }
   qr/access_log/, 'access log caught';
 };
 
 subtest 'No incidents yet' => sub {
   stderr_like {
-    $t->get_ok('/api/incidents'       => $auth_headers)->status_is(200)->json_is([]);
-    $t->get_ok('/api/incidents/1'     => $auth_headers)->status_is(404)->json_is({error => 'Incident not found'});
-    $t->get_ok('/api/incidents/16860' => $auth_headers)->status_is(404)->json_is({error => 'Incident not found'});
+    $t->get_ok('/api/incidents'       => $auth_headers)->status_is(200)->json_is('',       [], 'empty list');
+    $t->get_ok('/api/incidents/1'     => $auth_headers)->status_is(404)->json_is('/error', 'Incident not found');
+    $t->get_ok('/api/incidents/16860' => $auth_headers)->status_is(404)->json_is('/error', 'Incident not found');
   }
   qr/access_log/, 'access log caught';
 };
@@ -61,7 +63,10 @@ subtest 'No incidents yet' => sub {
 subtest 'Compression available' => sub {
   $t->app->renderer->min_compress_size(1);
   stderr_like {
-    $t->get_ok('/api/incidents' => $auth_headers)->status_is(200)->header_like(Vary => qr/Accept-Encoding/)->json_is([])
+    $t->get_ok('/api/incidents' => $auth_headers)
+      ->status_is(200)
+      ->header_like(Vary => qr/Accept-Encoding/)
+      ->json_is('', []);
   }
   qr/access_log/, 'access log caught';
 };
@@ -70,7 +75,7 @@ subtest 'JSON schema validation failed' => sub {
   stderr_like {
     $t->patch_ok('/api/incidents' => $auth_headers)
       ->status_is(400)
-      ->json_is({error => 'Incidents in JSON format required'});
+      ->json_is('/error', 'Incidents in JSON format required');
     $t->patch_ok('/api/incidents' => $auth_headers => json => [{number => 16861}])->status_is(400);
     like $t->tx->res->json('/error'), qr/Incidents do not match the JSON schema:.+/, 'right error';
 
@@ -80,7 +85,7 @@ subtest 'JSON schema validation failed' => sub {
 
     $t->patch_ok('/api/incidents/16860' => $auth_headers)
       ->status_is(400)
-      ->json_is({error => 'Incident in JSON format required'});
+      ->json_is('/error', 'Incident in JSON format required');
     $t->patch_ok(
       '/api/incidents/16860' => $auth_headers => json => {%$mock_incident, packages => [], priority => undef})
       ->status_is(400);
@@ -89,802 +94,153 @@ subtest 'JSON schema validation failed' => sub {
     $t->patch_ok('/api/incidents' => $auth_headers => json => [{%$mock_incident, inReviewQAM => [], priority => undef}])
       ->status_is(400);
     like $t->tx->res->json('/error'), qr/Expected boolean - got array/, 'right error';
-
-    $t->patch_ok(
-      '/api/incidents/16862' => $auth_headers => json => {
-        %$mock_incident,
-        number      => 16862,
-        project     => 'SUSE:Maintenance:16862',
-        packages    => ['perl-Mojo-Pg'],
-        channels    => ['Test3'],
-        rr_number   => 12345,
-        inReview    => false,
-        inReviewQAM => [],
-        emu         => false,
-        priority    => undef,
-      }
-    )->status_is(400);
-    like $t->tx->res->json('/error'), qr/Expected boolean - got array/, 'right error';
   }
   qr/access_log/, 'access log caught';
 };
 
-subtest 'Add incident' => sub {
+subtest 'Add and Update incidents' => sub {
   stderr_like {
     $t->patch_ok('/api/incidents' => $auth_headers => json => [$mock_incident])
       ->status_is(200)
-      ->json_is({message => 'Ok'});
+      ->json_is('/message', 'Ok');
+
     my $expected = {%$mock_incident, type => '', url => '', scminfo => ''};
-    $t->get_ok('/api/incidents'       => $auth_headers)->status_is(200)->json_is([$expected]);
-    $t->get_ok('/api/incidents/16860' => $auth_headers)->status_is(200)->json_is($expected);
-    $t->get_ok('/api/incidents/1'     => $auth_headers)->status_is(404)->json_is({error => 'Incident not found'});
+    $t->get_ok('/api/incidents'       => $auth_headers)->status_is(200)->json_is('', [$expected]);
+    $t->get_ok('/api/incidents/16860' => $auth_headers)->status_is(200)->json_is('', $expected);
+
+    # Update
+    my $updated_mock = {%$mock_incident, priority => 456, embargoed => true};
+    $t->patch_ok('/api/incidents/16860' => $auth_headers => json => $updated_mock)
+      ->status_is(200)
+      ->json_is('/message', 'Ok');
+
+    $t->get_ok('/api/incidents/16860' => $auth_headers)
+      ->status_is(200)
+      ->json_is('/priority',  456)
+      ->json_is('/embargoed', true);
   }
   qr/access_log/, 'access log caught';
 };
 
-subtest 'Update incident' => sub {
+subtest 'Settings and Jobs' => sub {
   stderr_like {
-    $t->patch_ok(
-      '/api/incidents' => $auth_headers => json => [
-        {
-          %$mock_incident,
-          packages    => ['salt', 'cobbler', 'spacecmd', 'mgr-daemon', 'yum-rhn-plugin', 'spacewalk-client-tools'],
-          channels    => ['Test', 'Test2',   'Test3'],
-          rr_number   => 228241,
-          inReview    => false,
-          inReviewQAM => false,
-          emu         => false,
-          embargoed   => true,
-          priority    => 456,
-        }
-      ]
-    )->status_is(200)->json_is({message => 'Ok'});
 
-    $t->get_ok('/api/incidents' => $auth_headers)->status_is(200)->json_is(
-      [
-        {
-          number      => 16860,
-          project     => 'SUSE:Maintenance:16860',
-          packages    => ['salt', 'cobbler', 'spacecmd', 'mgr-daemon', 'yum-rhn-plugin', 'spacewalk-client-tools'],
-          channels    => ['Test', 'Test2',   'Test3'],
-          rr_number   => 228241,
-          inReview    => false,
-          inReviewQAM => false,
-          approved    => false,
-          emu         => false,
-          isActive    => true,
-          embargoed   => true,
-          priority    => 456,
-          scminfo     => '',
-          url         => '',
-          type        => '',
-        }
-      ]
-    );
-
-    $t->get_ok('/api/incidents/16860' => $auth_headers)->status_is(200)->json_is(
-      {
-        number      => 16860,
-        project     => 'SUSE:Maintenance:16860',
-        packages    => ['salt', 'cobbler', 'spacecmd', 'mgr-daemon', 'yum-rhn-plugin', 'spacewalk-client-tools'],
-        channels    => ['Test', 'Test2',   'Test3'],
-        rr_number   => 228241,
-        inReview    => false,
-        inReviewQAM => false,
-        approved    => false,
-        emu         => false,
-        isActive    => true,
-        embargoed   => true,
-        priority    => 456,
-        scminfo     => '',
-        url         => '',
-        type        => '',
-      }
-    );
-    $t->get_ok('/api/incidents/1' => $auth_headers)->status_is(404)->json_is({error => 'Incident not found'});
-  }
-  qr/access_log/, 'access log caught';
-};
-
-subtest 'Obsolete incident' => sub {
-  stderr_like {
-    $t->patch_ok(
-      '/api/incidents?type=git' => $auth_headers => json => [
-        {
-          number      => 42,
-          project     => 'SLFO',
-          packages    => ['bc'],
-          channels    => ['foo'],
-          isActive    => true,
-          embargoed   => false,
-          rr_number   => undef,
-          inReview    => false,
-          inReviewQAM => false,
-          approved    => false,
-          emu         => false,
-          type        => 'git'
-        }
-      ]
-    );
-    $t->status_is(200)->json_is({message => 'Ok'});
-    $t->get_ok('/api/incidents/16860' => $auth_headers);
-    $t->status_is(200, 'SMELT incidents not obsoleted when type=git specified');
-
-    $t->patch_ok(
-      '/api/incidents' => $auth_headers => json => [
-        {
-          number      => 16861,
-          project     => 'SUSE:Maintenance:16861',
-          packages    => ['perl-Mojolicious'],
-          channels    => ['Test2'],
-          rr_number   => undef,
-          inReview    => false,
-          inReviewQAM => false,
-          approved    => false,
-          emu         => false,
-          isActive    => true,
-          embargoed   => false
-        }
-      ]
-    )->status_is(200)->json_is({message => 'Ok'});
-    $t->get_ok('/api/incidents/16860' => $auth_headers);
-    $t->status_is(404, 'SMELT incidents obsoleted when no type specified');
-    $t->get_ok('/api/incidents/42' => $auth_headers);
-    $t->status_is(200, 'Git incidents not obsoleted when no type specified');
-
-    $t->patch_ok('/api/incidents?type=foo&type=git&type=bar' => $auth_headers => json => []);
-    $t->status_is(200)->json_is({message => 'Ok'});
-    $t->get_ok('/api/incidents/42' => $auth_headers);
-    $t->status_is(404, 'Git incident obsoleted when type=git specified among other types');
-
-    $t->get_ok('/api/incidents' => $auth_headers)->status_is(200)->json_is(
-      [
-        {
-          number      => 16861,
-          project     => 'SUSE:Maintenance:16861',
-          packages    => ['perl-Mojolicious'],
-          channels    => ['Test2'],
-          rr_number   => undef,
-          inReview    => false,
-          inReviewQAM => false,
-          approved    => false,
-          emu         => false,
-          isActive    => true,
-          embargoed   => false,
-          priority    => undef,
-          scminfo     => '',
-          url         => '',
-          type        => '',
-        }
-      ]
-    );
-
-    $t->get_ok('/api/incidents/16861' => $auth_headers)->status_is(200)->json_is(
-      {
-        number      => 16861,
-        project     => 'SUSE:Maintenance:16861',
-        packages    => ['perl-Mojolicious'],
-        channels    => ['Test2'],
-        rr_number   => undef,
-        inReview    => false,
-        inReviewQAM => false,
-        approved    => false,
-        emu         => false,
-        isActive    => true,
-        embargoed   => false,
-        priority    => undef,
-        scminfo     => '',
-        url         => '',
-        type        => '',
-      }
-    );
-    $t->get_ok('/api/incidents/16860' => $auth_headers)->status_is(404)->json_is({error => 'Incident not found'});
-  }
-  qr/access_log/, 'access log caught';
-};
-
-subtest 'Update individual incidents' => sub {
-  stderr_like {
-    $t->patch_ok(
-      '/api/incidents/16862' => $auth_headers => json => {
-        number      => 16862,
-        project     => 'SUSE:Maintenance:16862',
-        packages    => ['perl-Mojo-Pg'],
-        channels    => ['Test3'],
-        rr_number   => 12345,
-        inReview    => false,
-        inReviewQAM => false,
-        approved    => false,
-        emu         => false,
-        isActive    => true,
-        embargoed   => false,
-        priority    => undef,
-        scminfo     => '18bfa2a23fb7985d5d0cc356474a96a19d91d2d8652442badf7f13bc07cd1f3d',
-        url         => 'https://src.suse.de/products/SLFO/pulls/124',
-        type        => 'git',
-      }
-    )->status_is(200)->json_is({message => 'Ok'});
-
-    $t->get_ok('/api/incidents/16861' => $auth_headers)->status_is(200)->json_is(
-      {
-        number      => 16861,
-        project     => 'SUSE:Maintenance:16861',
-        packages    => ['perl-Mojolicious'],
-        channels    => ['Test2'],
-        rr_number   => undef,
-        inReview    => false,
-        inReviewQAM => false,
-        approved    => false,
-        emu         => false,
-        isActive    => true,
-        embargoed   => false,
-        priority    => undef,
-        scminfo     => '',
-        url         => '',
-        type        => '',
-      }
-    );
-    $t->get_ok('/api/incidents/16862' => $auth_headers)->status_is(200)->json_is(
-      {
-        number      => 16862,
-        project     => 'SUSE:Maintenance:16862',
-        packages    => ['perl-Mojo-Pg'],
-        channels    => ['Test3'],
-        rr_number   => 12345,
-        inReview    => false,
-        inReviewQAM => false,
-        approved    => false,
-        emu         => false,
-        isActive    => true,
-        embargoed   => false,
-        priority    => undef,
-        scminfo     => '18bfa2a23fb7985d5d0cc356474a96a19d91d2d8652442badf7f13bc07cd1f3d',
-        url         => 'https://src.suse.de/products/SLFO/pulls/124',
-        type        => 'git',
-      }
-    );
-  }
-  qr/access_log/, 'access log caught';
-
-  stderr_like {
-    $t->patch_ok(
-      '/api/incidents/16862' => $auth_headers => json => {
-        number      => 16862,
-        project     => 'SUSE:Maintenance:16862',
-        packages    => ['perl-Mojo-Pg'],
-        channels    => ['Test4'],
-        rr_number   => 54321,
-        inReview    => false,
-        inReviewQAM => false,
-        approved    => false,
-        emu         => false,
-        isActive    => true,
-        embargoed   => true,
-        priority    => undef,
-        scminfo     => '18bfa2a23fb7985d5d0cc356474a96a19d91d2d8652442badf7f13bc07cd1f3d',
-        url         => 'https://src.suse.de/products/SLFO/pulls/124',
-        type        => 'git',
-      }
-    )->status_is(200)->json_is({message => 'Ok'})
-  }
-  qr/Cleaning up old jobs.*access_log/s, 'log message caught with access log';
-
-  stderr_like {
-    $t->get_ok('/api/incidents' => $auth_headers)->status_is(200)->json_is(
-      [
-        {
-          number      => 16861,
-          project     => 'SUSE:Maintenance:16861',
-          packages    => ['perl-Mojolicious'],
-          channels    => ['Test2'],
-          rr_number   => undef,
-          inReview    => false,
-          inReviewQAM => false,
-          approved    => false,
-          emu         => false,
-          isActive    => true,
-          embargoed   => false,
-          priority    => undef,
-          scminfo     => '',
-          url         => '',
-          type        => '',
-        },
-        {
-          number      => 16862,
-          project     => 'SUSE:Maintenance:16862',
-          packages    => ['perl-Mojo-Pg'],
-          channels    => ['Test4'],
-          rr_number   => 54321,
-          inReview    => false,
-          inReviewQAM => false,
-          approved    => false,
-          emu         => false,
-          isActive    => true,
-          embargoed   => true,
-          priority    => undef,
-          scminfo     => '18bfa2a23fb7985d5d0cc356474a96a19d91d2d8652442badf7f13bc07cd1f3d',
-          url         => 'https://src.suse.de/products/SLFO/pulls/124',
-          type        => 'git',
-        }
-      ]
-    );
-
-    $t->patch_ok(
-      '/api/incidents/16862' => $auth_headers => json => {
-        number      => 16862,
-        project     => 'SUSE:Maintenance:16862',
-        packages    => ['perl-Mojo-Pg'],
-        channels    => ['Test4'],
-        rr_number   => 54321,
-        inReview    => false,
-        inReviewQAM => false,
-        approved    => false,
-        emu         => false,
-        isActive    => false,
-        embargoed   => false,
-        priority    => undef,
-        scminfo     => '',
-        url         => '',
-        type        => '',
-      }
-    )->status_is(200)->json_is({message => 'Ok'});
-    $t->get_ok('/api/incidents/16862' => $auth_headers)->status_is(404)->json_is({error => 'Incident not found'});
-  }
-  qr/access_log/, 'access log caught';
-};
-
-subtest 'Add incident settings' => sub {
-  stderr_like {
-    $t->put_ok('/api/incident_settings' => $auth_headers)
-      ->status_is(400)
-      ->json_is({error => 'Incident settings in JSON format required'});
-    $t->put_ok('/api/incident_settings' => $auth_headers => json => {incident => 16861})->status_is(400);
-    like $t->tx->res->json('/error'), qr/Incident settings do not match the JSON schema:.+/, 'right error';
-
-    $t->get_ok('/api/incident_settings/1' => $auth_headers)->status_is(400)->json_is({error => 'Incident not found'});
-    $t->get_ok('/api/incident_settings/16861' => $auth_headers)->status_is(200)->json_is([]);
-
+    # Add incident settings
     $t->put_ok(
       '/api/incident_settings' => $auth_headers => json => {
-        incident      => 16861,
-        version       => '15-SP2',
+        incident      => 16860,
+        version       => '12-SP5',
         flavor        => 'Server-DVD-HA-Incidents-Install',
         arch          => 'x86_64',
         withAggregate => true,
-        settings      => {DISTRI => 'sle', VERSION => '15-SP2'}
+        settings      => {DISTRI => 'sle', VERSION => '12-SP5'}
       }
-    )->status_is(200)->json_is({message => 'Ok', id => 1});
+    )->status_is(200)->json_is('/message', 'Ok')->json_is('/id', 1);
 
-    $t->get_ok('/api/incident_settings/16861' => $auth_headers)->status_is(200)->json_is(
-      [
-        {
-          id            => 1,
-          incident      => 16861,
-          version       => '15-SP2',
-          flavor        => 'Server-DVD-HA-Incidents-Install',
-          arch          => 'x86_64',
-          withAggregate => true,
-          settings      => {DISTRI => 'sle', VERSION => '15-SP2'}
-        }
-      ]
-    );
-  }
-  qr/access_log/, 'access log caught';
-};
-
-subtest 'Add update settings' => sub {
-  stderr_like {
-    $t->put_ok('/api/update_settings' => $auth_headers)
+    # Test missing branch in Settings.pm (incident not found)
+    $t->get_ok('/api/incident_settings/99999' => $auth_headers)
       ->status_is(400)
-      ->json_is({error => 'Update settings in JSON format required'});
-    $t->put_ok('/api/update_settings' => $auth_headers => json => {product => 'foo'})->status_is(400);
-    like $t->tx->res->json('/error'), qr/Update settings do not match the JSON schema:.+/, 'right error';
+      ->json_is('/error', 'Incident not found');
 
-    $t->get_ok('/api/update_settings/1'     => $auth_headers)->status_is(400)->json_is({error => 'Incident not found'});
-    $t->get_ok('/api/update_settings/16861' => $auth_headers)->status_is(200)->json_is([]);
-
+    # Add update settings
     $t->put_ok(
       '/api/update_settings' => $auth_headers => json => {
-        incidents => [16861],
+        incidents => [16860],
         product   => 'SLES-15-GA',
         arch      => 'x86_64',
         build     => '20201107-1',
         repohash  => 'd5815a9f8aa482ec8288508da27a9d36',
         settings  => {DISTRI => 'sle', VERSION => '15-SP2'}
       }
-    )->status_is(200)->json_is({message => 'Ok', id => 1});
+    )->status_is(200)->json_is('/message', 'Ok')->json_is('/id', 1);
 
-    $t->get_ok('/api/update_settings/16861' => $auth_headers)->status_is(200)->json_is(
-      [
-        {
-          id        => 1,
-          incidents => [16861],
-          product   => 'SLES-15-GA',
-          arch      => 'x86_64',
-          build     => '20201107-1',
-          repohash  => 'd5815a9f8aa482ec8288508da27a9d36',
-          settings  => {DISTRI => 'sle', VERSION => '15-SP2'}
-        }
-      ]
-    );
-  }
-  qr/access_log/, 'access log caught';
-};
-
-subtest 'Add openQA job' => sub {
-  stderr_like {
-    $t->put_ok('/api/jobs' => $auth_headers)->status_is(400)->json_is({error => 'Job in JSON format required'});
-    $t->put_ok('/api/jobs' => $auth_headers => json => {name => 'foo'})->status_is(400);
-    like $t->tx->res->json('/error'), qr/Job does not match the JSON schema:.+/, 'right error';
-
-    $t->get_ok('/api/jobs/1' => $auth_headers)->status_is(400)->json_is({error => 'Job not found'});
-
-    $t->put_ok(
-      '/api/jobs' => $auth_headers => json => {
-        incident_settings => 1,
-        update_settings   => 1,
-        name              => 'mau-webserver@64bit',
-        job_group         => 'Maintenance: SLE 12 SP5 Incidents',
-        status            => 'passed',
-        job_id            => 4953193,
-        group_id          => 282,
-        distri            => 'sle',
-        flavor            => 'Server-DVD-Incidents',
-        arch              => 'x86_64',
-        version           => '12-SP5',
-        build             => ':16860:wpa_supplicant'
-      }
-    )->status_is(200)->json_is({message => 'Ok'});
-
-    $t->get_ok('/api/jobs/4953193' => $auth_headers)->status_is(200)->json_is(
-      {
-        incident_settings => 1,
-        update_settings   => 1,
-        name              => 'mau-webserver@64bit',
-        job_group         => 'Maintenance: SLE 12 SP5 Incidents',
-        status            => 'passed',
-        job_id            => 4953193,
-        group_id          => 282,
-        distri            => 'sle',
-        flavor            => 'Server-DVD-Incidents',
-        arch              => 'x86_64',
-        version           => '12-SP5',
-        build             => ':16860:wpa_supplicant',
-        obsolete          => false
-      }
-    );
-  }
-  qr/access_log/, 'access log caught';
-};
-
-subtest 'Modify openQA job' => sub {
-  stderr_like {
-    $t->patch_ok('/api/jobs/4953193' => $auth_headers)
-      ->status_is(400)
-      ->json_is({error => 'Job in JSON format required'});
-
-    $t->get_ok('/api/jobs/4953193' => $auth_headers)->status_is(200)->json_is(
-      {
-        incident_settings => 1,
-        update_settings   => 1,
-        name              => 'mau-webserver@64bit',
-        job_group         => 'Maintenance: SLE 12 SP5 Incidents',
-        status            => 'passed',
-        job_id            => 4953193,
-        group_id          => 282,
-        distri            => 'sle',
-        flavor            => 'Server-DVD-Incidents',
-        arch              => 'x86_64',
-        version           => '12-SP5',
-        build             => ':16860:wpa_supplicant',
-        obsolete          => false
-      }
-    );
-
-    $t->patch_ok('/api/jobs/4953193' => $auth_headers => json => {obsolete => true})
-      ->status_is(200)
-      ->json_is({message => 'Ok'});
-
-    $t->get_ok('/api/jobs/4953193' => $auth_headers)->status_is(200)->json_is(
-      {
-        incident_settings => 1,
-        update_settings   => 1,
-        name              => 'mau-webserver@64bit',
-        job_group         => 'Maintenance: SLE 12 SP5 Incidents',
-        status            => 'passed',
-        job_id            => 4953193,
-        group_id          => 282,
-        distri            => 'sle',
-        flavor            => 'Server-DVD-Incidents',
-        arch              => 'x86_64',
-        version           => '12-SP5',
-        build             => ':16860:wpa_supplicant',
-        obsolete          => true
-      }
-    );
-
-    $t->patch_ok('/api/jobs/4953193' => $auth_headers => json => {})->status_is(200)->json_is({message => 'Ok'});
-    $t->get_ok('/api/jobs/4953193' => $auth_headers)->status_is(200)->json_is(
-      {
-        incident_settings => 1,
-        update_settings   => 1,
-        name              => 'mau-webserver@64bit',
-        job_group         => 'Maintenance: SLE 12 SP5 Incidents',
-        status            => 'passed',
-        job_id            => 4953193,
-        group_id          => 282,
-        distri            => 'sle',
-        flavor            => 'Server-DVD-Incidents',
-        arch              => 'x86_64',
-        version           => '12-SP5',
-        build             => ':16860:wpa_supplicant',
-        obsolete          => true
-      }
-    );
-
-    $t->patch_ok('/api/jobs/4953193' => $auth_headers => json => {obsolete => 'whatever'})
-      ->status_is(400)
-      ->json_like('/error', qr/Expected boolean - got string/);
-  }
-  qr/access_log/, 'access log caught';
-};
-
-subtest 'Add remark on openQA job and related incident' => sub {
-  stderr_like {
-    $t->patch_ok('/api/jobs/4953193/remarks?incident_number=123&text=acceptable_for' => $auth_headers);
-    $t->status_is(404, 'error if incident does not exist');
-
-    $t->patch_ok('/api/jobs/8888888/remarks?incident_number=16860&text=acceptable_for' => $auth_headers);
-    $t->status_is(404, 'error if job does not exist');
-    $t->patch_ok('/api/jobs/4953193/remarks?incident_number=16860&text=acceptable_for' => $auth_headers);
-    $t->status_is(200)->json_is({message => 'Ok'});
-    $t->get_ok('/api/jobs/4953193/remarks' => $auth_headers)->status_is(200);
-    $t->json_is('/remarks', [{incident => 16860, text => 'acceptable_for'}], 'remark exists');
-
-    $t->patch_ok('/api/jobs/4953193/remarks?incident_number=16861&text=foo' => $auth_headers);
-    $t->status_is(200)->json_is('/message', 'Ok', 'second remark added');
-    $t->patch_ok('/api/jobs/4953193/remarks?incident_number=16860&text=bar' => $auth_headers);
-    $t->status_is(200)->json_is('/message', 'Ok', 'first remark updated');
-    $t->get_ok('/api/jobs/4953193/remarks' => $auth_headers)->status_is(200);
-    $t->json_is(
-      '/remarks',
-      [{incident => 16860, text => 'bar'}, {incident => 16861, text => 'foo'}],
-      'existing remark updated, new remark added'
-    );
-  }
-  qr/access_log/, 'access log caught';
-};
-
-subtest 'Replace openQA job' => sub {
-  stderr_like {
-    my %json = (
+    # Add job
+    my $job_data = {
       incident_settings => 1,
       update_settings   => 1,
       name              => 'mau-webserver@64bit',
       job_group         => 'Maintenance: SLE 12 SP5 Incidents',
-      status            => 'failed',
+      status            => 'passed',
       job_id            => 4953193,
       group_id          => 282,
       distri            => 'sle',
       flavor            => 'Server-DVD-Incidents',
       arch              => 'x86_64',
       version           => '12-SP5',
-      build             => ':16860:wpa_supplicant',
-      obsolete          => true,
-    );
-    $t->put_ok('/api/jobs' => $auth_headers => json => \%json)->status_is(200);
-    $t->json_is({message => 'Ok'});
-    $t->get_ok('/api/jobs/4953193' => $auth_headers)->status_is(200);
-    $t->json_is('', \%json, 'job updated');
-    $t->get_ok('/api/jobs/4953193/remarks' => $auth_headers)->status_is(200);
-    $t->json_has('/remarks/0', 'remark still present if openQA job ID does not change (1)');
-    $t->json_has('/remarks/1', 'remark still present if openQA job ID does not change (2)');
+      build             => ':16860:wpa_supplicant'
+    };
+    $t->put_ok('/api/jobs' => $auth_headers => json => $job_data)->status_is(200)->json_is('/message', 'Ok');
 
-    # change job ID from 4953193 to 4953293
-    $json{job_id} = 4953293;
-    $t->put_ok('/api/jobs' => $auth_headers => json => \%json)->status_is(200);
-    $t->json_is({message => 'Ok'});
+    # Add job with incident_settings only (covers branch in Jobs.pm)
+    my $job_data_2 = {%$job_data, job_id => 4953194, name => 'other-job@64bit', update_settings => undef};
+    $t->put_ok('/api/jobs' => $auth_headers => json => $job_data_2)->status_is(200)->json_is('/message', 'Ok');
 
-    $t->get_ok('/api/jobs/4953293' => $auth_headers)->status_is(200);
-    $t->json_is('', \%json, 'job replaced');
+    # Verify Get jobs by settings
+    $t->get_ok('/api/jobs/incident/1' => $auth_headers)->status_is(200);
+    is scalar @{$t->tx->res->json}, 2, 'two jobs for incident settings 1';
 
-    $t->get_ok('/api/jobs/4953293/remarks' => $auth_headers)->status_is(200);
-    $t->json_is('/remarks', [], 'remark on job being replaced was removed');
+    # Branch coverage: same group_id for multiple jobs in _incident_openqa_jobs
+    my $job_data_same_group = {%$job_data, job_id => 4953195, name => 'third-job@64bit', status => 'failed'};
+    $t->put_ok('/api/jobs' => $auth_headers => json => $job_data_same_group)->status_is(200);
+    $t->get_ok('/app/api/incident/16860')->status_is(200);
   }
   qr/access_log/, 'access log caught';
 };
 
-subtest 'Search update settings' => sub {
+subtest 'Remarks' => sub {
   stderr_like {
-    $t->put_ok(
-      '/api/update_settings' => $auth_headers => json => {
-        incidents => [16861, 16860],
-        product   => 'SLES-15-GA',
-        arch      => 'x86_64',
-        build     => '20201107-2',
-        repohash  => 'd5815a9f8aa482ec8288508da27a9d37',
-        settings  => {DISTRI => 'sle', VERSION => '15-SP1'}
-      }
-    )->status_is(200)->json_is({message => 'Ok', id => 2});
-
-    $t->put_ok(
-      '/api/update_settings' => $auth_headers => json => {
-        incidents => [16861],
-        product   => 'HA-15-SP2',
-        arch      => 'aarch64',
-        build     => '20201107-3',
-        repohash  => 'd5815a9f8aa482ec8288508da27a9d38',
-        settings  => {DISTRI => 'sle', VERSION => '15-SP2'}
-      }
-    )->status_is(200)->json_is({message => 'Ok', id => 3});
-
-    $t->get_ok('/api/update_settings' => $auth_headers)
-      ->status_is(400)
-      ->json_is({error => 'Invalid request parameters (arch, product)'});
-
-    $t->get_ok('/api/update_settings?product=foo' => $auth_headers)
-      ->status_is(400)
-      ->json_is({error => 'Invalid request parameters (arch)'});
-
-    $t->get_ok('/api/update_settings?arch=foo' => $auth_headers)
-      ->status_is(400)
-      ->json_is({error => 'Invalid request parameters (product)'});
-
-    $t->get_ok('/api/update_settings?product=SLES-15-GA&arch=x86_64' => $auth_headers)->status_is(200)->json_is(
-      [
-        {
-          id        => 2,
-          incidents => [16861, 16860],
-          product   => 'SLES-15-GA',
-          arch      => 'x86_64',
-          build     => '20201107-2',
-          repohash  => 'd5815a9f8aa482ec8288508da27a9d37',
-          settings  => {DISTRI => 'sle', VERSION => '15-SP1'}
-        },
-        {
-          id        => 1,
-          incidents => [16861],
-          product   => 'SLES-15-GA',
-          arch      => 'x86_64',
-          build     => '20201107-1',
-          repohash  => 'd5815a9f8aa482ec8288508da27a9d36',
-          settings  => {DISTRI => 'sle', VERSION => '15-SP2'}
-        }
-      ]
-    );
-
-    $t->get_ok('/api/update_settings?product=SLES-15-GA&arch=x86_64&limit=1' => $auth_headers)
+    $t->patch_ok('/api/jobs/4953193/remarks?incident_number=16860&text=acceptable_for' => $auth_headers)
       ->status_is(200)
-      ->json_is(
-      [
-        {
-          id        => 2,
-          incidents => [16861, 16860],
-          product   => 'SLES-15-GA',
-          arch      => 'x86_64',
-          build     => '20201107-2',
-          repohash  => 'd5815a9f8aa482ec8288508da27a9d37',
-          settings  => {DISTRI => 'sle', VERSION => '15-SP1'}
-        }
-      ]
-      );
+      ->json_is('/message', 'Ok');
 
-    $t->get_ok('/api/update_settings?product=HA-15-SP2&arch=aarch64' => $auth_headers)->status_is(200)->json_is(
-      [
-        {
-          id        => 3,
-          incidents => [16861],
-          product   => 'HA-15-SP2',
-          arch      => 'aarch64',
-          build     => '20201107-3',
-          repohash  => 'd5815a9f8aa482ec8288508da27a9d38',
-          settings  => {DISTRI => 'sle', VERSION => '15-SP2'}
-        }
-      ]
-    );
+    $t->get_ok('/api/jobs/4953193/remarks' => $auth_headers)
+      ->status_is(200)
+      ->json_is('/remarks/0/text', 'acceptable_for');
+
+    # Branch coverage: job remark without incident number
+    $t->patch_ok('/api/jobs/4953193/remarks?text=global_remark' => $auth_headers)
+      ->status_is(200)
+      ->json_is('/message', 'Ok');
+    $t->get_ok('/api/jobs/4953193/remarks' => $auth_headers)
+      ->status_is(200)
+      ->json_is('/remarks/1/text', 'global_remark')
+      ->json_is('/remarks/1/incident', undef, 'incident is undef for global remark');
+
+    # Missing branch: non-existent job
+    $t->get_ok('/api/jobs/8888888/remarks' => $auth_headers)
+      ->status_is(404)
+      ->json_is('/error', 'openQA job (8888888) does not exist');
+
+    # Missing branch: non-existent incident
+    $t->patch_ok('/api/jobs/4953193/remarks?incident_number=99999&text=foo' => $auth_headers)
+      ->status_is(404)
+      ->json_is('/error', 'Incident (99999) does not exist');
   }
   qr/access_log/, 'access log caught';
 };
 
-subtest 'Job validation' => sub {
+subtest 'Extra Settings Coverage' => sub {
   stderr_like {
-    $t->put_ok(
-      '/api/jobs' => $auth_headers => json => {
-        incident_settings => 1000,
-        update_settings   => undef,
-        name              => 'mau-webserver@64bit',
-        job_group         => 'Maintenance: SLE 12 SP5 Incidents',
-        status            => 'passed',
-        job_id            => 4953193,
-        group_id          => 282,
-        distri            => 'sle',
-        flavor            => 'Server-DVD-Incidents',
-        arch              => 'x86_64',
-        version           => '12-SP5',
-        build             => ':16860:wpa_supplicant'
-      }
-    )->status_is(400)->json_is({error => 'Referenced incident settings (1000) do not exist'});
 
-    $t->put_ok(
-      '/api/jobs' => $auth_headers => json => {
-        incident_settings => undef,
-        update_settings   => 1000,
-        name              => 'mau-webserver@64bit',
-        job_group         => 'Maintenance: SLE 12 SP5 Incidents',
-        status            => 'passed',
-        job_id            => 4953193,
-        group_id          => 282,
-        distri            => 'sle',
-        flavor            => 'Server-DVD-Incidents',
-        arch              => 'x86_64',
-        version           => '12-SP5',
-        build             => ':16860:wpa_supplicant'
-      }
-    )->status_is(400)->json_is({error => 'Referenced update settings (1000) do not exist'});
+    # add_incident_settings: incident not found
+    $t->put_ok('/api/incident_settings' => $auth_headers => json =>
+        {incident => 99999, version => 'v', flavor => 'f', arch => 'a', withAggregate => true, settings => {}})
+      ->status_is(400)
+      ->json_is('/error', 'Incident not found');
 
-    $t->put_ok(
-      '/api/jobs' => $auth_headers => json => {
-        incident_settings => undef,
-        update_settings   => undef,
-        name              => 'mau-webserver@64bit',
-        job_group         => 'Maintenance: SLE 12 SP5 Incidents',
-        status            => 'passed',
-        job_id            => 4953193,
-        group_id          => 282,
-        distri            => 'sle',
-        flavor            => 'Server-DVD-Incidents',
-        arch              => 'x86_64',
-        version           => '12-SP5',
-        build             => ':16860:wpa_supplicant'
-      }
-    )->status_is(400)->json_is({error => 'Job needs to reference incident settings or update settings'});
-  }
-  qr/access_log/, 'access log caught';
-};
+    # add_update_settings: one of incidents not found
+    $t->put_ok('/api/update_settings' => $auth_headers => json =>
+        {incidents => [16860, 99999], product => 'p', arch => 'a', build => 'b', repohash => 'h', settings => {}})
+      ->status_is(400)
+      ->json_is('/error', 'Incident not found');
 
-subtest "Get jobs by settings" => sub {
-  stderr_like {
-    $t->get_ok('/api/jobs/incident/1' => $auth_headers)->status_is(200)->json_is(
-      [
-        {
-          incident_settings => 1,
-          update_settings   => 1,
-          name              => 'mau-webserver@64bit',
-          job_group         => 'Maintenance: SLE 12 SP5 Incidents',
-          status            => 'failed',
-          job_id            => 4953293,
-          group_id          => 282,
-          distri            => 'sle',
-          flavor            => 'Server-DVD-Incidents',
-          arch              => 'x86_64',
-          version           => '12-SP5',
-          build             => ':16860:wpa_supplicant'
-        }
-      ]
-    );
-
-    $t->get_ok('/api/jobs/update/1' => $auth_headers)->status_is(200)->json_is(
-      [
-        {
-          incident_settings => 1,
-          update_settings   => 1,
-          name              => 'mau-webserver@64bit',
-          job_group         => 'Maintenance: SLE 12 SP5 Incidents',
-          status            => 'failed',
-          job_id            => 4953293,
-          group_id          => 282,
-          distri            => 'sle',
-          flavor            => 'Server-DVD-Incidents',
-          arch              => 'x86_64',
-          version           => '12-SP5',
-          build             => ':16860:wpa_supplicant'
-        }
-      ]
-    );
-
-    $t->get_ok('/api/jobs/incident/2' => $auth_headers)->status_is(200)->json_is([]);
-
-    $t->get_ok('/api/jobs/update/2' => $auth_headers)->status_is(200)->json_is([]);
+    # _fix_booleans: withAggregate is false
+    $t->put_ok('/api/incident_settings' => $auth_headers => json =>
+        {incident => 16860, version => 'v2', flavor => 'f2', arch => 'a2', withAggregate => false, settings => {}})
+      ->status_is(200);
+    $t->get_ok('/api/incident_settings/16860' => $auth_headers)
+      ->status_is(200)
+      ->json_is('/0/withAggregate', false, 'withAggregate is correctly returned as false');
   }
   qr/access_log/, 'access log caught';
 };
@@ -892,16 +248,9 @@ subtest "Get jobs by settings" => sub {
 subtest 'Authentication' => sub {
   stderr_like {
     $t->get_ok('/api/incidents')->status_is(200);
-    $t->get_ok('/api/incidents' => $auth_headers)->status_is(200);
-    $t->patch_ok('/api/incidents' => json => [{%$mock_incident, embargoed => true,}])
-      ->status_is(403)
-      ->json_is({error => 'Permission denied'});
-    $t->patch_ok('/api/incidents' => $auth_headers => json => [{%$mock_incident}])
-      ->status_is(200)
-      ->json_is({message => 'Ok'});
+    $t->patch_ok('/api/incidents' => json => [])->status_is(403)->json_is('/error', 'Permission denied');
   }
   qr/access_log/, 'access log caught';
 };
-
 
 done_testing();

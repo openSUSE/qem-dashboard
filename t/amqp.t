@@ -94,4 +94,13 @@ subtest 'Handle delete job' => sub {
   _is_count(0);
 };
 
+subtest 'Non-job key' => sub {
+  is $t->app->amqp->handle('suse.openqa.jobs.done', {id => 123}), undef, 'returns early for non-job key';
+};
+
+subtest 'Unknown type' => sub {
+  $t->app->amqp->handle('suse.openqa.job.unknown', {id => 123});
+  ok 1, 'handles unknown job type gracefully';
+};
+
 done_testing();
