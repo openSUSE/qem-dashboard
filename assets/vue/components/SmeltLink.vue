@@ -13,7 +13,7 @@ const packageName = computed(() => props.incident.packages[0]);
 </script>
 
 <template>
-  <div class="incident-link">
+  <div class="submission-link">
     <a :href="smeltLink" target="_blank">{{ incident.number }}:{{ packageName }}</a>
   </div>
 </template>

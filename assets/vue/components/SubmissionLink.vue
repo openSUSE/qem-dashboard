@@ -1,9 +1,9 @@
 <template>
   <div class="d-flex align-items-center">
     <router-link
-      class="incident-link me-1"
-      :to="{name: 'incident', params: {id: incident.number}}"
-      :title="highPriority ? 'Incident with priority > 650: Focus on review and consider manual approval' : ''"
+      class="submission-link me-1"
+      :to="{name: 'submission', params: {id: incident.number}}"
+      :title="highPriority ? 'Submission with priority > 650: Focus on review and consider manual approval' : ''"
     >
       {{ incident.number }}:{{ packageName }}
       <i v-if="highPriority" class="fas fa-triangle-exclamation"></i>
@@ -11,8 +11,8 @@
     <button
       class="btn btn-link btn-sm p-0 text-muted"
       @click="copyToClipboard"
-      title="Copy incident number to clipboard"
-      aria-label="Copy incident number"
+      title="Copy submission number to clipboard"
+      aria-label="Copy submission number"
     >
       <i :class="['fas', copied ? 'fa-check' : 'fa-copy']" aria-hidden="true"></i>
     </button>
@@ -23,7 +23,7 @@
 import {ref, computed} from 'vue';
 
 defineOptions({
-  name: 'IncidentLink'
+  name: 'SubmissionLink'
 });
 
 const props = defineProps({
@@ -49,7 +49,7 @@ const copyToClipboard = async () => {
 </script>
 
 <style>
-a.incident-link {
+a.submission-link {
   text-decoration: none;
 }
 </style>

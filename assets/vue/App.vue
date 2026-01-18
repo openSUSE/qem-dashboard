@@ -2,10 +2,10 @@
 import {ref, computed, onMounted, onUnmounted} from 'vue';
 import {useRoute} from 'vue-router';
 import {formatDistanceToNow} from 'date-fns';
-import {useIncidentStore} from '@/stores/incidents';
+import {useBlockedStore} from '@/stores/blocked';
 
 const route = useRoute();
-const incidentStore = useIncidentStore();
+const blockedStore = useBlockedStore();
 const now = ref(Date.now());
 const theme = ref(localStorage.getItem('theme') || 'light');
 let timer = null;
@@ -23,7 +23,7 @@ const title = computed(() => {
 });
 
 const lastUpdatedText = computed(() => {
-  const last = incidentStore.lastUpdated;
+  const last = blockedStore.lastUpdated;
   if (last === null) return 'Never updated';
   // Force reactivity by using 'now'
   return `Last updated ${formatDistanceToNow(last, {addSuffix: true, baseDate: now.value})}`;
@@ -155,7 +155,7 @@ body {
   position: absolute;
   width: 100%;
 }
-.incident-link {
+.submission-link {
   display: inline-block;
   overflow: hidden;
   text-overflow: ellipsis;

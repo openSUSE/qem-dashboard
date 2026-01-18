@@ -22,7 +22,7 @@ const priorityBadgeClass = computed(() => {
 </script>
 
 <template>
-  <div class="incident-details-icons d-inline-flex gap-2">
+  <div class="submission-details-icons d-inline-flex gap-2">
     <i
       class="fas"
       :class="incident.approved ? 'fa-stamp text-success' : 'fa-stamp text-secondary opacity-50'"
@@ -97,15 +97,15 @@ const priorityBadgeClass = computed(() => {
 
 <script>
 export default {
-  name: 'IncidentDetailsIcons'
+  name: 'SubmissionDetailsIcons'
 };
 </script>
 
 <style scoped>
-.incident-details-icons i {
+.submission-details-icons i {
   cursor: help;
 }
-.incident-details-icons span {
+.submission-details-icons span {
   display: flex;
   align-items: center;
 }

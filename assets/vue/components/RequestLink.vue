@@ -35,7 +35,7 @@ const sourceIcon = computed(() => {
 </script>
 
 <template>
-  <div class="incident-link">
+  <div class="submission-link">
     <a :href="sourceUrl" target="_blank" class="rr-link">
       <i :class="sourceIcon"></i>
       {{ linkText }}

@@ -24,6 +24,6 @@ const title = computed(() => {
 
 <script>
 export default {
-  name: 'BlockedIncidentUpdResult'
+  name: 'BlockedSubmissionUpdResult'
 };
 </script>

@@ -1,14 +1,14 @@
 <script setup>
 import {computed} from 'vue';
-import BlockedIncidentIncResult from './BlockedIncidentIncResult.vue';
-import BlockedIncidentUpdResult from './BlockedIncidentUpdResult.vue';
-import IncidentLink from './IncidentLink.vue';
-import IncidentDetailsIcons from './IncidentDetailsIcons.vue';
+import BlockedSubmissionSubResult from './BlockedSubmissionSubResult.vue';
+import BlockedSubmissionUpdResult from './BlockedSubmissionUpdResult.vue';
+import SubmissionLink from './SubmissionLink.vue';
+import SubmissionDetailsIcons from './SubmissionDetailsIcons.vue';
 import * as filtering from '../helpers/filtering.js';
 
 const props = defineProps({
-  incident: {type: Object, required: true},
-  incidentResults: {type: Object, required: true},
+  submission: {type: Object, required: true},
+  submissionResults: {type: Object, required: true},
   updateResults: {type: Object, required: true},
   groupFlavors: {type: Boolean, required: true},
   groupNames: {type: String, required: true}
@@ -45,11 +45,11 @@ const updateResultsGrouped = computed(() => {
   return results;
 });
 
-const incidentResultsGrouped = computed(() => {
-  if (props.groupNames === '') return props.incidentResults;
+const submissionResultsGrouped = computed(() => {
+  if (props.groupNames === '') return props.submissionResults;
   const results = [];
   const filters = filtering.makeGroupNamesFilters(props.groupNames);
-  for (const value of Object.values(props.incidentResults)) {
+  for (const value of Object.values(props.submissionResults)) {
     if (filtering.checkResult(value, filters)) results.push(value);
   }
   return results;
@@ -57,23 +57,23 @@ const incidentResultsGrouped = computed(() => {
 </script>
 
 <template>
-  <tr :class="{'high-priority': incident.priority > 650}">
+  <tr :class="{'high-priority': submission.priority > 650}">
     <td>
       <div class="d-flex flex-column gap-1">
-        <IncidentLink :incident="incident" :high-priority="incident.priority > 650" />
-        <IncidentDetailsIcons :incident="incident" />
+        <SubmissionLink :incident="submission" :high-priority="submission.priority > 650" />
+        <SubmissionDetailsIcons :incident="submission" />
       </div>
     </td>
     <td>
-      <div v-if="Object.keys(incidentResults).length + Object.keys(updateResults).length === 0">No data yet</div>
+      <div v-if="Object.keys(submissionResults).length + Object.keys(updateResults).length === 0">No data yet</div>
       <ul v-else class="summary-list">
-        <BlockedIncidentIncResult
-          v-for="(result, group_id) in incidentResultsGrouped"
+        <BlockedSubmissionSubResult
+          v-for="(result, group_id) in submissionResultsGrouped"
           :key="group_id"
           :group-id="group_id"
           :result="result"
         />
-        <BlockedIncidentUpdResult
+        <BlockedSubmissionUpdResult
           v-for="(result, groupId) in updateResultsGrouped"
           :key="groupId"
           :group-id="groupId"
@@ -87,7 +87,7 @@ const incidentResultsGrouped = computed(() => {
 
 <script>
 export default {
-  name: 'BlockedIncident'
+  name: 'BlockedSubmission'
 };
 </script>
 

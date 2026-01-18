@@ -1,20 +1,20 @@
 <script setup>
 import {ref} from 'vue';
 import {onBeforeRouteLeave} from 'vue-router';
-import RepoIncidentDialog from './RepoIncidentDialog.vue';
+import RepoSubmissionDialog from './RepoSubmissionDialog.vue';
 import RepoLine from './RepoLine.vue';
 import {useRepoStore} from '@/stores/repos';
 import {usePolling} from '../composables/polling';
 import {Modal} from 'bootstrap';
 
 const repoStore = useRepoStore();
-const incidentsDialog = ref(null);
+const submissionsDialog = ref(null);
 
 usePolling(() => repoStore.fetchRepos());
 
 // Remove the modal backdrop if one was left behind
 onBeforeRouteLeave((to, from, next) => {
-  const el = document.getElementById('update-incidents');
+  const el = document.getElementById('update-submissions');
   if (el !== null) {
     const modal = Modal.getInstance(el);
     if (modal !== null) modal.hide();
@@ -37,7 +37,7 @@ onBeforeRouteLeave((to, from, next) => {
       </tbody>
     </table>
     <div v-else-if="repoStore.isLoading"><i class="fas fa-sync fa-spin"></i> Loading repos...</div>
-    <RepoIncidentDialog ref="incidentsDialog"></RepoIncidentDialog>
+    <RepoSubmissionDialog ref="submissionsDialog"></RepoSubmissionDialog>
   </div>
 </template>
 

@@ -20,10 +20,16 @@ const routes = [
     meta: {title: 'Test Repos'}
   },
   {
+    path: '/submission/:id',
+    name: 'submission',
+    component: () => import('./vue/components/PageSubmission.vue'),
+    meta: {title: 'Details for Submission'}
+  },
+  {
     path: '/incident/:id',
-    name: 'incident',
-    component: () => import('./vue/components/PageIncident.vue'),
-    meta: {title: 'Details for Incident'}
+    redirect: to => {
+      return {name: 'submission', params: {id: to.params.id}};
+    }
   }
 ];
 

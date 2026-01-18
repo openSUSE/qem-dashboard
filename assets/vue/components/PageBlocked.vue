@@ -1,7 +1,7 @@
 <script setup>
 import {ref, computed, watch} from 'vue';
 import {useRoute} from 'vue-router';
-import BlockedIncident from './BlockedIncident.vue';
+import BlockedSubmission from './BlockedSubmission.vue';
 import * as filtering from '../helpers/filtering.js';
 import {useBlockedStore} from '@/stores/blocked';
 import {useConfigStore} from '@/stores/config';
@@ -12,26 +12,27 @@ const blockedStore = useBlockedStore();
 const configStore = useConfigStore();
 
 const groupFlavors = ref(route.query.group_flavors !== '0');
-const matchText = ref(route.query.incident || '');
+const matchText = ref(route.query.submission || route.query.incident || '');
 const groupNames = ref(route.query.group_names || '');
 
 usePolling(() => blockedStore.fetchBlocked());
 
-const matchedIncidents = computed(() => {
+const matchedSubmissions = computed(() => {
   const url = new URL(location);
   const searchParams = url.searchParams;
-  let results = blockedStore.incidents;
+  let results = blockedStore.submissions;
 
   if (matchText.value) {
-    searchParams.set('incident', matchText.value);
-    results = results.filter(incident => {
-      if (String(incident.incident.number).includes(matchText.value)) return true;
-      for (const pack of incident.incident.packages) {
+    searchParams.set('submission', matchText.value);
+    results = results.filter(submission => {
+      if (String(submission.incident.number).includes(matchText.value)) return true;
+      for (const pack of submission.incident.packages) {
         if (pack.includes(matchText.value)) return true;
       }
       return false;
     });
   } else {
+    searchParams.delete('submission');
     searchParams.delete('incident');
   }
 
@@ -39,9 +40,9 @@ const matchedIncidents = computed(() => {
     url.searchParams.set('group_names', groupNames.value);
     const filters = filtering.makeGroupNamesFilters(groupNames.value);
     results = results.filter(
-      incident =>
-        filtering.checkResults(incident.update_results, filters) ||
-        filtering.checkResults(incident.incident_results, filters)
+      submission =>
+        filtering.checkResults(submission.update_results, filters) ||
+        filtering.checkResults(submission.incident_results, filters)
     );
   } else {
     searchParams.delete('group_names');
@@ -68,10 +69,10 @@ watch(groupFlavors, enabled => {
 </script>
 
 <template>
-  <div v-if="blockedStore.isLoading && blockedStore.incidents.length === 0">
-    <i class="fas fa-sync fa-spin"></i> Loading incidents...
+  <div v-if="blockedStore.isLoading && blockedStore.submissions.length === 0">
+    <i class="fas fa-sync fa-spin"></i> Loading submissions...
   </div>
-  <div v-else-if="blockedStore.incidents.length > 0">
+  <div v-else-if="blockedStore.submissions.length > 0">
     <div class="row align-items-center">
       <div class="col-auto my-1">
         <div class="form-check">
@@ -86,15 +87,15 @@ watch(groupFlavors, enabled => {
       <thead>
         <tr>
           <th>
-            <label for="inlineSearchIncidents">
-              Incident
+            <label for="inlineSearchSubmissions">
+              Submission
               <input
                 v-model="matchText"
                 type="text"
                 class="form-control"
-                id="inlineSearchIncidents"
-                title="Partial incident# or package name are matched"
-                placeholder="Search for incident/package"
+                id="inlineSearchSubmissions"
+                title="Partial submission# or package name are matched"
+                placeholder="Search for submission/package"
               />
             </label>
           </th>
@@ -114,23 +115,23 @@ watch(groupFlavors, enabled => {
         </tr>
       </thead>
       <tbody>
-        <BlockedIncident
-          v-for="incident in matchedIncidents"
-          :key="incident.incident.number"
-          :incident="incident.incident"
-          :incident-results="incident.incident_results"
-          :update-results="incident.update_results"
+        <BlockedSubmission
+          v-for="submission in matchedSubmissions"
+          :key="submission.incident.number"
+          :submission="submission.incident"
+          :submission-results="submission.incident_results"
+          :update-results="submission.update_results"
           :group-flavors="groupFlavors"
           :group-names="groupNames"
         />
       </tbody>
     </table>
   </div>
-  <div v-else>No active incidents, maybe take a look at <a :href="smelt">Smelt</a>.</div>
+  <div v-else>No active submissions, maybe take a look at <a :href="smelt">Smelt</a>.</div>
 </template>
 
 <script>
 export default {
-  name: 'PageBlocked'
+  name: 'PageBlockedSubmissions'
 };
 </script>

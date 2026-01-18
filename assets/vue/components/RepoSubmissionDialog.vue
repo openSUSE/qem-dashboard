@@ -1,6 +1,6 @@
 <script setup>
 import {useModalStore} from '@/stores/modal';
-import IncidentLink from './IncidentLink.vue';
+import SubmissionLink from './SubmissionLink.vue';
 
 const modalStore = useModalStore();
 </script>
@@ -10,20 +10,20 @@ const modalStore = useModalStore();
     tabindex="-1"
     role="dialog"
     class="modal fade"
-    id="update-incidents"
+    id="update-submissions"
     aria-labelledby="modal-title"
     aria-hidden="true"
   >
     <div class="modal-dialog" role="document">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="modal-title">Incidents for {{ modalStore.title }}</h5>
+          <h5 class="modal-title" id="modal-title">Submissions for {{ modalStore.title }}</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
           <ul>
-            <li v-for="incident in modalStore.incidents" :key="incident.number">
-              <IncidentLink :incident="incident" />
+            <li v-for="submission in modalStore.submissions" :key="submission.number">
+              <SubmissionLink :incident="submission" />
             </li>
           </ul>
         </div>
@@ -37,6 +37,6 @@ const modalStore = useModalStore();
 
 <script>
 export default {
-  name: 'RepoIncidentDialog'
+  name: 'RepoSubmissionDialog'
 };
 </script>

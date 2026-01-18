@@ -86,6 +86,6 @@ const interestingGroups = computed(() => {
 
 <script>
 export default {
-  name: 'IncidentBuildSummary'
+  name: 'SubmissionBuildSummary'
 };
 </script>

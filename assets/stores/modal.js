@@ -3,12 +3,12 @@ import {defineStore} from 'pinia';
 export const useModalStore = defineStore('modal', {
   state: () => ({
     title: '',
-    incidents: []
+    submissions: []
   }),
   actions: {
-    showIncidents(title, incidents) {
+    showSubmissions(title, submissions) {
       this.title = title;
-      this.incidents = incidents;
+      this.submissions = submissions;
     }
   }
 });
