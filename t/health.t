@@ -19,14 +19,18 @@ stderr_like {
   $t->get_ok('/ready')->status_is(200)->json_is('/status' => 'ok');
 
   {
-    my $patch = monkey_patch 'Mojo::Pg::Database', query => sub { die "DB connection failed" };
+    my $original = Mojo::Pg::Database->can('query');
+    monkey_patch 'Mojo::Pg::Database', query => sub { die "DB connection failed" };
     $t->get_ok('/ready')->status_is(500)->json_is('/status' => 'fail')->json_like('/error' => qr/DB connection failed/);
+    monkey_patch 'Mojo::Pg::Database', query => $original;
   }
 
   {
-    my $patch = monkey_patch 'Mojo::Message::Request', request_id => sub {undef};
+    my $original = Mojo::Message::Request->can('request_id');
+    monkey_patch 'Mojo::Message::Request', request_id => sub {undef};
     $t->get_ok('/health');
     ok $t->tx->request_id, 'monkey patched request_id works';
+    monkey_patch 'Mojo::Message::Request', request_id => $original;
   }
 }
 qr/access_log/, 'access log caught';
