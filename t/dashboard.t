@@ -31,12 +31,14 @@ subtest 'Production mode' => sub {
 
 subtest 'Pre-set Request ID' => sub {
   use Mojo::Util qw(monkey_patch);
-  my $patch = monkey_patch 'Mojo::Message::Request', request_id => sub {'test-id-123'};
-  my $t     = Test::Mojo->new(Dashboard => $config);
+  my $original = Mojo::Message::Request->can('request_id');
+  monkey_patch 'Mojo::Message::Request', request_id => sub {'test-id-123'};
+  my $t = Test::Mojo->new(Dashboard => $config);
   stderr_like {
     $t->get_ok('/')->status_is(200);
   }
   qr/request_id":"test-id-123"/, 'custom request id is preserved';
+  monkey_patch 'Mojo::Message::Request', request_id => $original;
 };
 
 subtest 'Zero elapsed time log' => sub {
@@ -167,7 +169,10 @@ subtest 'Overview API with no jobs' => sub {
   $dashboard_test_empty->no_fixtures($app_empty);
   my $t = Test::Mojo->new($app_empty);
 
-  $t->get_ok('/app/api/list')->status_is(200)->json_is('/last_updated', undef, 'last_updated is undef when no jobs');
+  stderr_like {
+    $t->get_ok('/app/api/list')->status_is(200)->json_is('/last_updated', undef, 'last_updated is undef when no jobs');
+  }
+  qr/access_log/, 'access log caught';
 };
 
 done_testing();
