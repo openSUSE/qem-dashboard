@@ -38,8 +38,6 @@ jobs:
       - name: Install dependencies
         run: |
           make install-deps-ubuntu install-deps-cpanm
-      - name: Build assets
-        run: make build
       - name: Run tests with coverage
         run: make test-coverage
       - name: Check assets
