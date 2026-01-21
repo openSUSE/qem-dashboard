@@ -11,7 +11,7 @@ all: help
 .PHONY: help
 help:
 	@echo Call one of the available targets:
-	@sed -n 's/\(^[^.#[:space:]A-Z]*\):.*$$/\1/p' Makefile | uniq
+	@sed -n 's/^\([^.#[:space:]A-Z]*\):.*$$/\1/p' Makefile | uniq
 	@echo See README.md for more details
 
 .PHONY: install-deps-js
@@ -66,16 +66,29 @@ test-ui: public/asset
 	MOJO_MODE=$(MOJO_MODE) \
 	TEST_ONLINE=$(TEST_ONLINE) \
 	TEST_WRAPPER_COVERAGE=$(TEST_WRAPPER_COVERAGE) \
-$(if $(TEST_WRAPPER_COVERAGE),$(COVERAGE_OPTS)) \
+	$(if $(TEST_WRAPPER_COVERAGE),$(COVERAGE_OPTS)) \
 	prove -l t/*.t.js
 
+.PHONY: lint-js
+lint-js:
+	npm run lint
+
+.PHONY: checkstyle
+checkstyle: tidy lint-js
+
+.PHONY: only-test
+only-test: test-unit test-ui
+
 .PHONY: test
-test: test-unit test-ui
+test: checkstyle only-test
 
 .PHONY: coverage
 coverage: test
 	cover
 
-.PHONY: test-coverage
-test-coverage: test
+.PHONY: only-test-coverage
+only-test-coverage: only-test
 	./script/check-coverage
+
+.PHONY: test-coverage
+test-coverage: only-test-coverage checkstyle
