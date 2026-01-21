@@ -3,6 +3,7 @@ TEST_ONLINE ?= postgresql://postgres:postgres@localhost:5432/postgres
 HARNESS_PERL_SWITCHES ?= -MDevel::Cover=-ignore,^blib/,-ignore,^templates/,-ignore,Net/SSLeay
 COVERAGE_OPTS ?= PERL5OPT='$(HARNESS_PERL_SWITCHES)'
 TEST_WRAPPER_COVERAGE ?= 1
+ASSET_SOURCES := $(shell find assets -type f) package-lock.json webpack.config.js
 
 .PHONY: all
 all: help
@@ -33,8 +34,11 @@ install-deps-cpanm:
 install-deps: install-deps-js install-deps-ubuntu install-deps-cpanm
 
 .PHONY: build
-build:
+build: public/asset
+
+public/asset: $(ASSET_SOURCES)
 	npm run build
+	touch public/asset
 
 .PHONY: start-postgres
 start-postgres:
@@ -45,14 +49,14 @@ tidy:
 	bash -c 'shopt -s extglob globstar nullglob; perltidy --pro=.../.perltidyrc -b -bext='/' **/*.p[lm] **/*.t && git diff --exit-code'
 
 .PHONY: test-unit
-test-unit:
+test-unit: public/asset
 	MOJO_MODE=$(MOJO_MODE) \
 	TEST_ONLINE=$(TEST_ONLINE) \
 	HARNESS_PERL_SWITCHES=$(HARNESS_PERL_SWITCHES) \
 	prove -l t/*.t
 
 .PHONY: test-ui
-test-ui:
+test-ui: public/asset
 	MOJO_MODE=$(MOJO_MODE) \
 	TEST_ONLINE=$(TEST_ONLINE) \
 	TEST_WRAPPER_COVERAGE=$(TEST_WRAPPER_COVERAGE) \
