@@ -1,5 +1,5 @@
 ---
-name: eslint
+name: checkstyle
 # yamllint disable-line rule:truthy
 on: [push, pull_request]
 jobs:
@@ -10,7 +10,7 @@ jobs:
     - uses: actions/setup-node@v6.2.0
       with:
         node-version: '22'
-    - name: npm clean-install
-      run: npm clean-install --ignore-scripts
-    - name: npm run lint
-      run: npm run lint
+    - name: Install JS dependencies
+      run: make install-deps-js
+    - name: Run lint-js
+      run: make lint-js
