@@ -11,14 +11,19 @@
     "build:clean": "npm run clean && npm run build",
     "watch": "vite build --watch",
     "clean": "rm -fr public/asset/*",
-    "lint": "eslint \"assets/*.js\" \"assets/**/*.js\" \"assets/**/*.vue\" \"t/*.js\" --ignore-pattern assets/webpack.config.d",
-    "lint:fix": "npm run lint -- --fix",
+    "lint": "npm run lint:js && npm run lint:md",
+    "lint:js": "eslint \"assets/*.js\" \"assets/**/*.js\" \"assets/**/*.vue\" \"t/*.js\" --ignore-pattern assets/webpack.config.d",
+    "lint:md": "prettier --check \"**/*.md\"",
+    "lint:fix": "npm run tidy:js && npm run tidy:md",
+    "tidy:js": "npm run lint:js -- --fix",
+    "tidy:md": "prettier --write \"**/*.md\"",
     "test:unit": "vitest run",
     "prepare": "husky"
   },
   "lint-staged": {
     "*.{js,vue}": "eslint --fix",
-    "*.{pl,pm,t}": "perltidy -b -bext='/'"
+    "*.{pl,pm,t}": "perltidy -b -bext='/'",
+    "*.md": "prettier --write"
   },
   "engines": {
     "node": ">= 18"
