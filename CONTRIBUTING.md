@@ -14,12 +14,14 @@ Thank you for your interest in contributing to the QEM Dashboard! This document 
 ### Installation
 
 1. **Clone the repository**:
+
    ```bash
    git clone https://github.com/openSUSE/qem-dashboard.git
    cd qem-dashboard
    ```
 
 2. **Install Perl dependencies**:
+
    ```bash
    make install-deps-cpanm
    ```
@@ -33,16 +35,19 @@ Thank you for your interest in contributing to the QEM Dashboard! This document 
 
 1. **Start PostgreSQL**:
    You can use Podman/Docker to start a local database:
+
    ```bash
    make start-postgres
    ```
 
 2. **Build frontend assets**:
+
    ```bash
    npm run build
    ```
 
 3. **Start the Mojolicious server**:
+
    ```bash
    script/dashboard daemon
    ```

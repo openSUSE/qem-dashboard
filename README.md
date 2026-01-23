@@ -122,9 +122,9 @@ requests there.
 
 ### Rules for Commits
 
-* For git commit messages use the rules stated on
+- For git commit messages use the rules stated on
   [How to Write a Git Commit Message](http://chris.beams.io/posts/git-commit/) as a reference
-* As a SUSE colleague consider signing commits which we consider to use for
+- As a SUSE colleague consider signing commits which we consider to use for
   automatic deployments within SUSE
 
 If this is too much hassle for you feel free to provide incomplete pull requests for consideration or create an issue
@@ -150,9 +150,11 @@ make test-coverage
 Tasks are only considered complete once full coverage is confirmed and all tests pass.
 
 ### Documentation
+
 For further documentation, please see **[docs](https://github.com/openSUSE/qem-dashboard/tree/main/docs)**
 
 ### Further notes
+
 A containerized environment could be used to build and run the dashboard and its dependencies.
 For a concrete example, checkout the (so far) internal documentation under
 https://gitlab.suse.de/qe-core/dev-dashboard or containers quick start guide
