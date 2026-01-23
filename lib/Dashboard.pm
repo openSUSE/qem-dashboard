@@ -22,7 +22,7 @@ sub startup ($self) {
   my $custom_file = '/home/lurklur/dashboard.yml';
 
   # Load configuration from config file
-  my $file   = $ENV{DASHBOARD_CONF} || (-r $custom_file ? $custom_file : 'dashboard.yml');
+  my $file   = $ENV{DASHBOARD_CONF} || (-r $custom_file ? $custom_file : 'dashboard.yml');    # uncoverable branch true
   my $config = $self->plugin(NotYAMLConfig => {file => $file});
 
   if (my $override = $ENV{DASHBOARD_CONF_OVERRIDE}) {
@@ -52,9 +52,9 @@ sub _setup_logging ($self) {
   $self->hook(
     before_dispatch => sub ($c) {
       $c->stash(
-        request_id => $c->req->request_id // Mojo::Util::monkey_patch(
+        request_id => $c->req->request_id // Mojo::Util::monkey_patch(    # uncoverable branch true
           'Mojo::Transaction', 'request_id' =>
-            sub { shift->{request_id} ||= Mojo::Util::md5_sum(Time::HiRes::time() . rand()) }   # uncoverable subroutine
+            sub { shift->{request_id} ||= Mojo::Util::md5_sum(Time::HiRes::time() . rand()) }  # uncoverable branch true
         )
       );
     }
