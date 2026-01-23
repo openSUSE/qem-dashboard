@@ -138,6 +138,16 @@ To execute all tests a PostgreSQL instance is needed and needs to be specified i
 TEST_ONLINE=postgresql://postgres:postgres@localhost:5432/postgres prove -l t/*.t t/*.t.js
 ```
 
+### Coverage Requirement
+
+Every change to the Perl backend must maintain or achieve **100% statement coverage**. Use the following command to verify coverage:
+
+```bash
+make test-coverage
+```
+
+Tasks are only considered complete once full coverage is confirmed and all tests pass.
+
 ### Documentation
 For further documentation, please see **[docs](https://github.com/openSUSE/qem-dashboard/tree/main/docs)**
 
