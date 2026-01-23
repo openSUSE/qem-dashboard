@@ -1,0 +1,4 @@
+# Ignore cache directories
+.pytest_cache/
+node_modules/
+public/asset/

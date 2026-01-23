@@ -24,14 +24,17 @@ graph TD
 
 ## Component Responsibilities
 
--   **Backend (Perl/Mojolicious)**:
-    -   Provides a REST API for the frontend.
-    -   Handles database migrations.
-    -   Consumes AMQP messages.
--   **Frontend (Vue.js 3)**:
-    -   Provides a responsive user interface.
-    -   Manages application state with Pinia.
-    -   Handles routing with Vue Router.
--   **Database (PostgreSQL)**:
-    -   Persistent storage for incidents, settings, and job results.
+- **Backend (Perl/Mojolicious)**:
+  - Provides a REST API for the frontend.
+  - Handles database migrations.
+  - Consumes AMQP messages.
+- **Frontend (Vue.js 3)**:
+  - Provides a responsive user interface.
+  - Manages application state with Pinia.
+  - Handles routing with Vue Router.
+- **Database (PostgreSQL)**:
+  - Persistent storage for incidents, settings, and job results.
+
+```
+
 ```
