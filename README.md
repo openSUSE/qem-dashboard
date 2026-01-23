@@ -123,9 +123,12 @@ requests there.
 ### Rules for Commits
 
 - For git commit messages use the rules stated on
-  [How to Write a Git Commit Message](http://chris.beams.io/posts/git-commit/) as a reference
+  [How to Write a Git Commit Message](http://chris.beams.io/posts/git-commit/) as a reference.
+- **Automated Validation:** Commit messages are automatically checked using `commitlint` to ensure they
+  follow the [Conventional Commits](https://www.conventionalcommits.org/) specification.
+- **Line Width:** The commit body is restricted to a maximum of **80 characters** per line.
 - As a SUSE colleague consider signing commits which we consider to use for
-  automatic deployments within SUSE
+  automatic deployments within SUSE.
 
 If this is too much hassle for you feel free to provide incomplete pull requests for consideration or create an issue
 with a code change proposal.
