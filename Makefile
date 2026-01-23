@@ -50,9 +50,16 @@ run-mock:
 	TEST_ONLINE=$(TEST_ONLINE) \
 	./script/run-mock
 
-.PHONY: tidy
-tidy:
+.PHONY: tidy-js
+tidy-js:
+	npm run lint:fix
+
+.PHONY: tidy-perl
+tidy-perl:
 	bash -c 'shopt -s extglob globstar nullglob; perltidy --pro=.../.perltidyrc -b -bext='/' **/*.p[lm] **/*.t && git diff --exit-code'
+
+.PHONY: tidy
+tidy: tidy-js tidy-perl
 
 .PHONY: test-unit
 test-unit: public/asset
