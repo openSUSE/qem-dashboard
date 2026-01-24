@@ -1,7 +1,8 @@
-requires 'Mojolicious', '>= 9.20';
+requires 'Mojolicious', '>= 9.39';
 requires 'Mojolicious::Plugin::Webpack';
 requires 'Mojo::Pg', '>= 4.25';
-requires 'Cpanel::JSON::XS', '>= 4.09';
+requires 'CPAN::Audit';
+requires 'Cpanel::JSON::XS', '>= 4.40';
 requires 'JSON::Validator';
 requires 'IO::Socket::SSL', '>= 2.009';
 requires 'Test::Harness', '>= 3.48';
