@@ -29,6 +29,7 @@ install-deps-cpanm:
 	cpanm -n --installdeps .
 	cpanm -n Test::Deep
 	cpanm -n Devel::Cover::Report::Coveralls
+	cpanm -n CPAN::Audit
 
 .PHONY: install-deps
 install-deps: install-deps-js install-deps-ubuntu install-deps-cpanm
@@ -76,15 +77,27 @@ test-ui: public/asset
 	$(if $(TEST_WRAPPER_COVERAGE),$(COVERAGE_OPTS)) \
 	prove -l t/*.t.js
 
+.PHONY: test-js-unit
+test-js-unit:  # Run JS unit tests
+	npm run test:unit
+
+.PHONY: check-audits
+check-audits:  # Run audits
+	npm audit
+	PERL5LIB=~/perl5/lib/perl5 ~/perl5/bin/cpan-audit deps . \
+		--exclude CPANSA-Mojolicious-2024-58134 \
+		--exclude CPANSA-Mojolicious-2024-58135 \
+		--exclude CPANSA-File-Temp-2011-4116
+
 .PHONY: lint-js
 lint-js:
 	npm run lint
 
 .PHONY: checkstyle
-checkstyle: tidy lint-js
+checkstyle: tidy lint-js check-audits
 
 .PHONY: only-test
-only-test: test-unit test-ui
+only-test: test-unit test-ui test-js-unit
 
 .PHONY: test
 test: checkstyle only-test
