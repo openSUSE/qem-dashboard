@@ -1,6 +1,25 @@
-# QEM Dashboard API (WIP draft)
+# QEM Dashboard API
+
+The QEM Dashboard provides a RESTful API for interacting with incidents, openQA settings, and jobs. The API is documented and validated using the [OpenAPI 3.0 Specification](https://spec.openapis.org/oas/v3.0.0).
+
+## Interactive Documentation
+
+You can explore the API interactively using the built-in **Swagger UI**:
+
+- **Swagger UI:** [/swagger](/swagger)
+- **OpenAPI Spec:** [/api/openapi.yaml](/api/openapi.yaml)
+
+The interactive documentation provides detailed information about all available endpoints, request/response schemas, and allows you to test the API directly from your browser.
 
 ## REST API
+
+### Base URL
+
+All API requests should be made to the following base URL:
+
+```
+/api
+```
 
 ### Authentication
 
