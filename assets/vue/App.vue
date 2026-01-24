@@ -88,13 +88,7 @@ onUnmounted(() => {
               </button>
             </li>
             <li class="nav-item">
-              <a
-                class="nav-link"
-                href="https://github.com/openSUSE/qem-dashboard/blob/main/docs/API.md"
-                target="_blank"
-              >
-                API
-              </a>
+              <a class="nav-link" href="/swagger" target="_blank"> API </a>
             </li>
           </ul>
         </div>
