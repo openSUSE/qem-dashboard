@@ -270,6 +270,9 @@ sub _register_routes ($self, $config) {
   </head>
 
   <body>
+    <div style="background-color: #1b1b1b; padding: 10px 20px;">
+      <a href="/" style="color: #fff; text-decoration: none; font-family: sans-serif; font-weight: bold;">&larr; Back to Dashboard</a>
+    </div>
     <div id="swagger-ui"></div>
 
     <script src="/swagger-ui-bundle.js" charset="UTF-8"> </script>
