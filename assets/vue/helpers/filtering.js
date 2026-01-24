@@ -1,13 +1,14 @@
 export function makeGroupNamesFilters(groupNames) {
   return groupNames
-    .toLowerCase()
     .split(',')
-    .map(groupName => new RegExp(groupName));
+    .map(groupName => groupName.trim())
+    .filter(groupName => groupName.length > 0)
+    .map(groupName => new RegExp(groupName, 'i'));
 }
 
 export function checkResult(result, filters) {
   for (const filter of filters) {
-    if (filter.test(result.name.toLowerCase())) return true;
+    if (filter.test(result.name)) return true;
   }
   return false;
 }
