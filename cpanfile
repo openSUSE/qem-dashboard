@@ -4,6 +4,7 @@ requires 'Mojo::Pg', '>= 4.25';
 requires 'Cpanel::JSON::XS', '>= 4.40';
 requires 'Devel::Cover';
 requires 'JSON::Validator';
+requires 'YAML::XS';
 requires 'IO::Socket::SSL', '>= 2.009';
 requires 'MCP';
 

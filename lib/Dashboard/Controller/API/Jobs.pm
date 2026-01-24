@@ -5,13 +5,18 @@ package Dashboard::Controller::API::Jobs;
 use Mojo::Base 'Mojolicious::Controller', -signatures;
 
 sub add ($self) {
-  return $self->render(json => {error => 'Job in JSON format required'}, status => 400)
-    unless my $job = $self->req->json;
+  return if $self->stash('openapi.path') && !$self->openapi->valid_input;
 
-  my $jv     = $self->schema('job');
-  my @errors = $jv->validate($job);
-  return $self->render(json => {error => "Job does not match the JSON schema: @errors"}, status => 400) if @errors;
+  if (!$self->stash('openapi.path')) {
+    return $self->render(json => {error => 'Job in JSON format required'}, status => 400)
+      unless my $job = $self->req->json;
 
+    my $jv     = $self->schema('job');
+    my @errors = $jv->validate($job);
+    return $self->render(json => {error => "Job does not match the JSON schema: @errors"}, status => 400) if @errors;
+  }
+
+  my $job   = $self->req->json;
   my $is_id = $job->{incident_settings};
   my $us_id = $job->{update_settings};
   return $self->render(json => {error => "Job needs to reference incident settings or update settings"}, status => 400)
@@ -32,20 +37,20 @@ sub add ($self) {
 }
 
 sub incidents ($self) {
+  return if $self->stash('openapi.path') && !$self->openapi->valid_input;
   my $job = $self->jobs->get_incident_settings($self->param('incident_settings'));
   $self->render(json => $job);
 }
 
 sub modify ($self) {
-  my $job_id = $self->param('job_id');
+  return if $self->stash('openapi.path') && !$self->openapi->valid_input;
 
-  return $self->render(json => {error => 'Job in JSON format required'}, status => 400)
-    unless my $job_data = $self->req->json;
+  if (!$self->stash('openapi.path')) {
+    return $self->render(json => {error => 'Job data in JSON format required'}, status => 400) unless $self->req->json;
+  }
 
-  my $jv     = $self->schema({type => 'object', properties => {obsolete => {type => 'boolean'}}});
-  my @errors = $jv->validate($job_data);
-  return $self->render(json => {error => "Job does not match the JSON schema: @errors"}, status => 400) if @errors;
-
+  my $job_id   = $self->param('job_id');
+  my $job_data = $self->req->json;
   $self->jobs->modify($job_id, $job_data);
   $self->render(json => {message => 'Ok'});
 }
@@ -56,6 +61,7 @@ sub _incident ($incidents, $remark) {
 }
 
 sub show_remarks ($self) {
+  return if $self->stash('openapi.path') && !$self->openapi->valid_input;
   my $openqa_job_id   = $self->param('job_id');
   my $internal_job_id = $self->jobs->internal_job_id($openqa_job_id);
   return $self->render(json => {error => "openQA job ($openqa_job_id) does not exist"}, status => 404)
@@ -68,7 +74,16 @@ sub show_remarks ($self) {
 }
 
 sub update_remark ($self) {
+  return if $self->stash('openapi.path') && !$self->openapi->valid_input;
+
   my $incident_number = $self->param('incident_number');
+  my $text            = $self->param('text');
+
+  if (my $json = $self->req->json) {
+    $incident_number //= $json->{incident_number};
+    $text            //= $json->{text};
+  }
+
   my $incident_id     = defined $incident_number ? $self->app->incidents->id_for_number($incident_number) : undef;
   my $openqa_job_id   = $self->param('job_id');
   my $internal_job_id = $self->jobs->internal_job_id($openqa_job_id);
@@ -77,17 +92,19 @@ sub update_remark ($self) {
   return $self->render(json => {error => "Incident ($incident_number) does not exist"}, status => 404)
     if defined $incident_number && !$incident_id;
 
-  $self->jobs->add_remark($internal_job_id, $incident_id, $self->param('text'));
+  $self->jobs->add_remark($internal_job_id, $incident_id, $text);
   $self->render(json => {message => 'Ok'});
 }
 
 sub show ($self) {
+  return if $self->stash('openapi.path') && !$self->openapi->valid_input;
   return $self->render(json => {error => 'Job not found'}, status => 400)
     unless my $job = $self->jobs->get($self->param('job_id'));
   $self->render(json => $job);
 }
 
 sub updates ($self) {
+  return if $self->stash('openapi.path') && !$self->openapi->valid_input;
   my $job = $self->jobs->get_update_settings($self->param('update_settings'));
   $self->render(json => $job);
 }
