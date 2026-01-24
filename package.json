@@ -11,7 +11,12 @@
     "watch": "npx webpack --watch",
     "clean": "rm -fr public/asset/*",
     "lint": "eslint \"assets/*.js\" \"assets/**/*.js\" \"assets/**/*.vue\" \"t/*.js\" --ignore-pattern assets/webpack.config.d",
-    "lint:fix": "npm run lint -- --fix"
+    "lint:fix": "npm run lint -- --fix",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{js,vue}": "eslint --fix",
+    "*.{pl,pm,t}": "perltidy -b -bext='/'"
   },
   "engines": {
     "node": ">= 18"
@@ -40,6 +45,7 @@
     "moment": "^2.30.1",
     "playwright": "^1.58.0",
     "prettier": "^3.7.4",
+    "regenerator-transform": "^0.15.2",
     "sass": "^1.97.3",
     "sass-loader": "^16.0.6",
     "tap": "^21.5.0",
@@ -48,11 +54,12 @@
     "vue-loader": "^17.4.2",
     "vue-router": "^4.6.4",
     "webpack": "^5.104.1",
-    "webpack-cli": "^6.0.1",
-    "regenerator-transform": "^0.15.2"
+    "webpack-cli": "^6.0.1"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.0",
-    "eslint-plugin-vuejs-accessibility": "^2.4.1"
+    "eslint-plugin-vuejs-accessibility": "^2.4.1",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7"
   }
 }
