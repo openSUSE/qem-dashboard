@@ -12,6 +12,7 @@
     "clean": "rm -fr public/asset/*",
     "lint": "eslint \"assets/*.js\" \"assets/**/*.js\" \"assets/**/*.vue\" \"t/*.js\" --ignore-pattern assets/webpack.config.d",
     "lint:fix": "npm run lint -- --fix",
+    "test:unit": "vitest run",
     "prepare": "husky"
   },
   "lint-staged": {
@@ -58,8 +59,12 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.0",
+    "@vitejs/plugin-vue": "^6.0.3",
+    "@vue/test-utils": "^2.4.6",
     "eslint-plugin-vuejs-accessibility": "^2.4.1",
     "husky": "^9.1.7",
-    "lint-staged": "^16.2.7"
+    "jsdom": "^27.4.0",
+    "lint-staged": "^16.2.7",
+    "vitest": "^4.0.17"
   }
 }
