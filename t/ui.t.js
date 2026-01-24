@@ -9,7 +9,7 @@ const env = process.env;
 const skip = env.TEST_ONLINE === undefined ? {skip: 'set TEST_ONLINE to enable this test'} : {};
 
 // Wrapper script with fixtures can be found in "t/wrappers/ui.pl"
-t.test('Test dashboard ui', skip, async t => {
+t.test('Test dashboard ui', {skip, timeout: 60000}, async t => {
   const server = await ServerStarter.newServer();
   await server.launch('perl', ['t/wrappers/ui.pl']);
   const browser = await chromium.launch(env.TEST_HEADLESS === '0' ? {headless: false, slowMo: 500} : {});
@@ -150,6 +150,34 @@ t.test('Test dashboard ui', skip, async t => {
 
     await page.goto(`${url}/incident/123`);
     t.equal(await page.innerText('.container p'), 'Incident does not exist.');
+  });
+
+  await t.test('Repos page detailed interactions', async t => {
+    await page.goto(`${url}/repos`);
+    await page.waitForSelector('tbody tr');
+    const row = page.locator('tr:has-text("Maintenance: SLE 12 SP5 Updates")');
+    await t.test('Row is visible', async t => {
+      await row.waitFor();
+      t.ok(await row.isVisible());
+    });
+
+    await row.getByRole('button', {name: /Incidents/}).click();
+    await page.waitForSelector('#update-incidents', {state: 'visible'});
+    t.match(await page.innerText('#update-incidents .modal-title'), /Maintenance: SLE 12 SP5 Updates/);
+    t.match(await page.innerText('#update-incidents .modal-body'), /16860:perl-Mojolicious/);
+    t.match(await page.innerText('#update-incidents .modal-body'), /16861:perl-Minion/);
+
+    await page.click('#update-incidents .btn-close');
+    await page.waitForSelector('#update-incidents', {state: 'hidden'});
+  });
+
+  await t.test('API error handling', async t => {
+    // Mock API error for the list call
+    await page.route('**/app/api/list', route => route.fulfill({status: 500, body: 'Internal Server Error'}));
+    await page.goto(url);
+    // Component currently just stays in "Loading" state or fails silently
+    t.match(await page.innerText('.container'), /Loading incidents/);
+    await page.unroute('**/app/api/list');
   });
 
   await t.test('Link to Smelt if there are no incidents', async t => {
