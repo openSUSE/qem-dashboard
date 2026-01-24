@@ -1,0 +1,38 @@
+[
+  {
+    "name": "mau-webserver@64bit",
+    "job_group": "Maintenance: SLE 12 SP5 Incidents",
+    "status": "waiting",
+    "job_id": 4953193,
+    "group_id": 282,
+    "distri": "sle",
+    "flavor": "Server-DVD-Incidents",
+    "arch": "x86_64",
+    "version": "12-SP5",
+    "build": ":16860:perl-Mojolicious"
+  },
+  {
+    "name": "mau-webserver@64bit",
+    "job_group": "Maintenance: SLE 12 SP4 Incidents",
+    "status": "failed",
+    "job_id": 4953194,
+    "group_id": 284,
+    "distri": "sle",
+    "flavor": "Server-DVD-Incidents",
+    "arch": "x86_64",
+    "version": "12-SP4",
+    "build": ":16860:perl-Mojolicious"
+  },
+  {
+    "name": "mau-webserver@64bit",
+    "job_group": "Maintenance: SLE 12 SP5 Kernel Incidents",
+    "status": "passed",
+    "job_id": 4953195,
+    "group_id": 283,
+    "distri": "sle",
+    "flavor": "Server-DVD-Incidents",
+    "arch": "aarch64",
+    "version": "12-SP5",
+    "build": ":16860:perl-Mojolicious"
+  }
+]
