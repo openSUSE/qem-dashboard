@@ -108,6 +108,9 @@ EOF
   $self->plugin('Dashboard::Plugin::Helpers');
   $self->plugin('Dashboard::Plugin::Database', $config);
 
+  # Serve Swagger UI assets from npm package
+  push @{$self->static->paths}, $self->home->child('node_modules', 'swagger-ui-dist');
+
   # Vite asset helper
   $self->helper(
     vite_asset => sub ($c, $entry) {
@@ -237,12 +240,82 @@ sub _register_routes ($self, $config) {
   # Legacy API routes (without validation)
   $register_api_routes->($token->any('/api'));
 
-  # OpenAPI routes (v1)
   $self->plugin(
     'OpenAPI' => {
       url    => $self->home->child('resources', 'openapi.json'),
       route  => $token->any('/api/v1'),
       coerce => {returns => 1}
+    }
+  );
+
+  # Serve the OpenAPI spec for Swagger UI
+  $public->get(
+    '/api/v1/openapi.json' => sub ($c) { $c->reply->file($c->app->home->child('resources', 'openapi.json')) });
+
+  # Swagger UI page
+  $public->get(
+    '/swagger' => sub ($c) {
+      $c->render(inline => <<'EOF');
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>QEM Dashboard API</title>
+    <link rel="stylesheet" type="text/css" href="/swagger-ui.css" />
+    <link rel="icon" type="image/png" href="/favicon-32x32.png" sizes="32x32" />
+    <link rel="icon" type="image/png" href="/favicon-16x16.png" sizes="16x16" />
+    <style>
+      html
+      {
+        box-sizing: border-box;
+        overflow: -moz-scrollbars-vertical;
+        overflow-y: scroll;
+      }
+
+      *,
+      *:before,
+      *:after
+      {
+        box-sizing: inherit;
+      }
+
+      body
+      {
+        margin:0;
+        background: #fafafa;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="swagger-ui"></div>
+
+    <script src="/swagger-ui-bundle.js" charset="UTF-8"> </script>
+    <script src="/swagger-ui-standalone-preset.js" charset="UTF-8"> </script>
+    <script>
+    window.onload = function() {
+      // Begin Swagger UI call region
+      const ui = SwaggerUIBundle({
+        url: "/api/v1/openapi.json",
+        dom_id: '#swagger-ui',
+        deepLinking: true,
+        presets: [
+          SwaggerUIBundle.presets.apis,
+          SwaggerUIStandalonePreset
+        ],
+        plugins: [
+          SwaggerUIBundle.plugins.DownloadUrl
+        ],
+        layout: "StandaloneLayout"
+      });
+      // End Swagger UI call region
+
+      window.ui = ui;
+    };
+  </script>
+  </body>
+</html>
+EOF
     }
   );
 }

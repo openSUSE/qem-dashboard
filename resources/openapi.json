@@ -5,69 +5,7 @@
     "version": "1.0.0"
   },
   "paths": {
-    "/health": {
-      "get": {
-        "operationId": "checkHealth",
-        "responses": {
-          "200": {
-            "description": "Health status",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "status": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/ready": {
-      "get": {
-        "operationId": "checkReady",
-        "responses": {
-          "200": {
-            "description": "Readiness status",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "status": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Database connection failed",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "status": {
-                      "type": "string"
-                    },
-                    "error": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/incidents": {
+    "/incidents": {
       "get": {
         "operationId": "listIncidents",
         "description": "List all incidents",
@@ -137,7 +75,7 @@
         }
       }
     },
-    "/api/v1/incidents/{incident}": {
+    "/incidents/{incident}": {
       "get": {
         "operationId": "showIncident",
         "description": "Show a specific incident",
@@ -236,7 +174,7 @@
         }
       }
     },
-    "/api/v1/incident_settings": {
+    "/incident_settings": {
       "put": {
         "operationId": "addIncidentSettings",
         "description": "Add incident settings",
@@ -287,7 +225,7 @@
         }
       }
     },
-    "/api/v1/incident_settings/{incident}": {
+    "/incident_settings/{incident}": {
       "get": {
         "operationId": "getIncidentSettings",
         "description": "Get settings for a specific incident",
@@ -333,7 +271,7 @@
         }
       }
     },
-    "/api/v1/update_settings": {
+    "/update_settings": {
       "get": {
         "operationId": "searchUpdateSettings",
         "description": "Search for update settings",
@@ -428,7 +366,7 @@
         }
       }
     },
-    "/api/v1/update_settings/{incident}": {
+    "/update_settings/{incident}": {
       "get": {
         "operationId": "getUpdateSettings",
         "description": "Get update settings for a specific incident",
@@ -474,7 +412,7 @@
         }
       }
     },
-    "/api/v1/jobs": {
+    "/jobs": {
       "put": {
         "operationId": "addJob",
         "description": "Add a new job",
@@ -522,7 +460,7 @@
         }
       }
     },
-    "/api/v1/jobs/{job_id}": {
+    "/jobs/{job_id}": {
       "get": {
         "operationId": "showJob",
         "description": "Show job details",
@@ -626,7 +564,7 @@
         }
       }
     },
-    "/api/v1/jobs/{job_id}/remarks": {
+    "/jobs/{job_id}/remarks": {
       "get": {
         "operationId": "showJobRemarks",
         "description": "Show job remarks",
@@ -746,7 +684,7 @@
         }
       }
     },
-    "/api/v1/jobs/incident/{incident_settings}": {
+    "/jobs/incident/{incident_settings}": {
       "get": {
         "operationId": "getJobsForIncidentSettings",
         "description": "Get jobs for incident settings",
@@ -777,7 +715,7 @@
         }
       }
     },
-    "/api/v1/jobs/update/{update_settings}": {
+    "/jobs/update/{update_settings}": {
       "get": {
         "operationId": "getJobsForUpdateSettings",
         "description": "Get jobs for update settings",
