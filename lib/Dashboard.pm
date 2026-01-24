@@ -234,8 +234,17 @@ sub _register_routes ($self, $config) {
     $api->get('/jobs/update/<update_settings:num>')->to('API::Jobs#updates');
   };
 
-  $register_api_routes->($token->any('/api/v1'));
+  # Legacy API routes (without validation)
   $register_api_routes->($token->any('/api'));
+
+  # OpenAPI routes (v1)
+  $self->plugin(
+    'OpenAPI' => {
+      url    => $self->home->child('resources', 'openapi.json'),
+      route  => $token->any('/api/v1'),
+      coerce => {returns => 1}
+    }
+  );
 }
 
 
