@@ -1,4 +1,4 @@
-name: perltidy
+name: checkstyle (Perl)
 on:
   push:
     branches:
@@ -21,6 +21,5 @@ jobs:
         run: cpanm -n Perl::Tidy
       - name: perltidy --version
         run: perltidy --version
-      - name: Run perltidy
-        shell: bash
-        run: make tidy-perl
+      - name: Run checkstyle
+        run: make checkstyle-perl
