@@ -11,6 +11,7 @@ use Dashboard::Model::Incidents;
 use Dashboard::Model::Jobs;
 use Dashboard::Model::Settings;
 use Dashboard::Model::AMQP;
+use Dashboard::Model::MCP;
 
 # Avoid installing random npm packages bypassing package-lock.json
 BEGIN { $ENV{MOJO_NPM_BINARY} = curfile->sibling('../script/npm-noop') }
@@ -150,6 +151,11 @@ sub _setup_helpers ($self, $config) {
   );
   $self->helper(settings => sub ($c) { state $settings = Dashboard::Model::Settings->new(pg => $c->pg) });
   $self->helper(amqp     => sub ($c) { state $amqp     = Dashboard::Model::AMQP->new(log => $log, jobs => $c->jobs) });
+  $self->helper(
+    mcp => sub ($c) {
+      state $mcp = Dashboard::Model::MCP->new(incidents => $c->incidents, jobs => $c->jobs);
+    }
+  );
 
   # Migrations
   my $path = $self->home->child('migrations', 'dashboard.sql');
@@ -193,6 +199,9 @@ sub _register_routes ($self, $config) {
   $json->get('/blocked')->to('overview#blocked');
   $json->get('/repos')->to('overview#repos');
   $json->get('/incident/<incident:num>')->to('overview#incident');
+
+  # MCP
+  $public->any('/app/mcp' => $self->mcp->server->to_action);
 
   # Catch all for delivering the webpack UI
   $public->get('/')->to('overview#index')->name('index');
