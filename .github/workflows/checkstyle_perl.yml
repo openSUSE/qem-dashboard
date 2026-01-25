@@ -1,4 +1,4 @@
-name: perltidy
+name: checkstyle (Perl)
 on:
   push:
     branches:
@@ -7,7 +7,7 @@ on:
       - '*'
   pull_request:
 jobs:
-  perltidy:
+  checkstyle-perl:
     runs-on: ubuntu-latest
     container:
       image: perl:5.42
@@ -18,9 +18,8 @@ jobs:
       - name: perl -V
         run: perl -V
       - name: Install dependencies
-        run: cpanm -n Perl::Tidy
+        run: cpanm -n Perl::Tidy CPAN::Audit
       - name: perltidy --version
         run: perltidy --version
-      - name: Run perltidy
-        shell: bash
-        run: make tidy-perl
+      - name: Run checkstyle
+        run: make checkstyle-perl

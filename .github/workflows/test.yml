@@ -1,4 +1,4 @@
-name: linux
+name: test
 on:
   push:
     branches:
@@ -7,7 +7,7 @@ on:
       - '*'
   pull_request:
 jobs:
-  test:
+  only-test:
     runs-on: ubuntu-latest
     services:
       postgres:

@@ -91,20 +91,32 @@ test-ui: public/asset
 test-js-unit:  # Run JS unit tests
 	npm run test:unit
 
-.PHONY: check-audits
-check-audits:  # Run audits
-	npm audit
-	PERL5LIB=~/perl5/lib/perl5 ~/perl5/bin/cpan-audit deps . \
+.PHONY: check-audits-cpan
+check-audits-cpan:
+	PERL5LIB=~/perl5/lib/perl5:$$PERL5LIB PATH=~/perl5/bin:$$PATH cpan-audit deps . \
 		--exclude CPANSA-Mojolicious-2024-58134 \
 		--exclude CPANSA-Mojolicious-2024-58135 \
 		--exclude CPANSA-File-Temp-2011-4116
 
-.PHONY: lint-js
-lint-js:
+.PHONY: check-audits-npm
+check-audits-npm:
+	npm audit
+
+.PHONY: check-audits
+check-audits: check-audits-cpan check-audits-npm  # Run audits
+
+.PHONY: lint-npm
+lint-npm:
 	npm run lint
 
+.PHONY: checkstyle-perl
+checkstyle-perl: tidy-perl check-audits-cpan
+
+.PHONY: checkstyle-npm
+checkstyle-npm: lint-npm tidy-js check-audits-npm
+
 .PHONY: checkstyle
-checkstyle: tidy lint-js check-audits
+checkstyle: checkstyle-perl checkstyle-npm
 
 .PHONY: only-test
 only-test: test-unit test-ui test-js-unit

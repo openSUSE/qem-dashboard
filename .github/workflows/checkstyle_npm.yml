@@ -1,9 +1,9 @@
 ---
-name: checkstyle
+name: checkstyle (NPM)
 # yamllint disable-line rule:truthy
 on: [push, pull_request]
 jobs:
-  test:
+  checkstyle-npm:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v5
@@ -12,5 +12,5 @@ jobs:
         node-version: '22'
     - name: Install JS dependencies
       run: make install-deps-js
-    - name: Run checkstyle (w/o perltidy)
-      run: make tidy-js lint-js
+    - name: Run checkstyle
+      run: make checkstyle-npm
