@@ -26,11 +26,7 @@ install-deps-ubuntu:
 
 .PHONY: install-deps-cpanm
 install-deps-cpanm:
-	cpanm -n --installdeps .
-	cpanm -n Test::Deep
-	cpanm -n Devel::Cover
-	cpanm -n Devel::Cover::Report::Coveralls
-	cpanm -n CPAN::Audit
+	cpanm -n --installdeps --with-feature=coverage .
 
 .PHONY: install-deps
 install-deps: install-deps-js install-deps-ubuntu install-deps-cpanm
