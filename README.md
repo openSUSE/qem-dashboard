@@ -94,6 +94,12 @@ For development and manual testing of the UI without a full production environme
    ```
 3. The dashboard will be available at `http://127.0.0.1:3000` with multiple incidents and job results already loaded.
 
+### Model Context Protocol (MCP)
+
+The dashboard provides a native [MCP server](https://modelcontextprotocol.io) for interaction with AI agents.
+It supports both HTTP/SSE (`/app/mcp`) and Stdio (`script/mcp-stdio`) transports.
+See **[docs/MCP.md](docs/MCP.md)** for more details.
+
 ### Frontend Development
 
 When modifying Vue components or stylesheets:
