@@ -9,6 +9,25 @@ The QEM Dashboard supports the [Model Context Protocol](https://modelcontextprot
 - `list_blocked`: List incidents that are currently blocked.
 - `get_repo_status`: Get status of various repositories/products.
 
+## Example session
+
+```
+$ gemini -y "list all submissions blocked by tests on qem-dashboard"
+I will list the incidents that are currently blocked.
+The following submissions are currently blocked by tests on qem-dashboard:
+
+1.  **Incident 16860 (perl-Mojolicious)**
+    *   **Project:** SUSE:Maintenance:16860
+    *   **Blocked by:**
+        *   **SLE 12 SP4**: 1 failure
+
+2.  **Incident 29722 (multipath-tools)**
+    *   **Project:** SUSE:Maintenance:29722
+    *   **Blocked by:**
+        *   **SAP-DVD-Updates 15-SP4**: 1 failure in SAP/HA Maintenance
+        *   **Server-DVD-Incidents 12-SP6**: 1 failure
+```
+
 ## Transports
 
 ### HTTP/SSE (Remote)
