@@ -52,6 +52,10 @@ run-mock: build
 	TEST_ONLINE=$(TEST_ONLINE) \
 	./script/run-mock
 
+.PHONY: run-mcp-stdio
+run-mcp-stdio:
+	./script/mcp-stdio
+
 .PHONY: tidy-npm
 tidy-npm:
 	npm run lint:fix
