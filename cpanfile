@@ -9,3 +9,4 @@ requires 'IO::Socket::SSL', '>= 2.009';
 requires 'Test::Harness', '>= 3.48';
 requires 'Test::Output';
 requires 'Test::Warnings';
+requires 'MCP';
