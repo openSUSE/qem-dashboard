@@ -211,6 +211,9 @@ sub _register_routes ($self, $config) {
   # MCP
   $public->any('/app/mcp' => $self->mcp->server->to_action);
 
+  # MCP
+  $public->any('/app/mcp' => $self->mcp->server->to_action);
+
   # Catch all for delivering the webpack UI
   $public->get('/')->to('overview#index')->name('index');
   $public->get('/:name' => [name => ['repos', 'blocked']])->to('overview#index');
