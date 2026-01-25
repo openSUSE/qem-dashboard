@@ -90,12 +90,18 @@ check-audits:  # Run audits
 		--exclude CPANSA-Mojolicious-2024-58135 \
 		--exclude CPANSA-File-Temp-2011-4116
 
-.PHONY: lint-js
-lint-js:
+.PHONY: lint-npm
+lint-npm:
 	npm run lint
 
+.PHONY: checkstyle-perl
+checkstyle-perl: tidy-perl
+
+.PHONY: checkstyle-npm
+checkstyle-npm: lint-npm tidy-js
+
 .PHONY: checkstyle
-checkstyle: tidy lint-js check-audits
+checkstyle: checkstyle-perl checkstyle-npm check-audits
 
 .PHONY: only-test
 only-test: test-unit test-ui test-js-unit
