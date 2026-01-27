@@ -60,7 +60,7 @@ t.test('Test dashboard ui', skip, async t => {
     await page.click('text=16860:perl-Mojolicious');
     t.equal(page.url(), `${url}/incident/16860`);
     t.match(await page.innerText('.packages ul'), /perl-Mojolicious/);
-    t.match(await page.innerText('.incident-results mark'), /1 passed, 1 failed, 1 waiting/);
+    t.match(await page.innerText('.incident-results p'), /1\s*passed\s*1\s*failed\s*1\s*waiting/);
     t.equal(
       await page.locator('text=openqa').getAttribute('href'),
       'https://openqa.suse.de/tests/overview?build=%3A17063%3Aperl-Mojolicious'
@@ -70,7 +70,7 @@ t.test('Test dashboard ui', skip, async t => {
     await page.goto(`${url}/incident/16860`);
     await page.click('text=230066:perl-Mojolicious');
     t.match(await page.innerText('.packages ul'), /perl-Mojolicious/);
-    t.match(await page.innerText('.incident-results mark'), /1 passed, 1 waiting/);
+    t.match(await page.innerText('.incident-results p'), /1\s*passed\s*1\s*waiting/);
   });
 
   await t.test('Sorting, highlighting and filtering on "Blocked" page', async t => {

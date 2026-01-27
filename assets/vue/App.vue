@@ -1,10 +1,11 @@
 <template>
   <div id="app">
+    <a href="#main-content" class="skip-link">Skip to main content</a>
     <nav class="navbar navbar-expand-lg navbar-light bg-light mb-3 border-bottom">
       <div class="container-fluid">
-        <router-link :to="{name: 'home'}" exact class="navbar-brand">
-          <i class="fab fa-suse" style="color: green" />
-          <i class="fas fa-vial" style="color: purple" />
+        <router-link :to="{name: 'home'}" exact class="navbar-brand" aria-label="QEM Dashboard Home">
+          <i class="fab fa-suse" style="color: green" aria-hidden="true" role="img" />
+          <i class="fas fa-vial" style="color: purple" aria-hidden="true" role="img" />
         </router-link>
         <button
           class="navbar-toggler"
@@ -44,10 +45,10 @@
       </div>
     </nav>
 
-    <div class="container">
+    <main id="main-content" class="container">
       <div class="row">
         <div class="col-md-12 title">
-          <h2>{{ title }}</h2>
+          <h1>{{ title }}</h1>
           {{ lastUpdatedText }}
         </div>
       </div>
@@ -57,17 +58,18 @@
           <router-view @last-updated="update" />
         </div>
       </div>
+    </main>
 
-      <a
-        id="back-to-top"
-        href="#"
-        class="btn btn-primary btn-lg back-to-top"
-        role="button"
-        title="Click to return to the top"
-      >
-        <i class="fas fa-angle-up" />
-      </a>
-    </div>
+    <a
+      id="back-to-top"
+      href="#"
+      class="btn btn-primary btn-lg back-to-top"
+      role="button"
+      title="Click to return to the top"
+      aria-label="Back to top"
+    >
+      <i class="fas fa-angle-up" aria-hidden="true" role="img" />
+    </a>
   </div>
 </template>
 
@@ -150,6 +152,19 @@ body {
 .title {
   font-size: 0.8em;
   margin-bottom: 1.5em;
+}
+.skip-link {
+  background: #5a32a8;
+  color: #fff;
+  left: 50%;
+  padding: 8px;
+  position: absolute;
+  transform: translateY(-100%);
+  transition: transform 0.3s;
+  z-index: 1001;
+}
+.skip-link:focus {
+  transform: translateY(0%);
 }
 .summary-list {
   padding-left: 0;

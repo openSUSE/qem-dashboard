@@ -6,6 +6,7 @@ use Mojo::Base 'Mojolicious', -signatures;
 
 use Mojo::Pg;
 use Mojo::File qw(curfile);
+use Mojo::JSON;
 use Dashboard::Model::Incidents;
 use Dashboard::Model::Jobs;
 use Dashboard::Model::Settings;
@@ -23,7 +24,21 @@ sub startup ($self) {
   # Load configuration from config file
   my $file   = $ENV{DASHBOARD_CONF} || (-r $custom_file ? $custom_file : 'dashboard.yml');
   my $config = $self->plugin(NotYAMLConfig => {file => $file});
+
+  if (my $override = $ENV{DASHBOARD_CONF_OVERRIDE}) {
+    my $override_config = Mojo::JSON::decode_json($override);
+    $self->config({%{$self->config}, %$override_config});
+    $config = $self->config;
+  }
+
   $self->secrets($config->{secrets});
+
+  $self->_setup_logging;
+  $self->_setup_helpers($config);
+  $self->_register_routes($config);
+}
+
+sub _setup_logging ($self) {
 
   # Short logs for systemd
   if ($self->mode eq 'production') {
@@ -31,37 +46,68 @@ sub startup ($self) {
 
     # All interesting log messages are "info" or higher
     $self->log->level('info');
-    $self->hook(
-      before_routes => sub ($c) {
-        my $req     = $c->req;
-        my $method  = $req->method;
-        my $url     = $req->url->to_abs->to_string;
-        my $started = [Time::HiRes::gettimeofday];
-        $c->tx->on(
-          finish => sub ($tx, @args) {
-            my $code    = $tx->res->code;
-            my $elapsed = Time::HiRes::tv_interval($started, [Time::HiRes::gettimeofday()]);
-            my $rps     = $elapsed == 0 ? '??' : sprintf '%.3f', 1 / $elapsed;    # uncoverable branch
-            $self->log->debug(qq{$method $url -> $code (${elapsed}s, $rps/s)});
-          }
-        );
-      }
-    );
   }
+
+  # Structured JSON logging
+  $self->hook(
+    before_dispatch => sub ($c) {
+      $c->stash(
+        request_id => $c->req->request_id // Mojo::Util::monkey_patch(
+          'Mojo::Transaction', 'request_id' =>
+            sub { shift->{request_id} ||= Mojo::Util::md5_sum(Time::HiRes::time() . rand()) }   # uncoverable subroutine
+        )
+      );
+    }
+  );
+
+  $self->hook(
+    before_routes => sub ($c) {
+      my $req     = $c->req;
+      my $method  = $req->method;
+      my $url     = $req->url->to_abs->to_string;
+      my $started = [Time::HiRes::gettimeofday];
+      $c->tx->on(
+        finish => sub ($tx, @args) {
+          my $code    = $tx->res->code;
+          my $elapsed = Time::HiRes::tv_interval($started, [Time::HiRes::gettimeofday()]);
+          my $rps     = $elapsed == 0 ? '??' : sprintf '%.3f', 1 / $elapsed;
+          $self->log->info(
+            Mojo::JSON::encode_json(
+              {
+                method     => $method,
+                url        => $url,
+                code       => $code,
+                elapsed    => $elapsed,
+                rps        => $rps,
+                request_id => $c->stash('request_id'),
+                type       => 'access_log'
+              }
+            )
+          );
+        }
+      );
+    }
+  );
+}
+
+sub _setup_helpers ($self, $config) {
 
   # Application specific commands
   push @{$self->commands->namespaces}, 'Dashboard::Command';
 
   $self->plugin('Dashboard::Plugin::JSON');
   $self->plugin('Dashboard::Plugin::Helpers');
-  $self->plugin('Webpack', {process => []});    # pass empty array as Webpack defaults to processing JS files
+  $self->plugin('Dashboard::Plugin::Database', $config);
+
+  # Automatic Webpack asset rebuilding in development mode
+  my $process = $self->mode eq 'development' ? [qw(js vue scss sass)] : [];
+  $self->plugin('Webpack', {process => $process});
 
   # Compress dynamically generated content
   $self->renderer->compress(1);
 
   # Model
   my $log = $self->log;
-  $self->helper(pg => sub { state $pg = Mojo::Pg->new($config->{pg})->max_connections(1) });
   $self->helper(
     incidents => sub ($c) { state $incidents = Dashboard::Model::Incidents->new(log => $log, pg => $c->pg) });
   $self->helper(
@@ -79,10 +125,23 @@ sub startup ($self) {
   # Migrations
   my $path = $self->home->child('migrations', 'dashboard.sql');
   $self->pg->auto_migrate($config->{auto_migrate} // 1)->migrations->name('dashboard')->from_file($path);
+}
+
+sub _register_routes ($self, $config) {
 
   # Authentication
   my $public = $self->routes;
   my $token  = $public->under('/')->to('Auth::Token#check');
+
+  # Health checks
+  $public->get('/health' => sub ($c) { $c->render(json => {status => 'ok'}) });
+  $public->get(
+    '/ready' => sub ($c) {
+      eval { $c->pg->db->query('SELECT 1') };
+      return $c->render(json => {status => 'fail', error => $@}, status => 500) if $@;
+      $c->render(json => {status => 'ok'});
+    }
+  );
 
   # Single page app
   $public->get(
@@ -110,25 +169,30 @@ sub startup ($self) {
   $public->get('/:name' => [name => ['repos', 'blocked']])->to('overview#index');
   $public->get('/incident/<incident:num>')->to('overview#index');
 
-  # API
-  my $api = $token->any('/api');
-  $api->get('/incidents/<incident:num>')->to('API::Incidents#show');
-  $api->get('/incidents')->to('API::Incidents#list');
-  $api->patch('/incidents/<incident:num>')->to('API::Incidents#update');
-  $api->patch('/incidents')->to('API::Incidents#sync');
-  $api->get('/incident_settings/<incident:num>')->to('API::Settings#get_incident_settings');
-  $api->put('/incident_settings')->to('API::Settings#add_incident_settings');
-  $api->get('/update_settings/<incident:num>')->to('API::Settings#get_update_settings');
-  $api->get('/update_settings')->to('API::Settings#search_update_settings');
-  $api->put('/update_settings')->to('API::Settings#add_update_settings');
-  $api->get('/jobs/<job_id:num>')->to('API::Jobs#show');
-  $api->patch('/jobs/<job_id:num>')->to('API::Jobs#modify');
-  $api->get('/jobs/<job_id:num>/remarks')->to('API::Jobs#show_remarks');
-  $api->patch('/jobs/<job_id:num>/remarks')->to('API::Jobs#update_remark');
-  $api->put('/jobs')->to('API::Jobs#add');
-  $api->get('/jobs/incident/<incident_settings:num>')->to('API::Jobs#incidents');
-  $api->get('/jobs/update/<update_settings:num>')->to('API::Jobs#updates');
+  # API (v1 and legacy)
+  my $register_api_routes = sub ($api) {
+    $api->get('/incidents/<incident:num>')->to('API::Incidents#show');
+    $api->get('/incidents')->to('API::Incidents#list');
+    $api->patch('/incidents/<incident:num>')->to('API::Incidents#update');
+    $api->patch('/incidents')->to('API::Incidents#sync');
+    $api->get('/incident_settings/<incident:num>')->to('API::Settings#get_incident_settings');
+    $api->put('/incident_settings')->to('API::Settings#add_incident_settings');
+    $api->get('/update_settings/<incident:num>')->to('API::Settings#get_update_settings');
+    $api->get('/update_settings')->to('API::Settings#search_update_settings');
+    $api->put('/update_settings')->to('API::Settings#add_update_settings');
+    $api->get('/jobs/<job_id:num>')->to('API::Jobs#show');
+    $api->patch('/jobs/<job_id:num>')->to('API::Jobs#modify');
+    $api->get('/jobs/<job_id:num>/remarks')->to('API::Jobs#show_remarks');
+    $api->patch('/jobs/<job_id:num>/remarks')->to('API::Jobs#update_remark');
+    $api->put('/jobs')->to('API::Jobs#add');
+    $api->get('/jobs/incident/<incident_settings:num>')->to('API::Jobs#incidents');
+    $api->get('/jobs/update/<update_settings:num>')->to('API::Jobs#updates');
+  };
+
+  $register_api_routes->($token->any('/api/v1'));
+  $register_api_routes->($token->any('/api'));
 }
+
 
 1;
 
