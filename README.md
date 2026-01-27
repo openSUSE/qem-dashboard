@@ -83,6 +83,38 @@ And finally use the `script/dashboard daemon` development web server to make the
     $ script/dashboard daemon
     Web application available at http://127.0.0.1:3000
 
+### Local Development with Mock Data
+
+For development and manual testing of the UI without a full production environment, you can start a local instance prepopulated with fixture data:
+
+1. Ensure a PostgreSQL container is running: `make start-postgres`
+2. Start the dashboard using the mock data wrapper:
+   ```bash
+   make run-mock
+   ```
+3. The dashboard will be available at `http://127.0.0.1:3000` with multiple incidents and job results already loaded.
+
+### Frontend Development
+
+When modifying Vue components or stylesheets:
+
+- **Rebuilding Assets:** `make run-mock` automatically runs `npm run watch` in
+  the background. Changes will be instantly rebuilt whenever you save a file.
+  If you are running the server via `script/dashboard daemon`, you must
+  manually run `npm run build` or `npm run watch` to see your changes.
+- **Browser Caching:** The dashboard automatically detects server restarts via a
+  `boot_id`. On every route navigation, it verifies if the server has restarted
+  and will perform a full browser reload if necessary to ensure you see the
+  latest changes. Manual "force-refreshes" (Ctrl+F5) should no longer be
+  routinely required.
+- **Automatic Rebuilding (Legacy/Manual):** While `make run-mock` handles
+  rebuilding automatically, you can still run it manually in a second
+  terminal if needed:
+  ```bash
+  npm run watch
+  ```
+  You will still need to refresh your browser.
+
 ## Contribute
 
 This project lives on GitHub at https://github.com/openSUSE/qem-dashboard. Feel free to add issues or send pull
@@ -90,9 +122,9 @@ requests there.
 
 ### Rules for Commits
 
-* For git commit messages use the rules stated on
+- For git commit messages use the rules stated on
   [How to Write a Git Commit Message](http://chris.beams.io/posts/git-commit/) as a reference
-* As a SUSE colleague consider signing commits which we consider to use for
+- As a SUSE colleague consider signing commits which we consider to use for
   automatic deployments within SUSE
 
 If this is too much hassle for you feel free to provide incomplete pull requests for consideration or create an issue
@@ -107,10 +139,22 @@ To execute all tests a PostgreSQL instance is needed and needs to be specified i
 TEST_ONLINE=postgresql://postgres:postgres@localhost:5432/postgres prove -l t/*.t t/*.t.js
 ```
 
+### Coverage Requirement
+
+Every change to the Perl backend must maintain or achieve **100% statement coverage**. Use the following command to verify coverage:
+
+```bash
+make test-coverage
+```
+
+Tasks are only considered complete once full coverage is confirmed and all tests pass.
+
 ### Documentation
+
 For further documentation, please see **[docs](https://github.com/openSUSE/qem-dashboard/tree/main/docs)**
 
 ### Further notes
+
 A containerized environment could be used to build and run the dashboard and its dependencies.
 For a concrete example, checkout the (so far) internal documentation under
 https://gitlab.suse.de/qe-core/dev-dashboard or containers quick start guide

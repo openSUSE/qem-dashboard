@@ -11,7 +11,7 @@ sub register ($self, $app, $conf) {
 sub _before_render ($c, $args) {
   return unless my $template = $args->{template};
   return unless $template eq 'exception' || $template eq 'not_found';
-  return unless $c->accepts('json');                                    # uncoverable branch
+  return unless $c->accepts('json');
 
   if ($template eq 'exception') { $args->{json} = {error => 'Unexpected server error'} }
 
