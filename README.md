@@ -83,6 +83,37 @@ And finally use the `script/dashboard daemon` development web server to make the
     $ script/dashboard daemon
     Web application available at http://127.0.0.1:3000
 
+### Local Development with Mock Data
+
+For development and manual testing of the UI without a full production environment, you can start a local instance prepopulated with fixture data:
+
+1. Ensure a PostgreSQL container is running: `make start-postgres`
+2. Start the dashboard using the mock data wrapper:
+   ```bash
+   make run-mock
+   ```
+3. The dashboard will be available at `http://127.0.0.1:3000` with multiple incidents and job results already loaded.
+
+### Frontend Development
+
+When modifying Vue components or stylesheets:
+
+- **Rebuilding Assets:** `make run-mock` automatically runs `npm run watch` in
+  the background. Changes will be instantly rebuilt whenever you save a file.
+  If you are running the server via `script/dashboard daemon`, you must
+  manually run `npm run build` or `npm run watch` to see your changes.
+- **Browser Caching:** Since development asset filenames are static
+  (`qem-dashboard.development.js`), browsers often cache them. **Always
+  perform a hard refresh (Ctrl+F5 or Cmd+Shift+R)** after rebuilding to ensure
+  you see the latest changes.
+- **Automatic Rebuilding (Legacy/Manual):** While `make run-mock` handles
+  rebuilding automatically, you can still run it manually in a second
+  terminal if needed:
+  ```bash
+  npm run watch
+  ```
+  You will still need to refresh your browser.
+
 ## Contribute
 
 This project lives on GitHub at https://github.com/openSUSE/qem-dashboard. Feel free to add issues or send pull
