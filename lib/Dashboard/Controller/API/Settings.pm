@@ -10,20 +10,7 @@ sub add_incident_settings ($self) {
   return $self->render(json => {error => 'Incident settings in JSON format required'}, status => 400)
     unless my $settings = $self->req->json;
 
-  my $jv = $self->schema(
-    {
-      type       => 'object',
-      required   => ['incident', 'version', 'flavor', 'arch', 'withAggregate', 'settings'],
-      properties => {
-        incident      => {type => 'integer', minimum => 1},
-        version       => {type => 'string'},
-        flavor        => {type => 'string'},
-        arch          => {type => 'string'},
-        withAggregate => {type => 'boolean'},
-        settings      => {type => 'object'}
-      }
-    }
-  );
+  my $jv     = $self->schema('incident_settings');
   my @errors = $jv->validate($settings);
   return $self->render(json => {error => "Incident settings do not match the JSON schema: @errors"}, status => 400)
     if @errors;
@@ -39,20 +26,7 @@ sub add_update_settings ($self) {
   return $self->render(json => {error => 'Update settings in JSON format required'}, status => 400)
     unless my $settings = $self->req->json;
 
-  my $jv = $self->schema(
-    {
-      type       => 'object',
-      required   => ['incidents', 'product', 'arch', 'build', 'repohash', 'settings'],
-      properties => {
-        incident => {type => 'array', minItems => 1, items => [{type => 'integer', minimum => 1}]},
-        product  => {type => 'string'},
-        arch     => {type => 'string'},
-        build    => {type => 'string'},
-        repohash => {type => 'string'},
-        settings => {type => 'object'}
-      }
-    }
-  );
+  my $jv     = $self->schema('update_settings');
   my @errors = $jv->validate($settings);
   return $self->render(json => {error => "Update settings do not match the JSON schema: @errors"}, status => 400)
     if @errors;

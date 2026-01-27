@@ -1,0 +1,86 @@
+{
+  "type": "object",
+  "required": [
+    "number",
+    "project",
+    "packages",
+    "channels",
+    "rr_number",
+    "inReview",
+    "inReviewQAM",
+    "approved",
+    "emu",
+    "isActive",
+    "embargoed"
+  ],
+  "properties": {
+    "number": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "project": {
+      "type": "string"
+    },
+    "packages": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string"
+      }
+    },
+    "channels": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "rr_number": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "inReview": {
+      "type": "boolean"
+    },
+    "inReviewQAM": {
+      "type": "boolean"
+    },
+    "approved": {
+      "type": "boolean"
+    },
+    "emu": {
+      "type": "boolean"
+    },
+    "isActive": {
+      "type": "boolean"
+    },
+    "embargoed": {
+      "type": "boolean"
+    },
+    "priority": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "scminfo": {
+      "type": "string"
+    },
+    "url": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string"
+    }
+  }
+}
