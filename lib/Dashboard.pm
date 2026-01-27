@@ -244,7 +244,22 @@ sub _register_routes ($self, $config) {
     'OpenAPI' => {
       url    => $self->home->child('resources', 'openapi.json'),
       route  => $token->any('/api/v1'),
-      coerce => {returns => 1}
+      coerce => {body => 1, params => 1}
+    }
+  );
+
+  $self->helper(
+    'openapi.build_response_body' => sub ($c, $data) {
+      if (ref $data eq 'HASH' && $data->{errors}) {
+        my $status = $data->{status} // 400;
+        if ($status == 404) { return Mojo::JSON::encode_json({error => 'Resource not found'}) }
+        my @msgs;
+        for my $e (@{$data->{errors} || []}) {
+          push @msgs, eval { $e->message . ($e->path ? " ($e->path)" : "") } // "$e";
+        }
+        return Mojo::JSON::encode_json({error => "Validation failed: " . join(', ', @msgs)});
+      }
+      return Mojo::JSON::encode_json($data);
     }
   );
 

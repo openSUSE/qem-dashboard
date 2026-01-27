@@ -20,4 +20,7 @@ my $t = Test::Mojo->new('Dashboard');
 # Try to fetch the swagger page
 $t->get_ok('/swagger')->status_is(200)->content_like(qr/QEM Dashboard API/);
 
+# Try to fetch the openapi.json
+$t->get_ok('/api/v1/openapi.json')->status_is(200)->json_is('/openapi', '3.0.0');
+
 done_testing();

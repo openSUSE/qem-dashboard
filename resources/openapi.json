@@ -7,6 +7,7 @@
   "paths": {
     "/incidents": {
       "get": {
+        "x-mojo-to": "API::Incidents#list",
         "operationId": "listIncidents",
         "description": "List all incidents",
         "responses": {
@@ -26,6 +27,7 @@
         }
       },
       "patch": {
+        "x-mojo-to": "API::Incidents#sync",
         "operationId": "syncIncidents",
         "description": "Sync incidents",
         "requestBody": {
@@ -77,6 +79,7 @@
     },
     "/incidents/{incident}": {
       "get": {
+        "x-mojo-to": "API::Incidents#show",
         "operationId": "showIncident",
         "description": "Show a specific incident",
         "parameters": [
@@ -85,7 +88,9 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "integer"
+              "type": "string",
+              "pattern": "^[0-9]+$"
+
             }
           }
         ],
@@ -118,6 +123,7 @@
         }
       },
       "patch": {
+        "x-mojo-to": "API::Incidents#update",
         "operationId": "updateIncident",
         "description": "Update a specific incident",
         "parameters": [
@@ -126,7 +132,9 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "integer"
+              "type": "string",
+              "pattern": "^[0-9]+$"
+
             }
           }
         ],
@@ -176,6 +184,7 @@
     },
     "/incident_settings": {
       "put": {
+        "x-mojo-to": "API::Settings#add_incident_settings",
         "operationId": "addIncidentSettings",
         "description": "Add incident settings",
         "requestBody": {
@@ -227,6 +236,7 @@
     },
     "/incident_settings/{incident}": {
       "get": {
+        "x-mojo-to": "API::Settings#get_incident_settings",
         "operationId": "getIncidentSettings",
         "description": "Get settings for a specific incident",
         "parameters": [
@@ -235,7 +245,9 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "integer"
+              "type": "string",
+              "pattern": "^[0-9]+$"
+
             }
           }
         ],
@@ -273,6 +285,7 @@
     },
     "/update_settings": {
       "get": {
+        "x-mojo-to": "API::Settings#search_update_settings",
         "operationId": "searchUpdateSettings",
         "description": "Search for update settings",
         "parameters": [
@@ -296,7 +309,9 @@
             "name": "limit",
             "in": "query",
             "schema": {
-              "type": "integer"
+              "type": "string",
+              "pattern": "^[0-9]+$"
+
             }
           }
         ],
@@ -317,6 +332,7 @@
         }
       },
       "put": {
+        "x-mojo-to": "API::Settings#add_update_settings",
         "operationId": "addUpdateSettings",
         "description": "Add update settings",
         "requestBody": {
@@ -368,6 +384,7 @@
     },
     "/update_settings/{incident}": {
       "get": {
+        "x-mojo-to": "API::Settings#get_update_settings",
         "operationId": "getUpdateSettings",
         "description": "Get update settings for a specific incident",
         "parameters": [
@@ -376,7 +393,9 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "integer"
+              "type": "string",
+              "pattern": "^[0-9]+$"
+
             }
           }
         ],
@@ -414,6 +433,7 @@
     },
     "/jobs": {
       "put": {
+        "x-mojo-to": "API::Jobs#add",
         "operationId": "addJob",
         "description": "Add a new job",
         "requestBody": {
@@ -462,6 +482,7 @@
     },
     "/jobs/{job_id}": {
       "get": {
+        "x-mojo-to": "API::Jobs#show",
         "operationId": "showJob",
         "description": "Show job details",
         "parameters": [
@@ -470,7 +491,9 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "integer"
+              "type": "string",
+              "pattern": "^[0-9]+$"
+
             }
           }
         ],
@@ -503,6 +526,7 @@
         }
       },
       "patch": {
+        "x-mojo-to": "API::Jobs#modify",
         "operationId": "modifyJob",
         "description": "Modify a job",
         "parameters": [
@@ -511,7 +535,9 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "integer"
+              "type": "string",
+              "pattern": "^[0-9]+$"
+
             }
           }
         ],
@@ -566,6 +592,7 @@
     },
     "/jobs/{job_id}/remarks": {
       "get": {
+        "x-mojo-to": "API::Jobs#show_remarks",
         "operationId": "showJobRemarks",
         "description": "Show job remarks",
         "parameters": [
@@ -574,7 +601,9 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "integer"
+              "type": "string",
+              "pattern": "^[0-9]+$"
+
             }
           }
         ],
@@ -623,6 +652,7 @@
         }
       },
       "patch": {
+        "x-mojo-to": "API::Jobs#update_remark",
         "operationId": "updateJobRemark",
         "description": "Update job remark",
         "parameters": [
@@ -631,14 +661,18 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "integer"
+              "type": "string",
+              "pattern": "^[0-9]+$"
+
             }
           },
           {
             "name": "incident_number",
             "in": "query",
             "schema": {
-              "type": "integer"
+              "type": "string",
+              "pattern": "^[0-9]+$"
+
             }
           },
           {
@@ -686,6 +720,7 @@
     },
     "/jobs/incident/{incident_settings}": {
       "get": {
+        "x-mojo-to": "API::Jobs#incidents",
         "operationId": "getJobsForIncidentSettings",
         "description": "Get jobs for incident settings",
         "parameters": [
@@ -694,7 +729,9 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "integer"
+              "type": "string",
+              "pattern": "^[0-9]+$"
+
             }
           }
         ],
@@ -717,6 +754,7 @@
     },
     "/jobs/update/{update_settings}": {
       "get": {
+        "x-mojo-to": "API::Jobs#updates",
         "operationId": "getJobsForUpdateSettings",
         "description": "Get jobs for update settings",
         "parameters": [
@@ -725,7 +763,9 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "integer"
+              "type": "string",
+              "pattern": "^[0-9]+$"
+
             }
           }
         ],
