@@ -1,33 +1,35 @@
-import PageActive from './vue/components/PageActive.vue';
-import PageBlocked from './vue/components/PageBlocked.vue';
-import PageIncident from './vue/components/PageIncident.vue';
-import PageRepos from './vue/components/PageRepos.vue';
 import {createRouter, createWebHistory} from 'vue-router';
 
 const routes = [
   {
     path: '/',
     name: 'home',
-    component: PageActive,
+    component: () => import('./vue/components/PageActive.vue'),
     meta: {title: 'Active Incidents'}
   },
   {
     path: '/blocked',
     name: 'blocked',
-    component: PageBlocked,
+    component: () => import('./vue/components/PageBlocked.vue'),
     meta: {title: 'Blocked by Tests'}
   },
   {
     path: '/repos',
     name: 'repos',
-    component: PageRepos,
+    component: () => import('./vue/components/PageRepos.vue'),
     meta: {title: 'Test Repos'}
   },
   {
+    path: '/submission/:id',
+    name: 'submission',
+    component: () => import('./vue/components/PageSubmission.vue'),
+    meta: {title: 'Details for Submission'}
+  },
+  {
     path: '/incident/:id',
-    name: 'incident',
-    component: PageIncident,
-    meta: {title: 'Details for Incident'}
+    redirect: to => {
+      return {name: 'submission', params: {id: to.params.id}};
+    }
   }
 ];
 

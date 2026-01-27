@@ -16,7 +16,7 @@ sub new ($class, %options) {
   # Database
   my $self = $class->SUPER::new(options => \%options);
   $self->{pg}       = Mojo::Pg->new($options{online});
-  $self->{db_guard} = $self->_prepare_schema($options{schema});
+  $self->{db_guard} = $self->_prepare_schema($options{schema}, $options{keep_schema});
 
   return $self;
 }
@@ -37,76 +37,8 @@ sub minimal_fixtures ($self, $app) {
   $self->no_fixtures($app);
 
   my $incidents = $app->incidents;
-  $incidents->sync(
-    [
-      {
-        number      => 16860,
-        project     => 'SUSE:Maintenance:16860',
-        packages    => ['perl-Mojolicious'],
-        channels    => ['Test'],
-        rr_number   => 230066,
-        inReview    => true,
-        inReviewQAM => true,
-        approved    => false,
-        emu         => true,
-        embargoed   => true,
-        isActive    => true,
-        priority    => undef,
-      },
-      {
-        number      => 16861,
-        project     => 'SUSE:Maintenance:16861',
-        packages    => ['perl-Minion', 'perl-Mojo-Pg'],
-        channels    => ['Test'],
-        rr_number   => undef,
-        inReview    => true,
-        inReviewQAM => true,
-        approved    => false,
-        emu         => true,
-        embargoed   => true,
-        isActive    => true,
-        priority    => undef,
-      },
-      {
-        number      => 16862,
-        project     => 'SUSE:Maintenance:16862',
-        packages    => ['curl'],
-        channels    => ['Test'],
-        rr_number   => undef,
-        inReview    => true,
-        inReviewQAM => true,
-        approved    => true,
-        emu         => true,
-        embargoed   => true,
-        isActive    => true,
-        priority    => undef,
-      },
-      {
-        number   => 29722,
-        project  => 'SUSE:Maintenance:29722 ',
-        packages => ['multipath-tools'],
-        channels => [
-          'SUSE:Updates:openSUSE-SLE:15.4',                       'SUSE:Updates:SLE-Module-Basesystem:15-SP4:x86_64',
-          'SUSE:Updates:SLE-Module-Basesystem:15-SP4:s390x',      'SUSE:Updates:SLE-Module-Basesystem:15-SP4:aarch64',
-          'SUSE:Updates:SLE-Module-Basesystem:15-SP4:ppc64le',    'SUSE:SLE-15-SP4:Update',
-          'SUSE:Updates:SLE-Product-SLES:15-SP4-TERADATA:x86_64', 'SUSE:Updates:SLE-Micro:5.3:x86_64',
-          'SUSE:Updates:SLE-Micro:5.3:aarch64',                   'SUSE:Updates:SLE-Micro:5.3:s390x',
-          'SUSE:Updates:openSUSE-Leap-Micro:5.3',                 'SUSE:Updates:SLE-Micro:5.4:x86_64',
-          'SUSE:Updates:SLE-Micro:5.4:s390x',                     'SUSE:Updates:SLE-Micro:5.4:aarch64',
-          'SUSE:Updates:openSUSE-Leap-Micro:5.4'
-        ],
-        rr_number   => 302772,
-        inReview    => true,
-        inReviewQAM => true,
-        approved    => false,
-        emu         => false,
-        embargoed   => false,
-        isActive    => true,
-        priority    => 700
-        , # highest priority; supposed to show first on "Blocked" page and be highlighted for manual review as priority is above threshold
-      },
-    ]
-  );
+  my $path      = Mojo::File::curfile->sibling('..', '..', 'fixtures', 'incidents.json');
+  $incidents->sync(Mojo::JSON::decode_json($path->slurp));
 
   my $settings        = $app->settings;
   my $incident_id     = $incidents->id_for_number(16860);
@@ -118,7 +50,7 @@ sub minimal_fixtures ($self, $app) {
       flavor        => 'Server-DVD-HA-Incidents-Install',
       arch          => 'x86_64',
       withAggregate => true,
-      settings      => {DISTRI => 'sle', VERSION => '12-SP5', BUILD => ':17063:perl-Mojolicious'}
+      settings      => {DISTRI => 'sle', VERSION => '12-SP5', BUILD => ':16860:perl-Mojolicious'}
     }
   );
   my $settings_two_id = $settings->add_incident_settings(
@@ -129,7 +61,7 @@ sub minimal_fixtures ($self, $app) {
       flavor        => 'Server-DVD-HA-Incidents-Install',
       arch          => 'x86_64',
       withAggregate => true,
-      settings      => {DISTRI => 'sle', VERSION => '12-SP4', BUILD => ':17063:perl-Mojolicious'}
+      settings      => {DISTRI => 'sle', VERSION => '12-SP4', BUILD => ':16860:perl-Mojolicious'}
     }
   );
   my $settings_three_id = $settings->add_incident_settings(
@@ -140,7 +72,7 @@ sub minimal_fixtures ($self, $app) {
       flavor        => 'Server-DVD-HA-Incidents-Install',
       arch          => 'aarch64',
       withAggregate => true,
-      settings      => {DISTRI => 'sle', VERSION => '12-SP5', BUILD => ':17063:perl-Mojolicious'}
+      settings      => {DISTRI => 'sle', VERSION => '12-SP5', BUILD => ':16860:perl-Mojolicious'}
     }
   );
   my $settings_four_id = $settings->add_incident_settings(
@@ -151,7 +83,7 @@ sub minimal_fixtures ($self, $app) {
       flavor        => 'Server-DVD-HA-Incidents-Install',
       arch          => 'aarch64',
       withAggregate => true,
-      settings      => {DISTRI => 'sle', VERSION => '12-SP7', BUILD => ':17063:perl-Mojolicious'}
+      settings      => {DISTRI => 'sle', VERSION => '12-SP7', BUILD => ':16861:perl-Mojolicious'}
     }
   );
   my $settings_five_id = $settings->add_incident_settings(
@@ -162,7 +94,7 @@ sub minimal_fixtures ($self, $app) {
       flavor        => 'Server-DVD-HA-Incidents-Install',
       arch          => 'aarch64',
       withAggregate => true,
-      settings      => {DISTRI => 'sle', VERSION => '13-SP7', BUILD => ':17063:curl'}
+      settings      => {DISTRI => 'sle', VERSION => '13-SP7', BUILD => ':16862:curl'}
     }
   );
 
@@ -180,7 +112,7 @@ sub minimal_fixtures ($self, $app) {
       flavor            => 'Server-DVD-Incidents',
       arch              => 'x86_64',
       version           => '12-SP5',
-      build             => ':17063:perl-Mojolicious'
+      build             => ':16860:perl-Mojolicious'
     }
   );
   $jobs->add(
@@ -196,7 +128,7 @@ sub minimal_fixtures ($self, $app) {
       flavor            => 'Server-DVD-Incidents',
       arch              => 'x86_64',
       version           => '12-SP4',
-      build             => ':17063:perl-Mojolicious'
+      build             => ':16860:perl-Mojolicious'
     }
   );
   $jobs->add(
@@ -212,7 +144,7 @@ sub minimal_fixtures ($self, $app) {
       flavor            => 'Server-DVD-Incidents',
       arch              => 'aarch64',
       version           => '12-SP5',
-      build             => ':17063:perl-Mojolicious'
+      build             => ':16860:perl-Mojolicious'
     }
   );
   $jobs->add(
@@ -228,7 +160,7 @@ sub minimal_fixtures ($self, $app) {
       flavor            => 'Server-DVD-Incidents',
       arch              => 'aarch64',
       version           => '12-SP7',
-      build             => ':17063:perl-Mojolicious'
+      build             => ':16861:perl-Mojolicious'
     }
   );
   $jobs->add(
@@ -244,7 +176,7 @@ sub minimal_fixtures ($self, $app) {
       flavor            => 'Server-DVD-Incidents',
       arch              => 'aarch64',
       version           => '12-SP7',
-      build             => ':17063:curl'
+      build             => ':16862:curl'
     }
   );
 
@@ -541,10 +473,14 @@ sub postgres_url ($self) {
   return Mojo::URL->new($self->{options}{online})->query([search_path => [$self->{options}{schema}]])->to_unsafe_string;
 }
 
-sub _prepare_schema ($self, $name) {
+sub _prepare_schema ($self, $name, $keep_schema = 0) {
 
   # Isolate tests
   my $pg = $self->{pg};
+  if ($keep_schema) {
+    $pg->db->query("CREATE SCHEMA IF NOT EXISTS $name");
+    return undef;
+  }
   $pg->db->query("DROP SCHEMA IF EXISTS $name CASCADE");
   $pg->db->query("CREATE SCHEMA $name");
 
