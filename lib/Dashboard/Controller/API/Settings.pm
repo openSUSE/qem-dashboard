@@ -7,14 +7,20 @@ use Mojo::Base 'Mojolicious::Controller', -signatures;
 use Mojo::JSON qw(true false);
 
 sub add_incident_settings ($self) {
-  return $self->render(json => {error => 'Incident settings in JSON format required'}, status => 400)
-    unless my $settings = $self->req->json;
+  if ($self->stash('openapi.path')) {
+    return unless $self->openapi->valid_input;
+  }
+  else {
+    return $self->render(json => {error => 'Incident settings in JSON format required'}, status => 400)
+      unless my $settings = $self->req->json;
 
-  my $jv     = $self->schema('incident_settings');
-  my @errors = $jv->validate($settings);
-  return $self->render(json => {error => "Incident settings do not match the JSON schema: @errors"}, status => 400)
-    if @errors;
+    my $jv     = $self->schema('incident_settings');
+    my @errors = $jv->validate($settings);
+    return $self->render(json => {error => "Incident settings do not match the JSON schema: @errors"}, status => 400)
+      if @errors;
+  }
 
+  my $settings = $self->req->json;
   return $self->render(json => {error => 'Incident not found'}, status => 400)
     unless my $incident_id = $self->incidents->id_for_number($settings->{incident});
 
@@ -23,14 +29,20 @@ sub add_incident_settings ($self) {
 }
 
 sub add_update_settings ($self) {
-  return $self->render(json => {error => 'Update settings in JSON format required'}, status => 400)
-    unless my $settings = $self->req->json;
+  if ($self->stash('openapi.path')) {
+    return unless $self->openapi->valid_input;
+  }
+  else {
+    return $self->render(json => {error => 'Update settings in JSON format required'}, status => 400)
+      unless my $settings = $self->req->json;
 
-  my $jv     = $self->schema('update_settings');
-  my @errors = $jv->validate($settings);
-  return $self->render(json => {error => "Update settings do not match the JSON schema: @errors"}, status => 400)
-    if @errors;
+    my $jv     = $self->schema('update_settings');
+    my @errors = $jv->validate($settings);
+    return $self->render(json => {error => "Update settings do not match the JSON schema: @errors"}, status => 400)
+      if @errors;
+  }
 
+  my $settings = $self->req->json;
   my @incident_ids;
   my $incidents = $self->incidents;
   for my $incident (@{$settings->{incidents}}) {
@@ -44,27 +56,34 @@ sub add_update_settings ($self) {
 }
 
 sub get_incident_settings ($self) {
+  return unless !$self->stash('openapi.path') || $self->openapi->valid_input;
   return $self->render(json => {error => 'Incident not found'}, status => 400)
     unless my $incident_id = $self->incidents->id_for_number($self->param('incident'));
   $self->render(json => _fix_booleans($self->settings->get_incident_settings($incident_id)));
 }
 
 sub get_update_settings ($self) {
+  return unless !$self->stash('openapi.path') || $self->openapi->valid_input;
   return $self->render(json => {error => 'Incident not found'}, status => 400)
     unless my $incident_id = $self->incidents->id_for_number($self->param('incident'));
   $self->render(json => $self->settings->get_update_settings($incident_id));
 }
 
 sub search_update_settings ($self) {
-  my $validation = $self->validation;
-  $validation->required('product');
-  $validation->required('arch');
-  $validation->optional('limit')->num;
-  return $self->reply->json_validation_error if $validation->has_error;
+  if ($self->stash('openapi.path')) {
+    return unless $self->openapi->valid_input;
+  }
+  else {
+    my $validation = $self->validation;
+    $validation->required('product');
+    $validation->required('arch');
+    $validation->optional('limit')->num;
+    return $self->reply->json_validation_error if $validation->has_error;
+  }
 
-  my $product = $validation->param('product');
-  my $arch    = $validation->param('arch');
-  my $limit   = $validation->param('limit');
+  my $product = $self->param('product');
+  my $arch    = $self->param('arch');
+  my $limit   = $self->param('limit');
 
   $self->render(json => $self->settings->find_update_settings({product => $product, arch => $arch, limit => $limit}));
 }
