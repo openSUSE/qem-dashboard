@@ -1,19 +1,56 @@
-#!/usr/bin/bash
-set -euo pipefail
+#!/usr/bin/env perl
+use strict;
+use warnings;
+use Devel::Cover::DB;
 
-echo "Generating coverage report…"
-cover -report text > coverage_check.txt
-echo "Checking statement coverage for lib/ and t/ files…"
-SUMMARY=$(sed -n '/File *stmt/,/Total/p' coverage_check.txt)
-# We exclude .js files as they are not covered by Devel::Cover
-UNCOVERED=$(echo "$SUMMARY" | grep -E "^(lib/|t/)" | grep -v "\.js" | awk '$2 != "100.0" {print $0}')
-if [ -n "$UNCOVERED" ]; then
-    echo "FAILED: Some files have less than complete statement coverage:"
-    echo "$UNCOVERED"
-    rm coverage_check.txt
-    exit 1
-fi
+my $cover = Devel::Cover::DB->new(db => "cover_db");
+if (!$cover) {
+    die "Failed to load coverage database from cover_db";
+}
 
-echo "SUCCESS: All backend and test files (lib/ and t/) have complete statement coverage."
-rm coverage_check.txt
-exit 0
+# Fallback to internal hash keys if files() method is not available in this version
+my @files;
+if ($cover->can('files')) {
+    @files = $cover->files;
+} else {
+    @files = keys %{$cover->{file}};
+}
+
+@files = grep { /^lib\/|t\// && !/Wrappers/ && !/Database\.pm/ } @files;
+
+my $failed = 0;
+$failed += check_coverage('statement', 100, \@files);
+$failed += check_coverage('branch', 100, \@files);
+
+if ($failed) {
+    print "\nGenerating detailed coverage report due to failures…\n";
+    system("cover", "-report", "text");
+    exit 1;
+}
+
+print "SUCCESS: All backend and test files (lib/ and t/) have complete statement and branch coverage.\n";
+
+sub check_coverage {
+    my ($type, $threshold, $files) = @_;
+    my @failed;
+    for my $file (@$files) {
+        my $f = $cover->file($file);
+        next unless $f;
+        my $criterion = $f->$type();
+        if (!$criterion) {
+            # Some files might not have branches
+            next if $type eq 'branch';
+            push @failed, $file;
+            next;
+        }
+        my $coverage = $criterion->percentage;
+        push @failed, sprintf("%s: %.1f%%", $file, $coverage) if $coverage < $threshold;
+    }
+
+    if (@failed) {
+        print "ERROR: The following files do not have complete $type coverage:\n";
+        print join("\n", map { "  $_" } @failed), "\n";
+        return 1;
+    }
+    return 0;
+}

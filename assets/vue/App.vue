@@ -1,10 +1,57 @@
+<script setup>
+import {ref, computed, onMounted, onUnmounted} from 'vue';
+import {useRoute} from 'vue-router';
+import {formatDistanceToNow} from 'date-fns';
+import {useBlockedStore} from '@/stores/blocked';
+
+const route = useRoute();
+const blockedStore = useBlockedStore();
+const now = ref(Date.now());
+const theme = ref(localStorage.getItem('theme') || 'light');
+let timer = null;
+
+const toggleTheme = () => {
+  theme.value = theme.value === 'light' ? 'dark' : 'light';
+  localStorage.setItem('theme', theme.value);
+  document.documentElement.setAttribute('data-bs-theme', theme.value);
+};
+
+const title = computed(() => {
+  const t = route.meta.title;
+  if (t) document.title = t;
+  return t;
+});
+
+const lastUpdatedText = computed(() => {
+  const last = blockedStore.lastUpdated;
+  if (last === null) return 'Never updated';
+  // Force reactivity by using 'now'
+  return `Last updated ${formatDistanceToNow(last, {addSuffix: true, baseDate: now.value})}`;
+});
+
+onMounted(() => {
+  document.documentElement.setAttribute('data-bs-theme', theme.value);
+  timer = setInterval(() => {
+    now.value = Date.now();
+  }, 60000);
+});
+
+onUnmounted(() => {
+  if (timer) clearInterval(timer);
+});
+</script>
+
 <template>
   <div id="app">
-    <nav class="navbar navbar-expand-lg navbar-light bg-light mb-3 border-bottom">
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    <nav
+      class="navbar navbar-expand-lg border-bottom mb-3"
+      :class="theme === 'light' ? 'navbar-light bg-light' : 'navbar-dark bg-dark'"
+    >
       <div class="container-fluid">
-        <router-link :to="{name: 'home'}" exact class="navbar-brand">
-          <i class="fab fa-suse" style="color: green" />
-          <i class="fas fa-vial" style="color: purple" />
+        <router-link :to="{name: 'home'}" exact class="navbar-brand" aria-label="QEM Dashboard Home">
+          <i class="fab fa-suse" style="color: green" aria-hidden="true" role="img" />
+          <i class="fas fa-vial" style="color: purple" aria-hidden="true" role="img" />
         </router-link>
         <button
           class="navbar-toggler"
@@ -31,6 +78,16 @@
           </ul>
           <ul class="navbar-nav flex-row flex-wrap ms-md-auto" id="navbarAPI">
             <li class="nav-item">
+              <button
+                class="btn btn-link nav-link"
+                @click="toggleTheme"
+                :title="'Switch to ' + (theme === 'light' ? 'dark' : 'light') + ' mode'"
+                aria-label="Toggle theme"
+              >
+                <i :class="['fas', theme === 'light' ? 'fa-moon' : 'fa-sun']" aria-hidden="true"></i>
+              </button>
+            </li>
+            <li class="nav-item">
               <a
                 class="nav-link"
                 href="https://github.com/openSUSE/qem-dashboard/blob/main/docs/API.md"
@@ -44,76 +101,33 @@
       </div>
     </nav>
 
-    <div class="container">
+    <main id="main-content" class="container">
       <div class="row">
         <div class="col-md-12 title">
-          <h2>{{ title }}</h2>
+          <h1>{{ title }}</h1>
           {{ lastUpdatedText }}
         </div>
       </div>
 
       <div class="row">
         <div class="col-md-12">
-          <router-view @last-updated="update" />
+          <router-view />
         </div>
       </div>
+    </main>
 
-      <a
-        id="back-to-top"
-        href="#"
-        class="btn btn-primary btn-lg back-to-top"
-        role="button"
-        title="Click to return to the top"
-      >
-        <i class="fas fa-angle-up" />
-      </a>
-    </div>
+    <a
+      id="back-to-top"
+      href="#"
+      class="btn btn-primary btn-lg back-to-top"
+      role="button"
+      title="Click to return to the top"
+      aria-label="Back to top"
+    >
+      <i class="fas fa-angle-up" aria-hidden="true" role="img" />
+    </a>
   </div>
 </template>
-
-<script>
-import moment from 'moment';
-
-export default {
-  name: 'App',
-  data() {
-    return {
-      lastUpdated: 0,
-      timer: null
-    };
-  },
-  created() {
-    // Refresh relative last updated time (every minute)
-    this.timer = setInterval(this.refreshLastUpdated, 60000);
-  },
-  beforeUnmount() {
-    this.cancelRefresh();
-  },
-  computed: {
-    title() {
-      document.title = this.$route.meta.title;
-      return this.$route.meta.title;
-    },
-    lastUpdatedText() {
-      const last = this.lastUpdated;
-      if (last === null) return 'Never updated';
-      if (last === 0) return 'Updating...';
-      return `Last updated ${moment(this.lastUpdated).fromNow()}`;
-    }
-  },
-  methods: {
-    refreshLastUpdated() {
-      this.lastUpdated += 1;
-    },
-    cancelRefresh() {
-      clearInterval(this.timer);
-    },
-    update(epoch) {
-      this.lastUpdated = epoch;
-    }
-  }
-};
-</script>
 
 <style>
 .navbar-brand img {
@@ -141,7 +155,7 @@ body {
   position: absolute;
   width: 100%;
 }
-.incident-link {
+.submission-link {
   display: inline-block;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -150,6 +164,19 @@ body {
 .title {
   font-size: 0.8em;
   margin-bottom: 1.5em;
+}
+.skip-link {
+  background: #5a32a8;
+  color: #fff;
+  left: 50%;
+  padding: 8px;
+  position: absolute;
+  transform: translateY(-100%);
+  transition: transform 0.3s;
+  z-index: 1001;
+}
+.skip-link:focus {
+  transform: translateY(0%);
 }
 .summary-list {
   padding-left: 0;
