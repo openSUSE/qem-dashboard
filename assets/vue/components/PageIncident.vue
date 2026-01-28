@@ -1,6 +1,10 @@
 <template>
   <div v-if="exists === false"><p>Incident does not exist.</p></div>
   <div v-else-if="exists === true">
+    <div class="d-flex align-items-center justify-content-between mb-3" v-if="incident">
+      <IncidentDetailsIcons :incident="incident" class="fs-4" />
+    </div>
+
     <div class="external-links" v-if="incident">
       <div class="packages">
         <h4>Packages</h4>
@@ -17,7 +21,7 @@
         </p>
       </div>
       <div class="request-link">
-        <h4>Link to OBS</h4>
+        <h4>Source Link</h4>
         <p>
           <RequestLink :incident="incident" />
         </p>
@@ -39,16 +43,16 @@
 
     <div class="details">
       <h4>Further details</h4>
-      <table>
+      <table class="table table-sm">
         <tr v-if="incident.url.length > 0">
           <th>URL</th>
           <td>
             <a :href="incident.url" target="_blank">{{ incident.url }}</a>
           </td>
         </tr>
-        <tr v-for="field in ['Approved', 'Active', 'Embargoed', 'Priority', 'Project', 'Type', 'Scminfo']" :key="field">
-          <th>{{ field }}</th>
-          <td>{{ renderFieldValue(incident, field) }}</td>
+        <tr v-if="incident.scminfo">
+          <th>SCM Info</th>
+          <td>{{ incident.scminfo }}</td>
         </tr>
       </table>
     </div>
@@ -60,12 +64,13 @@
 import IncidentBuildSummary from './IncidentBuildSummary.vue';
 import RequestLink from './RequestLink.vue';
 import SmeltLink from './SmeltLink.vue';
+import IncidentDetailsIcons from './IncidentDetailsIcons.vue';
 import Refresh from '../mixins/refresh.js';
 
 export default {
   name: 'PageIncident',
   mixins: [Refresh],
-  components: {RequestLink, SmeltLink, IncidentBuildSummary},
+  components: {RequestLink, SmeltLink, IncidentBuildSummary, IncidentDetailsIcons},
   data() {
     return {
       exists: null,
