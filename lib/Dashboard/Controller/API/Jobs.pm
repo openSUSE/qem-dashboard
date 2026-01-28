@@ -5,17 +5,7 @@ package Dashboard::Controller::API::Jobs;
 use Mojo::Base 'Mojolicious::Controller', -signatures;
 
 sub add ($self) {
-  if ($self->stash('openapi.path')) {
-    return unless $self->openapi->valid_input;
-  }
-  else {
-    return $self->render(json => {error => 'Job in JSON format required'}, status => 400)
-      unless my $job = $self->req->json;
-
-    my $jv     = $self->schema('job');
-    my @errors = $jv->validate($job);
-    return $self->render(json => {error => "Job does not match the JSON schema: @errors"}, status => 400) if @errors;
-  }
+  return unless $self->openapi->valid_input;
 
   my $job   = $self->req->json;
   my $is_id = $job->{incident_settings};
@@ -38,23 +28,13 @@ sub add ($self) {
 }
 
 sub incidents ($self) {
-  return unless !$self->stash('openapi.path') || $self->openapi->valid_input;
+  return unless $self->openapi->valid_input;
   my $job = $self->jobs->get_incident_settings($self->param('incident_settings'));
   $self->render(json => $job);
 }
 
 sub modify ($self) {
-  if ($self->stash('openapi.path')) {
-    return unless $self->openapi->valid_input;
-  }
-  else {
-    return $self->render(json => {error => 'Job in JSON format required'}, status => 400)
-      unless my $job_data = $self->req->json;
-
-    my $jv     = $self->schema({type => 'object', properties => {obsolete => {type => 'boolean'}}});
-    my @errors = $jv->validate($job_data);
-    return $self->render(json => {error => "Job does not match the JSON schema: @errors"}, status => 400) if @errors;
-  }
+  return unless $self->openapi->valid_input;
 
   my $job_id   = $self->param('job_id');
   my $job_data = $self->req->json;
@@ -68,7 +48,7 @@ sub _incident ($incidents, $remark) {
 }
 
 sub show_remarks ($self) {
-  return unless !$self->stash('openapi.path') || $self->openapi->valid_input;
+  return unless $self->openapi->valid_input;
   my $openqa_job_id   = $self->param('job_id');
   my $internal_job_id = $self->jobs->internal_job_id($openqa_job_id);
   return $self->render(json => {error => "openQA job ($openqa_job_id) does not exist"}, status => 404)
@@ -81,7 +61,7 @@ sub show_remarks ($self) {
 }
 
 sub update_remark ($self) {
-  return unless !$self->stash('openapi.path') || $self->openapi->valid_input;
+  return unless $self->openapi->valid_input;
   my $incident_number = $self->param('incident_number');
   my $incident_id     = defined $incident_number ? $self->app->incidents->id_for_number($incident_number) : undef;
   my $openqa_job_id   = $self->param('job_id');
@@ -96,14 +76,14 @@ sub update_remark ($self) {
 }
 
 sub show ($self) {
-  return unless !$self->stash('openapi.path') || $self->openapi->valid_input;
+  return unless $self->openapi->valid_input;
   return $self->render(json => {error => 'Job not found'}, status => 400)
     unless my $job = $self->jobs->get($self->param('job_id'));
   $self->render(json => $job);
 }
 
 sub updates ($self) {
-  return unless !$self->stash('openapi.path') || $self->openapi->valid_input;
+  return unless $self->openapi->valid_input;
   my $job = $self->jobs->get_update_settings($self->param('update_settings'));
   $self->render(json => $job);
 }

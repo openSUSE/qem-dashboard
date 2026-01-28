@@ -7,7 +7,7 @@ The QEM Dashboard provides a RESTful API for interacting with incidents, openQA 
 You can explore the API interactively using the built-in **Swagger UI**:
 
 - **Swagger UI:** [/swagger](/swagger)
-- **OpenAPI Spec:** [/api/v1/openapi.json](/api/v1/openapi.json)
+- **OpenAPI Spec:** [/api/v1/openapi.yaml](/api/v1/openapi.yaml)
 
 The interactive documentation provides detailed information about all available endpoints, request/response schemas, and allows you to test the API directly from your browser.
 

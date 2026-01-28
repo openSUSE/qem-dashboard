@@ -233,7 +233,7 @@ sub _register_routes ($self, $config) {
 
   $self->plugin(
     'OpenAPI' => {
-      url    => $self->home->child('resources', 'openapi.json'),
+      url    => $self->home->child('resources', 'openapi.yaml'),
       route  => $token->any('/api/v1'),
       coerce => {body => 1, params => 1}
     }
@@ -244,11 +244,9 @@ sub _register_routes ($self, $config) {
       if (ref $data eq 'HASH' && $data->{errors}) {
         my $status = $data->{status} // 400;
         if ($status == 404) { return Mojo::JSON::encode_json({error => 'Resource not found'}) }
-        my @msgs;
-        for my $e (@{$data->{errors} || []}) {
-          push @msgs, eval { $e->message . ($e->path ? " ($e->path)" : "") } // "$e";
-        }
-        return Mojo::JSON::encode_json({error => "Validation failed: " . join(', ', @msgs)});
+        my @errors = map { ref $_ ? {message => $_->message, path => $_->path . ""} : {message => "$_", path => ""} }
+          @{$data->{errors}};
+        return Mojo::JSON::encode_json({error => "Validation failed", errors => \@errors});
       }
       return Mojo::JSON::encode_json($data);
     }
@@ -256,7 +254,7 @@ sub _register_routes ($self, $config) {
 
   # Serve the OpenAPI spec for Swagger UI
   $public->get(
-    '/api/v1/openapi.json' => sub ($c) { $c->reply->file($c->app->home->child('resources', 'openapi.json')) });
+    '/api/v1/openapi.yaml' => sub ($c) { $c->reply->file($c->app->home->child('resources', 'openapi.yaml')) });
 
   # Swagger UI page
   $public->get(
@@ -305,7 +303,7 @@ sub _register_routes ($self, $config) {
     window.onload = function() {
       // Begin Swagger UI call region
       const ui = SwaggerUIBundle({
-        url: "/api/v1/openapi.json",
+        url: "/api/v1/openapi.yaml",
         dom_id: '#swagger-ui',
         deepLinking: true,
         presets: [

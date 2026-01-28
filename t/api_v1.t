@@ -75,26 +75,31 @@ subtest 'JSON schema validation failed' => sub {
   stderr_like {
     $t->patch_ok('/api/v1/incidents' => $auth_headers)
       ->status_is(400)
-      ->json_is('/error', 'Validation failed: Missing property. (/body: Missing property.->path)');
+      ->json_is('/error',            'Validation failed')
+      ->json_is('/errors/0/message', 'Missing property.')
+      ->json_is('/errors/0/path',    '/body');
     $t->patch_ok('/api/v1/incidents' => $auth_headers => json => [{number => 16861}])->status_is(400);
-    like $t->tx->res->json('/error'), qr/Validation failed:/, 'right error';
+    is $t->tx->res->json('/error'), 'Validation failed', 'right error';
 
     $t->patch_ok('/api/v1/incidents' => $auth_headers => json =>
         [{%$mock_incident, packages => [], embargoed => true, priority => undef,}])->status_is(400);
-    like $t->tx->res->json('/error'), qr/Validation failed:/, 'right error';
+    is $t->tx->res->json('/error'), 'Validation failed', 'right error';
 
     $t->patch_ok('/api/v1/incidents/16860' => $auth_headers)
       ->status_is(400)
-      ->json_is('/error', 'Validation failed: Missing property. (/body: Missing property.->path)');
+      ->json_is('/error',            'Validation failed')
+      ->json_is('/errors/0/message', 'Missing property.')
+      ->json_is('/errors/0/path',    '/body');
     $t->patch_ok(
       '/api/v1/incidents/16860' => $auth_headers => json => {%$mock_incident, packages => [], priority => undef})
       ->status_is(400);
-    like $t->tx->res->json('/error'), qr/Validation failed:/, 'right error';
+    is $t->tx->res->json('/error'), 'Validation failed', 'right error';
 
     $t->patch_ok(
       '/api/v1/incidents' => $auth_headers => json => [{%$mock_incident, inReviewQAM => [], priority => undef}])
       ->status_is(400);
-    like $t->tx->res->json('/error'), qr/Validation failed: Expected boolean - got array/, 'right error';
+    is $t->tx->res->json('/error'),            'Validation failed',             'right error';
+    is $t->tx->res->json('/errors/0/message'), 'Expected boolean - got array.', 'right error message';
   }
   qr/access_log/, 'access log caught';
 };
