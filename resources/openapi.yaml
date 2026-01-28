@@ -2,6 +2,44 @@ openapi: 3.0.0
 info:
   title: QEM Dashboard API
   version: 1.0.0
+
+# YAML anchors for reuse
+x-anchors:
+  responses:
+    error: &error_response
+      description: Error
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+    success_message: &success_message_response
+      description: Success
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+  parameters:
+    incident_path: &incident_path_param
+      name: incident
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: ^[0-9]+$
+    job_id_path: &job_id_path_param
+      name: job_id
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: ^[0-9]+$
+
 paths:
   /incidents:
     get:
@@ -30,36 +68,15 @@ paths:
               items:
                 $ref: '#/components/schemas/incident'
       responses:
-        "200":
-          description: Sync successful
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-        "400":
-          description: Invalid input
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
+        "200": *success_message_response
+        "400": *error_response
   /incidents/{incident}:
     get:
       x-mojo-to: API::Incidents#show
       operationId: showIncident
       description: Show a specific incident
       parameters:
-        - name: incident
-          in: path
-          required: true
-          schema:
-            type: string
-            pattern: ^[0-9]+$
+        - *incident_path_param
       responses:
         "200":
           description: Incident details
@@ -67,26 +84,13 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/incident'
-        "404":
-          description: Incident not found
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
+        "404": *error_response
     patch:
       x-mojo-to: API::Incidents#update
       operationId: updateIncident
       description: Update a specific incident
       parameters:
-        - name: incident
-          in: path
-          required: true
-          schema:
-            type: string
-            pattern: ^[0-9]+$
+        - *incident_path_param
       requestBody:
         required: true
         content:
@@ -94,24 +98,8 @@ paths:
             schema:
               $ref: '#/components/schemas/incident'
       responses:
-        "200":
-          description: Update successful
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-        "400":
-          description: Invalid input
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
+        "200": *success_message_response
+        "400": *error_response
   /incident_settings:
     put:
       x-mojo-to: API::Settings#add_incident_settings
@@ -135,27 +123,14 @@ paths:
                     type: string
                   id:
                     type: integer
-        "400":
-          description: Invalid input or incident not found
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
+        "400": *error_response
   /incident_settings/{incident}:
     get:
       x-mojo-to: API::Settings#get_incident_settings
       operationId: getIncidentSettings
       description: Get settings for a specific incident
       parameters:
-        - name: incident
-          in: path
-          required: true
-          schema:
-            type: string
-            pattern: ^[0-9]+$
+        - *incident_path_param
       responses:
         "200":
           description: Incident settings
@@ -165,15 +140,7 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/incident_settings'
-        "400":
-          description: Incident not found
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
+        "400": *error_response
   /update_settings:
     get:
       x-mojo-to: API::Settings#search_update_settings
@@ -226,27 +193,14 @@ paths:
                     type: string
                   id:
                     type: integer
-        "400":
-          description: Invalid input
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
+        "400": *error_response
   /update_settings/{incident}:
     get:
       x-mojo-to: API::Settings#get_update_settings
       operationId: getUpdateSettings
       description: Get update settings for a specific incident
       parameters:
-        - name: incident
-          in: path
-          required: true
-          schema:
-            type: string
-            pattern: ^[0-9]+$
+        - *incident_path_param
       responses:
         "200":
           description: Update settings
@@ -256,15 +210,7 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/update_settings'
-        "400":
-          description: Incident not found
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
+        "400": *error_response
   /jobs:
     put:
       x-mojo-to: API::Jobs#add
@@ -277,36 +223,15 @@ paths:
             schema:
               $ref: '#/components/schemas/job'
       responses:
-        "200":
-          description: Job added
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-        "400":
-          description: Invalid input
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
+        "200": *success_message_response
+        "400": *error_response
   /jobs/{job_id}:
     get:
       x-mojo-to: API::Jobs#show
       operationId: showJob
       description: Show job details
       parameters:
-        - name: job_id
-          in: path
-          required: true
-          schema:
-            type: string
-            pattern: ^[0-9]+$
+        - *job_id_path_param
       responses:
         "200":
           description: Job details
@@ -314,26 +239,13 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/job'
-        "400":
-          description: Job not found
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
+        "400": *error_response
     patch:
       x-mojo-to: API::Jobs#modify
       operationId: modifyJob
       description: Modify a job
       parameters:
-        - name: job_id
-          in: path
-          required: true
-          schema:
-            type: string
-            pattern: ^[0-9]+$
+        - *job_id_path_param
       requestBody:
         required: true
         content:
@@ -344,36 +256,15 @@ paths:
                 obsolete:
                   type: boolean
       responses:
-        "200":
-          description: Job modified
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-        "400":
-          description: Invalid input
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
+        "200": *success_message_response
+        "400": *error_response
   /jobs/{job_id}/remarks:
     get:
       x-mojo-to: API::Jobs#show_remarks
       operationId: showJobRemarks
       description: Show job remarks
       parameters:
-        - name: job_id
-          in: path
-          required: true
-          schema:
-            type: string
-            pattern: ^[0-9]+$
+        - *job_id_path_param
       responses:
         "200":
           description: Job remarks
@@ -391,26 +282,13 @@ paths:
                           type: string
                         incident:
                           type: integer
-        "404":
-          description: Job not found
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
+        "404": *error_response
     patch:
       x-mojo-to: API::Jobs#update_remark
       operationId: updateJobRemark
       description: Update job remark
       parameters:
-        - name: job_id
-          in: path
-          required: true
-          schema:
-            type: string
-            pattern: ^[0-9]+$
+        - *job_id_path_param
         - name: incident_number
           in: query
           schema:
@@ -422,24 +300,8 @@ paths:
           schema:
             type: string
       responses:
-        "200":
-          description: Remark updated
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-        "404":
-          description: Job or incident not found
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
+        "200": *success_message_response
+        "404": *error_response
   /jobs/incident/{incident_settings}:
     get:
       x-mojo-to: API::Jobs#incidents
