@@ -160,14 +160,14 @@ Tasks are only considered complete once full coverage is confirmed and all tests
 
 ### Documentation
 
-For further documentation, please see **[docs](https://github.com/openSUSE/qem-dashboard/tree/main/docs)**
+For further documentation, please see **[docs](docs/)**
 
 ### Further notes
 
 A containerized environment could be used to build and run the dashboard and its dependencies.
 For a concrete example, checkout the (so far) internal documentation under
 https://gitlab.suse.de/qe-core/dev-dashboard or containers quick start guide
-in **[docs/Containers](https://github.com/openSUSE/qem-dashboard/tree/main/docs/Containers.md)**
+in **[docs/Containers.md](docs/Containers.md)**
 
 ## License
 
