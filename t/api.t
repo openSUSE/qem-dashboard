@@ -75,25 +75,28 @@ subtest 'JSON schema validation failed' => sub {
   stderr_like {
     $t->patch_ok('/api/incidents' => $auth_headers)
       ->status_is(400)
-      ->json_is('/error', 'Incidents in JSON format required');
+      ->json_is('/error', 'Validation failed')
+      ->json_has('/errors');
     $t->patch_ok('/api/incidents' => $auth_headers => json => [{number => 16861}])->status_is(400);
-    like $t->tx->res->json('/error'), qr/Incidents do not match the JSON schema:.+/, 'right error';
+    is $t->tx->res->json('/error'), 'Validation failed', 'right error message';
+    like $t->tx->res->json('/errors/0/message'), qr/.+/, 'has validation details';
 
     $t->patch_ok('/api/incidents' => $auth_headers => json =>
         [{%$mock_incident, packages => [], embargoed => true, priority => undef,}])->status_is(400);
-    like $t->tx->res->json('/error'), qr/Incidents do not match the JSON schema:.+/, 'right error';
+    is $t->tx->res->json('/error'), 'Validation failed', 'right error message';
+    like $t->tx->res->json('/errors/0/message'), qr/.+/, 'has validation details';
 
-    $t->patch_ok('/api/incidents/16860' => $auth_headers)
-      ->status_is(400)
-      ->json_is('/error', 'Incident in JSON format required');
+    $t->patch_ok('/api/incidents/16860' => $auth_headers)->status_is(400)->json_is('/error', 'Validation failed');
     $t->patch_ok(
       '/api/incidents/16860' => $auth_headers => json => {%$mock_incident, packages => [], priority => undef})
       ->status_is(400);
-    like $t->tx->res->json('/error'), qr/Incident does not match the JSON schema:.+/, 'right error';
+    is $t->tx->res->json('/error'), 'Validation failed', 'right error message';
+    like $t->tx->res->json('/errors/0/message'), qr/.+/, 'has validation details';
 
     $t->patch_ok('/api/incidents' => $auth_headers => json => [{%$mock_incident, inReviewQAM => [], priority => undef}])
       ->status_is(400);
-    like $t->tx->res->json('/error'), qr/Expected boolean - got array/, 'right error';
+    is $t->tx->res->json('/error'), 'Validation failed', 'right error message';
+    like $t->tx->res->json('/errors/0/message'), qr/Expected boolean - got array/, 'right error';
   }
   qr/access_log/, 'access log caught';
 };
@@ -118,6 +121,18 @@ subtest 'Add and Update incidents' => sub {
       ->status_is(200)
       ->json_is('/priority',  456)
       ->json_is('/embargoed', true);
+
+    my $qem_bot_incident = {
+      %$mock_incident,
+      number                           => 16861,
+      'scminfo_Foo'                    => 'deadbeef',
+      'scminfo_BAR'                    => 'cafebabe',
+      'failed_or_unpublished_packages' => ['foo'],
+      'successful_packages'            => ['bar'],
+    };
+    $t->patch_ok('/api/incidents' => $auth_headers => json => [$qem_bot_incident])
+      ->status_is(200)
+      ->json_is('/message', 'Ok');
   }
   qr/access_log/, 'access log caught';
 };
