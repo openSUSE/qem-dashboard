@@ -1,66 +1,73 @@
+<script setup>
+import {computed} from 'vue';
+import {useSubmissionStore} from '@/stores/submissions';
+import {useConfigStore} from '@/stores/config';
+import {usePolling} from '../composables/polling';
+import SubmissionLink from './SubmissionLink.vue';
+
+const submissionStore = useSubmissionStore();
+const configStore = useConfigStore();
+
+usePolling(() => submissionStore.fetchSubmissions());
+
+const testingSubmissions = computed(() =>
+  submissionStore.submissions.filter(submission => submission.rr_number > 0 && !submission.approved)
+);
+const stagedSubmissions = computed(() =>
+  submissionStore.submissions.filter(submission => !submission.rr_number && !submission.approved)
+);
+const approvedSubmissions = computed(() => submissionStore.submissions.filter(submission => submission.approved));
+const smelt = computed(() => configStore.smeltUrl);
+</script>
+
 <template>
-  <div v-if="incidents === null"><i class="fas fa-sync fa-spin"></i> Loading incidents...</div>
-  <table class="table" v-else-if="incidents.length > 0">
+  <div v-if="submissionStore.isLoading && submissionStore.submissions.length === 0" aria-hidden="true">
+    <table class="table placeholder-glow">
+      <thead>
+        <tr>
+          <th><span class="placeholder col-4"></span></th>
+          <th><span class="placeholder col-2"></span></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="i in 5" :key="i">
+          <td><span class="placeholder col-8"></span></td>
+          <td><span class="placeholder col-4"></span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <table class="table" v-else-if="submissionStore.submissions.length > 0">
     <thead>
       <tr>
-        <th>Incident</th>
+        <th>Submission</th>
         <th>State</th>
       </tr>
     </thead>
     <tbody>
-      <tr v-for="incident in testingIncidents" :key="incident.number">
-        <td><IncidentLink :incident="incident" /></td>
+      <tr v-for="submission in testingSubmissions" :key="submission.number">
+        <td><SubmissionLink :incident="submission" /></td>
         <td>
-          <a :href="'/blocked#' + incident.number">
+          <a :href="'/blocked#' + submission.number">
             <span class="badge bg-primary">testing</span>
           </a>
         </td>
       </tr>
-      <tr v-for="incident in stagedIncidents" :key="incident.number">
-        <td><IncidentLink :incident="incident" /></td>
+      <tr v-for="submission in stagedSubmissions" :key="submission.number">
+        <td><SubmissionLink :incident="submission" /></td>
         <td><span class="badge bg-secondary">staged</span></td>
       </tr>
-      <tr v-for="incident in approvedIncidents" :key="incident.number">
-        <td><IncidentLink :incident="incident" /></td>
+      <tr v-for="submission in approvedSubmissions" :key="submission.number">
+        <td><SubmissionLink :incident="submission" /></td>
         <td><span class="badge bg-success">approved</span></td>
       </tr>
     </tbody>
   </table>
-  <div v-else>No active incidents, maybe take a look at <a :href="smelt">Smelt</a>.</div>
+  <div v-else>No active submissions, maybe take a look at <a :href="smelt">Smelt</a>.</div>
 </template>
 
 <script>
-import IncidentLink from './IncidentLink.vue';
-import Refresh from '../mixins/refresh.js';
-
 export default {
-  name: 'PageActive',
-  mixins: [Refresh],
-  components: {IncidentLink},
-  data() {
-    return {
-      incidents: null,
-      refreshUrl: '/app/api/list'
-    };
-  },
-  computed: {
-    testingIncidents() {
-      return this.incidents.filter(incident => incident.rr_number > 0 && !incident.approved);
-    },
-    stagedIncidents() {
-      return this.incidents.filter(incident => !incident.rr_number && !incident.approved);
-    },
-    approvedIncidents() {
-      return this.incidents.filter(incident => incident.approved);
-    },
-    smelt() {
-      return this.appConfig.smeltUrl;
-    }
-  },
-  methods: {
-    refreshData(data) {
-      this.incidents = data.incidents;
-    }
-  }
+  name: 'PageActive'
 };
 </script>

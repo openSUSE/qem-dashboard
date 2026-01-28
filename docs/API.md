@@ -1,6 +1,27 @@
-# QEM Dashboard API (WIP draft)
+# QEM Dashboard API
+
+The QEM Dashboard provides a RESTful API for interacting with incidents, openQA settings, and jobs. The API is documented and validated using the [OpenAPI 3.0 Specification](https://spec.openapis.org/oas/v3.0.0).
+
+## Interactive Documentation
+
+You can explore the API interactively using the built-in **Swagger UI**:
+
+- **Swagger UI:** [/swagger](/swagger)
+- **OpenAPI Spec:** [/api/v1/openapi.yaml](/api/v1/openapi.yaml)
+
+The interactive documentation provides detailed information about all available endpoints, request/response schemas, and allows you to test the API directly from your browser.
 
 ## REST API
+
+### Base URL
+
+All API requests should be made to the following base URL:
+
+```
+/api/v1
+```
+
+(Note: The legacy `/api` prefix is still supported for backward compatibility but does not include OpenAPI validation.)
 
 ### Authentication
 
@@ -333,11 +354,11 @@ Get update openQA settings matching the given search parameters. Newest settings
 
 **Request parameters:**
 
-* `product` (required): Settings need to be for this product.
+- `product` (required): Settings need to be for this product.
 
-* `arch` (required): Settings need to be for this architecture.
+- `arch` (required): Settings need to be for this architecture.
 
-* `limit` (optional): Limit the number of results, defaults to `50`.
+- `limit` (optional): Limit the number of results, defaults to `50`.
 
 ```
 GET /api/update_settings?product=SLES-15-GA&arch=x86_64
@@ -438,7 +459,7 @@ None
   "flavor": "Server-DVD-Incidents",
   "arch": "x86_64",
   "version": "12-SP5",
-  "build": ":17063:wpa_supplicant",
+  "build": ":16860:wpa_supplicant",
   "obsolete": false
 }
 ```
@@ -469,7 +490,7 @@ None
   "flavor": "Server-DVD-Incidents",
   "arch": "x86_64",
   "version": "12-SP5",
-  "build": ":17063:wpa_supplicant"
+  "build": ":16860:wpa_supplicant"
 }
 ```
 
@@ -543,7 +564,7 @@ None
     "flavor": "Server-DVD-Incidents",
     "arch": "x86_64",
     "version": "12-SP5",
-    "build": ":17063:wpa_supplicant"
+    "build": ":16860:wpa_supplicant"
   },
   ...
 ]
@@ -579,13 +600,14 @@ None
     "flavor": "Server-DVD-Incidents",
     "arch": "x86_64",
     "version": "12-SP5",
-    "build": ":17063:wpa_supplicant"
+    "build": ":16860:wpa_supplicant"
   },
   ...
 ]
 ```
 
 #### Remarks on openQA jobs
+
 `GET /api/jobs/<job_id>/remarks`
 
 List remarks on an openQA job.
@@ -626,9 +648,9 @@ Only one remark can exist per incident.
 
 **Request parameters:**
 
-* `incident_number` (optional): The incident number if the remark is incident-specific.
+- `incident_number` (optional): The incident number if the remark is incident-specific.
 
-* `text` (optional): The remark text, defaults to an empty text.
+- `text` (optional): The remark text, defaults to an empty text.
 
 **Request body:**
 

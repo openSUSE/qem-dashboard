@@ -1,9 +1,10 @@
 import './sass/app.scss';
 import 'bootstrap';
-import 'bootstrap/dist/css/bootstrap.css';
 import router from './router.js';
 import App from './vue/App.vue';
 import {createApp} from 'vue';
+import {createPinia} from 'pinia';
+import {useConfigStore} from './stores/config';
 
 const backToTop = function () {
   const mybutton = document.getElementById('back-to-top');
@@ -30,10 +31,40 @@ const backToTop = function () {
   mybutton.addEventListener('click', scrollUp);
 };
 
-window.addEventListener('load', async () => {
-  const config = await fetch('/app-config').then(res => res.json());
+const initApp = async () => {
   const app = createApp(App);
-  app.config.globalProperties.appConfig = config;
+  const pinia = createPinia();
+  app.use(pinia);
+
+  const configStore = useConfigStore();
+  await configStore.fetchConfig();
+
+  let isInitialLoad = true;
+  router.beforeEach(async (to, from, next) => {
+    if (isInitialLoad) {
+      isInitialLoad = false;
+      next();
+      return;
+    }
+
+    // Only check if we are already loaded and moving between routes
+    if (configStore.isLoaded) {
+      try {
+        const config = await fetch('/app-config').then(res => res.json());
+        if (config.bootId && config.bootId !== configStore.bootId) {
+          console.log('Server restart detected, reloading...');
+          window.location.reload();
+          return;
+        }
+      } catch (e) {
+        console.error('Failed to check bootId', e);
+      }
+    }
+    next();
+  });
+
   app.use(router).mount('#app');
   backToTop();
-});
+};
+
+initApp();

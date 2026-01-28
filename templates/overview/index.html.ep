@@ -5,8 +5,7 @@
 
     <title>This application requires JavaScript!</title>
 
-    %= asset 'js/qem-dashboard.js'
-    %= asset 'css/qem-dashboard.css'
+    %= vite_asset 'main.js'
 
   </head>
   <body>
