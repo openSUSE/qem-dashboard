@@ -100,6 +100,15 @@ The dashboard provides a native [MCP server](https://modelcontextprotocol.io) fo
 It supports both HTTP/SSE (`/app/mcp`) and Stdio (`script/mcp-stdio`) transports.
 See **[docs/MCP.md](docs/MCP.md)** for more details.
 
+### REST API
+
+The dashboard exposes a RESTful API for integration with other tools. It is documented using OpenAPI 3.0 and includes an interactive Swagger UI.
+
+- **Swagger UI:** `http://127.0.0.1:3000/swagger`
+- **OpenAPI Spec:** `http://127.0.0.1:3000/api/v1/openapi.json`
+
+See **[docs/API.md](docs/API.md)** for more details.
+
 ### Frontend Development
 
 When modifying Vue components or stylesheets:
