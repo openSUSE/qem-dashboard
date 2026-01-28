@@ -105,7 +105,7 @@ See **[docs/MCP.md](docs/MCP.md)** for more details.
 The dashboard exposes a RESTful API for integration with other tools. It is documented using OpenAPI 3.0 and includes an interactive Swagger UI.
 
 - **Swagger UI:** `http://127.0.0.1:3000/swagger`
-- **OpenAPI Spec:** `http://127.0.0.1:3000/api/v1/openapi.json`
+- **OpenAPI Spec:** `http://127.0.0.1:3000/api/v1/openapi.yaml`
 
 See **[docs/API.md](docs/API.md)** for more details.
 

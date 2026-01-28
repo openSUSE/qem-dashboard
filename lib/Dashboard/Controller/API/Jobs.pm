@@ -48,12 +48,7 @@ sub modify ($self) {
     return unless $self->openapi->valid_input;
   }
   else {
-    return $self->render(json => {error => 'Job in JSON format required'}, status => 400)
-      unless my $job_data = $self->req->json;
-
-    my $jv     = $self->schema({type => 'object', properties => {obsolete => {type => 'boolean'}}});
-    my @errors = $jv->validate($job_data);
-    return $self->render(json => {error => "Job does not match the JSON schema: @errors"}, status => 400) if @errors;
+    return $self->render(json => {error => 'Job data in JSON format required'}, status => 400) unless $self->req->json;
   }
 
   my $job_id   = $self->param('job_id');

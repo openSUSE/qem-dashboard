@@ -11,13 +11,12 @@ sub add_incident_settings ($self) {
     return unless $self->openapi->valid_input;
   }
   else {
-    return $self->render(json => {error => 'Incident settings in JSON format required'}, status => 400)
+    return $self->render(json => {error => 'Settings in JSON format required'}, status => 400)
       unless my $settings = $self->req->json;
 
     my $jv     = $self->schema('incident_settings');
     my @errors = $jv->validate($settings);
-    return $self->render(json => {error => "Incident settings do not match the JSON schema: @errors"}, status => 400)
-      if @errors;
+    return $self->render(json => {error => "Settings do not match the JSON schema: @errors"}, status => 400) if @errors;
   }
 
   my $settings = $self->req->json;
@@ -33,13 +32,12 @@ sub add_update_settings ($self) {
     return unless $self->openapi->valid_input;
   }
   else {
-    return $self->render(json => {error => 'Update settings in JSON format required'}, status => 400)
+    return $self->render(json => {error => 'Settings in JSON format required'}, status => 400)
       unless my $settings = $self->req->json;
 
     my $jv     = $self->schema('update_settings');
     my @errors = $jv->validate($settings);
-    return $self->render(json => {error => "Update settings do not match the JSON schema: @errors"}, status => 400)
-      if @errors;
+    return $self->render(json => {error => "Settings do not match the JSON schema: @errors"}, status => 400) if @errors;
   }
 
   my $settings = $self->req->json;
@@ -70,16 +68,7 @@ sub get_update_settings ($self) {
 }
 
 sub search_update_settings ($self) {
-  if ($self->stash('openapi.path')) {
-    return unless $self->openapi->valid_input;
-  }
-  else {
-    my $validation = $self->validation;
-    $validation->required('product');
-    $validation->required('arch');
-    $validation->optional('limit')->num;
-    return $self->reply->json_validation_error if $validation->has_error;
-  }
+  return unless !$self->stash('openapi.path') || $self->openapi->valid_input;
 
   my $product = $self->param('product');
   my $arch    = $self->param('arch');

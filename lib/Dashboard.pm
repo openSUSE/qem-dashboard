@@ -218,31 +218,17 @@ sub _register_routes ($self, $config) {
   $public->get('/submission/<incident:num>')->to('overview#index');
 
   # API (v1 and legacy)
-  my $register_api_routes = sub ($api) {
-    $api->get('/incidents/<incident:num>')->to('API::Incidents#show');
-    $api->get('/incidents')->to('API::Incidents#list');
-    $api->patch('/incidents/<incident:num>')->to('API::Incidents#update');
-    $api->patch('/incidents')->to('API::Incidents#sync');
-    $api->get('/incident_settings/<incident:num>')->to('API::Settings#get_incident_settings');
-    $api->put('/incident_settings')->to('API::Settings#add_incident_settings');
-    $api->get('/update_settings/<incident:num>')->to('API::Settings#get_update_settings');
-    $api->get('/update_settings')->to('API::Settings#search_update_settings');
-    $api->put('/update_settings')->to('API::Settings#add_update_settings');
-    $api->get('/jobs/<job_id:num>')->to('API::Jobs#show');
-    $api->patch('/jobs/<job_id:num>')->to('API::Jobs#modify');
-    $api->get('/jobs/<job_id:num>/remarks')->to('API::Jobs#show_remarks');
-    $api->patch('/jobs/<job_id:num>/remarks')->to('API::Jobs#update_remark');
-    $api->put('/jobs')->to('API::Jobs#add');
-    $api->get('/jobs/incident/<incident_settings:num>')->to('API::Jobs#incidents');
-    $api->get('/jobs/update/<update_settings:num>')->to('API::Jobs#updates');
-  };
-
-  # Legacy API routes (without validation)
-  $register_api_routes->($token->any('/api'));
+  $self->plugin(
+    'OpenAPI' => {
+      url    => $self->home->child('resources', 'openapi.yaml'),
+      route  => $token->any('/api'),
+      coerce => {body => 1, params => 1}
+    }
+  );
 
   $self->plugin(
     'OpenAPI' => {
-      url    => $self->home->child('resources', 'openapi.json'),
+      url    => $self->home->child('resources', 'openapi.yaml'),
       route  => $token->any('/api/v1'),
       coerce => {body => 1, params => 1}
     }
@@ -253,11 +239,9 @@ sub _register_routes ($self, $config) {
       if (ref $data eq 'HASH' && $data->{errors}) {
         my $status = $data->{status} // 400;
         if ($status == 404) { return Mojo::JSON::encode_json({error => 'Resource not found'}) }
-        my @msgs;
-        for my $e (@{$data->{errors} || []}) {
-          push @msgs, eval { $e->message . ($e->path ? " ($e->path)" : "") } // "$e";
-        }
-        return Mojo::JSON::encode_json({error => "Validation failed: " . join(', ', @msgs)});
+        my @errors = map { ref $_ ? {message => $_->message, path => $_->path . ""} : {message => "$_", path => ""} }
+          @{$data->{errors}};
+        return Mojo::JSON::encode_json({error => "Validation failed", errors => \@errors});
       }
       return Mojo::JSON::encode_json($data);
     }
@@ -265,7 +249,7 @@ sub _register_routes ($self, $config) {
 
   # Serve the OpenAPI spec for Swagger UI
   $public->get(
-    '/api/v1/openapi.json' => sub ($c) { $c->reply->file($c->app->home->child('resources', 'openapi.json')) });
+    '/api/v1/openapi.yaml' => sub ($c) { $c->reply->file($c->app->home->child('resources', 'openapi.yaml')) });
 
   # Swagger UI page
   $public->get(
@@ -314,7 +298,7 @@ sub _register_routes ($self, $config) {
     window.onload = function() {
       // Begin Swagger UI call region
       const ui = SwaggerUIBundle({
-        url: "/api/v1/openapi.json",
+        url: "/api/v1/openapi.yaml",
         dom_id: '#swagger-ui',
         deepLinking: true,
         presets: [
