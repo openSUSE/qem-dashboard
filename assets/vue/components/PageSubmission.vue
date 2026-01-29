@@ -113,18 +113,10 @@ const sortedBuilds = computed(() => {
       />
     </div>
 
-    <div class="details" v-if="submissionDetailStore.submission">
+    <div class="details" v-if="submissionDetailStore.submission?.scminfo">
       <h2>Further details</h2>
       <table class="table table-sm">
-        <tr v-if="submissionDetailStore.submission.url && submissionDetailStore.submission.url.length > 0">
-          <th>URL</th>
-          <td>
-            <a :href="submissionDetailStore.submission.url" target="_blank">{{
-              submissionDetailStore.submission.url
-            }}</a>
-          </td>
-        </tr>
-        <tr v-if="submissionDetailStore.submission.scminfo">
+        <tr>
           <th>SCM Info</th>
           <td>{{ submissionDetailStore.submission.scminfo }}</td>
         </tr>
