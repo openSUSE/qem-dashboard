@@ -6,6 +6,10 @@
 
 Reference documentation for the QEM-Dashboard REST API
 
+- [Configuration](Configuration.md)
+
+Configuration and environment variables
+
 - [MCP](MCP.md)
 
 Model Context Protocol (MCP) server documentation
