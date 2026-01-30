@@ -19,35 +19,54 @@ t.test('Accessibility audits', {skip, timeout: 60000}, async t => {
   const page = await context.newPage();
   const url = server.url();
 
+  const errorLogs = [];
+  page.on('console', message => {
+    if (message.type() === 'error') {
+      errorLogs.push(message.text());
+    }
+  });
+
   // Wait for the server to be ready
   const ua = new UserAgent();
   await ua.get(url, {timeout: 10000}).catch(error => console.warn(error));
 
   const checkAccessibility = async name => {
     await t.test(`Audit ${name}`, async t => {
-      const results = await new AxeBuilder({page}).analyze();
-      t.equal(results.violations.length, 0, `Should have no accessibility violations on ${name}`);
-      if (results.violations.length > 0) {
-        console.log(`Violations on ${name}:`, JSON.stringify(results.violations, null, 2));
+      try {
+        const results = await new AxeBuilder({page}).analyze();
+        t.equal(results.violations.length, 0, `Should have no accessibility violations on ${name}`);
+        if (results.violations.length > 0) {
+          console.log(`Violations on ${name}:`, JSON.stringify(results.violations, null, 2));
+        }
+      } catch (error) {
+        t.fail(`Failed to analyze ${name}: ${error.message}`);
       }
     });
   };
 
-  await page.goto(url);
-  await page.waitForSelector('.navbar');
-  await checkAccessibility('Active Incidents (Home)');
+  try {
+    await page.goto(url, {waitUntil: 'networkidle'});
+    await page.waitForSelector('.navbar', {timeout: 5000});
+    await checkAccessibility('Active Incidents (Home)');
 
-  await page.click('text=Blocked');
-  await page.waitForSelector('tbody tr');
-  await checkAccessibility('Blocked by Tests');
+    await page.click('text=Blocked');
+    await page.waitForSelector('tbody tr', {timeout: 5000});
+    await checkAccessibility('Blocked by Tests');
 
-  await page.click('text=Repos');
-  await page.waitForSelector('tbody');
-  await checkAccessibility('Test Repos');
+    await page.click('text=Repos');
+    await page.waitForSelector('tbody', {timeout: 5000});
+    await checkAccessibility('Test Repos');
 
-  await page.goto(`${url}/incident/16860`);
-  await page.waitForSelector('.details');
-  await checkAccessibility('Incident Details');
+    await page.goto(`${url}/incident/16860`, {waitUntil: 'networkidle'});
+    await page.waitForSelector('.details', {timeout: 5000});
+    await checkAccessibility('Incident Details');
+  } catch (error) {
+    t.fail(`Navigation or selection failed: ${error.message}`);
+  }
+
+  if (errorLogs.length > 0) {
+    t.fail(`Unexpected console errors found:\n${errorLogs.join('\n')}`);
+  }
 
   await context.close();
   await browser.close();
