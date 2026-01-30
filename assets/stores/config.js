@@ -6,6 +6,7 @@ export const useConfigStore = defineStore('config', {
     openqaUrl: '',
     obsUrl: '',
     smeltUrl: '',
+    giteaFallbackPriority: 0,
     isLoaded: false
   }),
   actions: {
@@ -15,6 +16,7 @@ export const useConfigStore = defineStore('config', {
       this.openqaUrl = config.openqaUrl;
       this.obsUrl = config.obsUrl;
       this.smeltUrl = config.smeltUrl;
+      this.giteaFallbackPriority = config.giteaFallbackPriority;
       this.isLoaded = true;
     }
   }
