@@ -19,6 +19,10 @@ install-deps-js:
 	npm clean-install --ignore-scripts
 	npx playwright install --with-deps
 
+.PHONY: install-deps-js-full
+install-deps-js-full:
+	npm install --ignore-scripts  # "npm clean-install" seems to not always build all assets. This is meant for development setups
+
 .PHONY: install-deps-ubuntu
 install-deps-ubuntu:
 	sudo apt-get update
@@ -49,6 +53,12 @@ run-mock:
 	MOJO_MODE=$(MOJO_MODE) \
 	TEST_ONLINE=$(TEST_ONLINE) \
 	./script/run-mock
+
+.PHONY: run-dashboard-local
+.NOTPARALLEL: run-dashboard-local
+run-dashboard-local: install-deps-js-full build
+	git restore package-lock.json
+	env DASHBOARD_CONF_OVERRIDE='{"pg":"${TEST_ONLINE}"}' script/dashboard daemon
 
 .PHONY: tidy
 tidy:
