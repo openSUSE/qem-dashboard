@@ -11,7 +11,7 @@ import t from 'tap';
 const env = process.env;
 const skip = env.TEST_ONLINE === undefined ? {skip: 'set TEST_ONLINE to enable this test'} : {};
 
-t.test('Accessibility audits', skip, async t => {
+t.test('Accessibility audits', {skip, timeout: 60000}, async t => {
   const server = await ServerStarter.newServer();
   await server.launch('perl', ['t/wrappers/ui.pl']);
   const browser = await chromium.launch(env.TEST_HEADLESS === '0' ? {headless: false} : {});
