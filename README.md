@@ -92,7 +92,7 @@ For development and manual testing of the UI without a full production environme
    ```bash
    make run-mock
    ```
-3. The dashboard will be available at `http://127.0.0.1:3000` with multiple incidents and job results already loaded.
+3. The dashboard will be available at `http://localhost:3000` with multiple incidents and job results already loaded.
 
 ### Model Context Protocol (MCP)
 
@@ -104,8 +104,8 @@ See **[docs/MCP.md](docs/MCP.md)** for more details.
 
 The dashboard exposes a RESTful API for integration with other tools. It is documented using OpenAPI 3.0 and includes an interactive Swagger UI.
 
-- **Swagger UI:** `http://127.0.0.1:3000/swagger`
-- **OpenAPI Spec:** `http://127.0.0.1:3000/api/openapi.yaml`
+- **Swagger UI:** `http://localhost:3000/swagger`
+- **OpenAPI Spec:** `http://localhost:3000/api/v1/openapi.yaml`
 
 See **[docs/API.md](docs/API.md)** for more details.
 
@@ -129,6 +129,23 @@ When modifying Vue components or stylesheets:
   npm run watch
   ```
   You will still need to refresh your browser.
+
+### Configuration
+
+The dashboard can be configured via a YAML file. By default, it looks for `dashboard.yml` in the current directory or `/home/lurklur/dashboard.yml`.
+
+The following environment variables can be used to override the configuration:
+
+- `DASHBOARD_CONF`: Path to the configuration file.
+- `DASHBOARD_CONF_OVERRIDE`: A JSON string used to override configuration values. This is especially useful for passing secrets or temporary configuration changes in containerized environments.
+
+See **[docs/Configuration.md](docs/Configuration.md)** for more details.
+
+Example:
+
+```bash
+DASHBOARD_CONF_OVERRIDE='{"pg":"postgresql://postgres:postgres@localhost:5432/postgres"}' script/dashboard daemon
+```
 
 ## Contribute
 
