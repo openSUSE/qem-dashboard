@@ -11,4 +11,5 @@ obs:
   url: https://build.opensuse.org
 smelt:
   url: https://smelt.suse.de
+gitea_fallback_priority: 550
 days_to_keep_aggregates: 90

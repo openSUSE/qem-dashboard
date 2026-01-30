@@ -55,7 +55,14 @@ const matchedSubmissions = computed(() => {
   }
 
   history.pushState({}, '', url);
-  return results.sort((a, b) => (b.incident.priority || 0) - (a.incident.priority || 0));
+
+  const getPriority = incident => {
+    if (incident.priority !== null) return incident.priority;
+    if (incident.type === 'git') return configStore.giteaFallbackPriority || 550;
+    return 0;
+  };
+
+  return results.sort((a, b) => getPriority(b.incident) - getPriority(a.incident));
 });
 
 const smelt = computed(() => configStore.smeltUrl);

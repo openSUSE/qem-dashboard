@@ -181,10 +181,11 @@ sub _register_routes ($self, $config) {
       my $config = $c->app->config;
       $c->render(
         json => {
-          bootId    => $self->{boot_id},
-          openqaUrl => $c->openqa_url->path('/tests/overview'),
-          obsUrl    => $config->{obs}{url},
-          smeltUrl  => $config->{smelt}{url}
+          bootId                => $self->{boot_id},
+          openqaUrl             => $c->openqa_url->path('/tests/overview'),
+          obsUrl                => $config->{obs}{url},
+          smeltUrl              => $config->{smelt}{url},
+          giteaFallbackPriority => $config->{gitea_fallback_priority} // 550
         }
       );
     }

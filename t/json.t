@@ -106,6 +106,23 @@ subtest 'List incidents' => sub {
           "scminfo"     => "",
           "url"         => "",
           "type"        => "",
+        },
+        {
+          "approved"    => 0,
+          "channels"    => ["Test"],
+          "emu"         => 0,
+          "embargoed"   => 0,
+          "inReview"    => 1,
+          "inReviewQAM" => 1,
+          "isActive"    => 1,
+          "number"      => 30000,
+          "packages"    => ["gitea-pr"],
+          "priority"    => undef,
+          "project"     => "SUSE:Maintenance:30000",
+          "rr_number"   => undef,
+          "scminfo"     => "",
+          "url"         => "",
+          "type"        => "git",
         }
       ]
     )
@@ -241,6 +258,27 @@ subtest 'Blocked by Tests' => sub {
               "failed" => 1
             }
           }
+        },
+        {
+          "incident" => {
+            "active"     => 1,
+            "approved"   => 0,
+            "embargoed"  => 0,
+            "emu"        => 0,
+            "id"         => 5,
+            "number"     => 30000,
+            "packages"   => ["gitea-pr"],
+            "priority"   => undef,
+            "project"    => "SUSE:Maintenance:30000",
+            "review"     => 1,
+            "review_qam" => 1,
+            "rr_number"  => undef,
+            "scminfo"    => "",
+            "url"        => "",
+            "type"       => "git",
+          },
+          "incident_results" => {},
+          "update_results"   => {}
         }
       ]
       )
