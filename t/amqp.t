@@ -94,8 +94,22 @@ subtest 'Handle delete job' => sub {
   _is_count(0);
 };
 
-subtest 'Non-job key' => sub {
-  is $t->app->amqp->handle('suse.openqa.jobs.done', {id => 123}), undef, 'returns early for non-job key';
+subtest 'Handle wrong topic format' => sub {
+  my %results = (
+    %$msg,
+    "bugref"    => undef,
+    "group_id"  => 54,
+    "newbuild"  => undef,
+    "reason"    => undef,
+    "remaining" => 0,
+    "result"    => "user_cancelled"
+  );
+  is $t->app->amqp->handle('suse.openqa.jobs.done', \%results), undef,
+    'return early because of wrong object in the format';
+};
+
+subtest 'Handle missing data' => sub {
+  is $t->app->amqp->handle('suse.openqa.job.done', {id => 123}), undef, 'returns early with missing arguments';
 };
 
 subtest 'Unknown type' => sub {
