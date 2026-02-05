@@ -8,7 +8,7 @@ has [qw(log jobs)];
 
 sub handle ($self, $key, $data) {
   my (undef, undef, $object, $type) = split(/\./, $key);
-  return unless $object ne 'jobs';
+  return unless $object eq 'job';
   $self->log->debug("HANDLE $key " . Mojo::Util::dumper($data));
   if ($type eq 'done') {
     $self->jobs->update_result($data->{id}, $data->{result});
