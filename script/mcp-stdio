@@ -1,0 +1,9 @@
+#!/usr/bin/env perl
+use Mojo::Base -strict, -signatures;
+use Mojo::File qw(curfile);
+use lib curfile->dirname->sibling('lib')->to_string;
+use Dashboard;
+
+my $app = Dashboard->new;
+$app->startup;
+$app->mcp->server->to_stdio;
