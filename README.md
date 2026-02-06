@@ -94,6 +94,12 @@ For development and manual testing of the UI without a full production environme
    ```
 3. The dashboard will be available at `http://127.0.0.1:3000` with multiple incidents and job results already loaded.
 
+### Model Context Protocol (MCP)
+
+The dashboard provides a native [MCP server](https://modelcontextprotocol.io) for interaction with AI agents.
+It supports both HTTP/SSE (`/app/mcp`) and Stdio (`script/mcp-stdio`) transports.
+See **[docs/MCP.md](docs/MCP.md)** for more details.
+
 ### Frontend Development
 
 When modifying Vue components or stylesheets:
@@ -123,9 +129,12 @@ requests there.
 ### Rules for Commits
 
 - For git commit messages use the rules stated on
-  [How to Write a Git Commit Message](http://chris.beams.io/posts/git-commit/) as a reference
+  [How to Write a Git Commit Message](http://chris.beams.io/posts/git-commit/) as a reference.
+- **Automated Validation:** Commit messages are automatically checked using `commitlint` to ensure they
+  follow the [Conventional Commits](https://www.conventionalcommits.org/) specification.
+- **Line Width:** The commit body is restricted to a maximum of **80 characters** per line.
 - As a SUSE colleague consider signing commits which we consider to use for
-  automatic deployments within SUSE
+  automatic deployments within SUSE.
 
 If this is too much hassle for you feel free to provide incomplete pull requests for consideration or create an issue
 with a code change proposal.
@@ -151,14 +160,14 @@ Tasks are only considered complete once full coverage is confirmed and all tests
 
 ### Documentation
 
-For further documentation, please see **[docs](https://github.com/openSUSE/qem-dashboard/tree/main/docs)**
+For further documentation, please see **[docs](docs/)**
 
 ### Further notes
 
 A containerized environment could be used to build and run the dashboard and its dependencies.
 For a concrete example, checkout the (so far) internal documentation under
 https://gitlab.suse.de/qe-core/dev-dashboard or containers quick start guide
-in **[docs/Containers](https://github.com/openSUSE/qem-dashboard/tree/main/docs/Containers.md)**
+in **[docs/Containers.md](docs/Containers.md)**
 
 ## License
 

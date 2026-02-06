@@ -77,11 +77,12 @@ t.test('Test dashboard ui', {skip, timeout: 60000}, async t => {
     await page.goto(`${url}/blocked`);
     await page.waitForSelector('tbody');
     const list = page.locator('tbody > tr');
-    t.equal(await list.count(), 2);
+    t.equal(await list.count(), 3);
     t.match(await page.innerText('tbody tr:nth-of-type(1) td:nth-of-type(1) a'), /29722:multipath-tools/);
     t.match(await page.innerText('tbody tr:nth-of-type(1) td:nth-of-type(2)'), /SAP\/HA Maintenance 1\/5/);
-    t.match(await page.innerText('tbody tr:nth-of-type(2) td:nth-of-type(1) a'), /16860:perl-Mojolicious/);
-    t.match(await page.innerText('tbody tr:nth-of-type(2) td:nth-of-type(2)'), /SLE 12 SP5 1/);
+    t.match(await page.innerText('tbody tr:nth-of-type(2) td:nth-of-type(1) a'), /30000:gitea-pr/);
+    t.match(await page.innerText('tbody tr:nth-of-type(3) td:nth-of-type(1) a'), /16860:perl-Mojolicious/);
+    t.match(await page.innerText('tbody tr:nth-of-type(3) td:nth-of-type(2)'), /SLE 12 SP5 1/);
     t.match(await page.innerText('tbody tr.high-priority'), /29722:multipath-tools/);
     const pageUrl = await page.url();
     t.notMatch(pageUrl, /incident/);

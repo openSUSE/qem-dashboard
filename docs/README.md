@@ -6,6 +6,10 @@
 
 Reference documentation for the QEM-Dashboard REST API
 
+- [MCP](MCP.md)
+
+Model Context Protocol (MCP) server documentation
+
 - [Folders](Folders.md)
 
 Information about the project directory structure
