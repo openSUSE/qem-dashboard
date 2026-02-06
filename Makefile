@@ -4,6 +4,7 @@ HARNESS_PERL_SWITCHES ?= -MDevel::Cover=-ignore,^blib/,-ignore,^templates/,-igno
 COVERAGE_OPTS ?= PERL5OPT='$(HARNESS_PERL_SWITCHES)'
 TEST_WRAPPER_COVERAGE ?= 1
 ASSET_SOURCES := $(shell find assets -type f) package-lock.json vite.config.js
+COMMIT_ARGS ?= --last
 
 .PHONY: all
 all: help
@@ -30,10 +31,7 @@ install-deps-ubuntu:
 
 .PHONY: install-deps-cpanm
 install-deps-cpanm:
-	cpanm -n --installdeps .
-	cpanm -n Test::Deep
-	cpanm -n Devel::Cover::Report::Coveralls
-	cpanm -n CPAN::Audit
+	cpanm -n --installdeps --with-feature=coverage .
 
 .PHONY: install-deps
 install-deps: install-deps-js install-deps-ubuntu install-deps-cpanm
@@ -61,8 +59,12 @@ run-dashboard-local: install-deps-js-full build
 	git restore package-lock.json
 	env DASHBOARD_CONF_OVERRIDE='{"pg":"${TEST_ONLINE}"}' script/dashboard daemon
 
-.PHONY: tidy-js
-tidy-js:
+.PHONY: run-mcp-stdio
+run-mcp-stdio:
+	./script/mcp-stdio
+
+.PHONY: tidy-npm
+tidy-npm:
 	npm run lint:fix
 
 .PHONY: tidy-perl
@@ -70,7 +72,7 @@ tidy-perl:
 	bash -c 'shopt -s extglob globstar nullglob; perltidy --pro=.../.perltidyrc -b -bext='/' **/*.p[lm] **/*.t && git diff --exit-code'
 
 .PHONY: tidy
-tidy: tidy-js tidy-perl
+tidy: tidy-npm tidy-perl
 
 .PHONY: test-unit
 test-unit: public/asset
@@ -96,7 +98,11 @@ check-audits-cpan:
 	PERL5LIB=~/perl5/lib/perl5:$$PERL5LIB PATH=~/perl5/bin:$$PATH cpan-audit deps . \
 		--exclude CPANSA-Mojolicious-2024-58134 \
 		--exclude CPANSA-Mojolicious-2024-58135 \
-		--exclude CPANSA-File-Temp-2011-4116
+		--exclude CPANSA-File-Temp-2011-4116 \
+		--exclude CPANSA-YAML-LibYAML-2025-001 \
+		--exclude CPANSA-YAML-LibYAML-2012-1152 \
+		--exclude CPANSA-YAML-LibYAML-2014-9130 \
+		--exclude CPANSA-YAML-LibYAML-2016-01
 
 .PHONY: check-audits-npm
 check-audits-npm:
@@ -108,12 +114,13 @@ check-audits: check-audits-cpan check-audits-npm  # Run audits
 .PHONY: lint-npm
 lint-npm:
 	npm run lint
+	npm run lint:commit -- $(COMMIT_ARGS)
 
 .PHONY: checkstyle-perl
 checkstyle-perl: tidy-perl check-audits-cpan
 
 .PHONY: checkstyle-npm
-checkstyle-npm: lint-npm tidy-js check-audits-npm
+checkstyle-npm: lint-npm tidy-npm check-audits-npm
 
 .PHONY: checkstyle
 checkstyle: checkstyle-perl checkstyle-npm
