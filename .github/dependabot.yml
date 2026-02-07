@@ -11,3 +11,6 @@ updates:
     labels:
       - "waiting"
       - "dependencies"
+    commit-message:
+      prefix: build
+      include: scope
