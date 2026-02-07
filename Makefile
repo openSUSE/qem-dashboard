@@ -62,6 +62,10 @@ run-dashboard-local: install-deps-js-full build
 	git restore package-lock.json
 	env DASHBOARD_CONF_OVERRIDE='{"pg":"${TEST_ONLINE}"}' script/dashboard daemon
 
+.PHONY: run-mcp-stdio
+run-mcp-stdio:
+	./script/mcp-stdio
+
 .PHONY: tidy-npm
 tidy-npm:
 	npm run lint:fix
