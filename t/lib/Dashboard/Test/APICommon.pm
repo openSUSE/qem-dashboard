@@ -43,10 +43,14 @@ sub run_api_tests ($t, $prefix) {
 
   subtest 'No incidents yet' => sub {
     stderr_like {
-      $t->get_ok("$prefix/incidents"       => $auth_headers)->status_is(200)->json_is('',       [], 'empty list');
-      $t->get_ok("$prefix/incidents/1"     => $auth_headers)->status_is(404)->json_is('/error', 'Incident not found');
-      $t->get_ok("$prefix/incidents/16860" => $auth_headers)->status_is(404)->json_is('/error', 'Incident not found');
-      $t->get_ok("$prefix/incidents/abc"   => $auth_headers)->status_is(400)->json_is('/error', 'Validation failed');
+      $t->get_ok("$prefix/incidents"   => $auth_headers)->status_is(200)->json_is('', [], 'empty list');
+      $t->get_ok("$prefix/incidents/1" => $auth_headers)
+        ->status_is(404)
+        ->json_is('/error', 'Incident not found', 'error for incident 1');
+      $t->get_ok("$prefix/incidents/16860" => $auth_headers)
+        ->status_is(404)
+        ->json_is('/error', 'Incident not found', 'error for incident 16860');
+      $t->get_ok("$prefix/incidents/abc" => $auth_headers)->status_is(400)->json_is('/error', 'Validation failed');
     }
     qr/access_log/, 'access log caught';
   };
@@ -70,11 +74,11 @@ sub run_api_tests ($t, $prefix) {
         ->json_is('/errors/0/message', 'Missing property.')
         ->json_is('/errors/0/path',    '/body');
       $t->patch_ok("$prefix/incidents" => $auth_headers => json => [{number => 16861}])->status_is(400);
-      is $t->tx->res->json('/error'), 'Validation failed', 'right error';
+      is $t->tx->res->json('/error'), 'Validation failed', 'right error for missing project';
 
       $t->patch_ok("$prefix/incidents" => $auth_headers => json => [{%$mock_incident, packages => "not an array"}])
         ->status_is(400);
-      is $t->tx->res->json('/error'), 'Validation failed', 'right error';
+      is $t->tx->res->json('/error'), 'Validation failed', 'right error for empty packages';
 
       $t->patch_ok("$prefix/incidents/16860" => $auth_headers)
         ->status_is(400)
@@ -83,13 +87,13 @@ sub run_api_tests ($t, $prefix) {
         ->json_is('/errors/0/path',    '/body');
       $t->patch_ok("$prefix/incidents/16860" => $auth_headers => json => {%$mock_incident, packages => "not an array"})
         ->status_is(400);
-      is $t->tx->res->json('/error'), 'Validation failed', 'right error';
+      is $t->tx->res->json('/error'), 'Validation failed', 'right error for missing priority';
 
       $t->patch_ok(
         "$prefix/incidents" => $auth_headers => json => [{%$mock_incident, inReviewQAM => [], priority => undef}])
         ->status_is(400);
-      is $t->tx->res->json('/error'),            'Validation failed',             'right error';
-      is $t->tx->res->json('/errors/0/message'), 'Expected boolean - got array.', 'right error message';
+      is $t->tx->res->json('/error'),            'Validation failed',             'right error for invalid inReviewQAM';
+      is $t->tx->res->json('/errors/0/message'), 'Expected boolean - got array.', 'right error message for inReviewQAM';
     }
     qr/access_log/, 'access log caught';
   };
@@ -98,7 +102,7 @@ sub run_api_tests ($t, $prefix) {
     stderr_like {
       $t->patch_ok("$prefix/incidents" => $auth_headers => json => [$mock_incident])
         ->status_is(200)
-        ->json_is('/message', 'Ok');
+        ->json_is('/message', 'Ok', 'patch incidents returns Ok');
 
       my $expected = {%$mock_incident, type => '', url => '', scminfo => ''};
       $t->get_ok("$prefix/incidents"       => $auth_headers)->status_is(200)->json_is('', [$expected]);
@@ -108,7 +112,7 @@ sub run_api_tests ($t, $prefix) {
       my $updated_mock = {%$mock_incident, priority => 456, embargoed => true};
       $t->patch_ok("$prefix/incidents/16860" => $auth_headers => json => $updated_mock);
       diag $t->tx->res->body unless $t->tx->res->code == 200;
-      $t->status_is(200)->json_is('/message', 'Ok');
+      $t->status_is(200)->json_is('/message', 'Ok', 'update incident 16860 returns Ok');
 
       $t->get_ok("$prefix/incidents/16860" => $auth_headers)
         ->status_is(200)
@@ -126,7 +130,7 @@ sub run_api_tests ($t, $prefix) {
       };
       $t->patch_ok("$prefix/incidents" => $auth_headers => json => [$qem_bot_incident])
         ->status_is(200)
-        ->json_is('/message', 'Ok');
+        ->json_is('/message', 'Ok', 'patch qem-bot incident returns Ok');
     }
     qr/access_log/, 'access log caught';
   };
@@ -144,12 +148,12 @@ sub run_api_tests ($t, $prefix) {
           withAggregate => true,
           settings      => {DISTRI => 'sle', VERSION => '12-SP5'}
         }
-      )->status_is(200)->json_is('/message', 'Ok')->json_is('/id', 1);
+      )->status_is(200)->json_is('/message', 'Ok', 'put incident_settings returns Ok')->json_is('/id', 1);
 
       # Test missing branch in Settings.pm (incident not found)
       $t->get_ok("$prefix/incident_settings/99999" => $auth_headers)
         ->status_is(400)
-        ->json_is('/error', 'Incident not found');
+        ->json_is('/error', 'Incident not found', 'error for non-existent incident settings');
 
       # Add update settings
       $t->put_ok(
@@ -161,7 +165,7 @@ sub run_api_tests ($t, $prefix) {
           repohash  => 'd5815a9f8aa482ec8288508da27a9d36',
           settings  => {DISTRI => 'sle', VERSION => '15-SP2'}
         }
-      )->status_is(200)->json_is('/message', 'Ok')->json_is('/id', 1);
+      )->status_is(200)->json_is('/message', 'Ok', 'put update_settings returns Ok')->json_is('/id', 1);
 
       # Add job
       my $job_data = {
@@ -178,11 +182,15 @@ sub run_api_tests ($t, $prefix) {
         version           => '12-SP5',
         build             => ':16860:wpa_supplicant'
       };
-      $t->put_ok("$prefix/jobs" => $auth_headers => json => $job_data)->status_is(200)->json_is('/message', 'Ok');
+      $t->put_ok("$prefix/jobs" => $auth_headers => json => $job_data)
+        ->status_is(200)
+        ->json_is('/message', 'Ok', 'put jobs returns Ok');
 
       # Add job with incident_settings only (covers branch in Jobs.pm)
       my $job_data_2 = {%$job_data, job_id => 4953194, name => 'other-job@64bit', update_settings => undef};
-      $t->put_ok("$prefix/jobs" => $auth_headers => json => $job_data_2)->status_is(200)->json_is('/message', 'Ok');
+      $t->put_ok("$prefix/jobs" => $auth_headers => json => $job_data_2)
+        ->status_is(200)
+        ->json_is('/message', 'Ok', 'put jobs (incident only) returns Ok');
 
       # Verify Get jobs by settings
       $t->get_ok("$prefix/jobs/incident/1" => $auth_headers)->status_is(200);
@@ -200,7 +208,7 @@ sub run_api_tests ($t, $prefix) {
     stderr_like {
       $t->patch_ok("$prefix/jobs/4953193/remarks?incident_number=16860&text=acceptable_for" => $auth_headers)
         ->status_is(200)
-        ->json_is('/message', 'Ok');
+        ->json_is('/message', 'Ok', 'patch job remarks returns Ok');
 
       $t->get_ok("$prefix/jobs/4953193/remarks" => $auth_headers)
         ->status_is(200)
@@ -209,7 +217,7 @@ sub run_api_tests ($t, $prefix) {
       # Branch coverage: job remark without incident number
       $t->patch_ok("$prefix/jobs/4953193/remarks?text=global_remark" => $auth_headers)
         ->status_is(200)
-        ->json_is('/message', 'Ok');
+        ->json_is('/message', 'Ok', 'patch global job remarks returns Ok');
       $t->get_ok("$prefix/jobs/4953193/remarks" => $auth_headers)
         ->status_is(200)
         ->json_is('/remarks/1/text', 'global_remark')
@@ -223,7 +231,7 @@ sub run_api_tests ($t, $prefix) {
       # Missing branch: non-existent incident
       $t->patch_ok("$prefix/jobs/4953193/remarks?incident_number=99999&text=foo" => $auth_headers)
         ->status_is(404)
-        ->json_is('/error', 'Incident (99999) does not exist');
+        ->json_is('/error', 'Incident (99999) does not exist', 'error for remark with non-existent incident');
 
       # Validation failure: invalid incident_number in JSON
       $t->patch_ok("$prefix/jobs/4953193/remarks" => $auth_headers => json => {incident_number => 'abc', text => 'foo'})
@@ -252,13 +260,13 @@ sub run_api_tests ($t, $prefix) {
       $t->put_ok("$prefix/incident_settings" => $auth_headers => json =>
           {incident => 99999, version => 'v', flavor => 'f', arch => 'a', withAggregate => true, settings => {}})
         ->status_is(400)
-        ->json_is('/error', 'Incident not found');
+        ->json_is('/error', 'Incident not found', 'error for adding incident_settings with non-existent incident');
 
       # add_update_settings: one of incidents not found
       $t->put_ok("$prefix/update_settings" => $auth_headers => json =>
           {incidents => [16860, 99999], product => 'p', arch => 'a', build => 'b', repohash => 'h', settings => {}})
         ->status_is(400)
-        ->json_is('/error', 'Incident not found');
+        ->json_is('/error', 'Incident not found', 'error for adding update_settings with non-existent incident');
 
       # _fix_booleans: withAggregate is false
       $t->put_ok("$prefix/incident_settings" => $auth_headers => json =>
