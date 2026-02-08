@@ -34,7 +34,7 @@
     "@mojojs/core": "^1.26.12",
     "@mojojs/path": "^1.7.0",
     "@mojolicious/server-starter": "^2.2.0",
-    "@vitejs/plugin-vue": "^6.0.3",
+    "@vitejs/plugin-vue": "^6.0.4",
     "bootstrap": "^5.3.8",
     "date-fns": "^4.1.0",
     "eslint": "^9.39.2",
