@@ -12,5 +12,5 @@ updates:
       - "waiting"
       - "dependencies"
     commit-message:
-      prefix: build
+      prefix: "chore"
       include: scope
