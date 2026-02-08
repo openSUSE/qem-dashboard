@@ -156,13 +156,13 @@ subtest 'Dashboard::Model::Jobs' => sub {
   subtest '_normalize_result' => sub {
 
     # Internal method, but we can test it via a helper or by making it public/testing through update_result
-    is Dashboard::Model::Jobs::_normalize_result('passed'),           'passed';
-    is Dashboard::Model::Jobs::_normalize_result('softfailed'),       'passed';
-    is Dashboard::Model::Jobs::_normalize_result('none'),             'waiting';
-    is Dashboard::Model::Jobs::_normalize_result('failed'),           'failed';
-    is Dashboard::Model::Jobs::_normalize_result('timeout_exceeded'), 'stopped';
-    is Dashboard::Model::Jobs::_normalize_result('user_cancelled'),   'stopped';
-    is Dashboard::Model::Jobs::_normalize_result('something_else'),   'failed';
+    is Dashboard::Model::Jobs::_normalize_result('passed'),           'passed',  'passed stays passed';
+    is Dashboard::Model::Jobs::_normalize_result('softfailed'),       'passed',  'softfailed becomes passed';
+    is Dashboard::Model::Jobs::_normalize_result('none'),             'waiting', 'none becomes waiting';
+    is Dashboard::Model::Jobs::_normalize_result('failed'),           'failed',  'failed stays failed';
+    is Dashboard::Model::Jobs::_normalize_result('timeout_exceeded'), 'stopped', 'timeout_exceeded becomes stopped';
+    is Dashboard::Model::Jobs::_normalize_result('user_cancelled'),   'stopped', 'user_cancelled becomes stopped';
+    is Dashboard::Model::Jobs::_normalize_result('something_else'),   'failed',  'something_else becomes failed';
   };
 
   subtest 'latest_update with no jobs' => sub {
