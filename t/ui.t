@@ -21,10 +21,18 @@ $dashboard_test->minimal_fixtures($t->app);
 
 subtest 'Webpack provided under various URLs' => sub {
   stderr_like {
-    $t->get_ok('/')->status_is(200)->text_like('#app' => qr/This application requires JavaScript!/);
-    $t->get_ok('/blocked')->status_is(200)->text_like('#app' => qr/This application requires JavaScript!/);
-    $t->get_ok('/repos')->status_is(200)->text_like('#app' => qr/This application requires JavaScript!/);
-    $t->get_ok('/incident/16860')->status_is(200)->text_like('#app' => qr/This application requires JavaScript!/);
+    $t->get_ok('/')
+      ->status_is(200)
+      ->text_like('#app' => qr/This application requires JavaScript!/, 'JS requirement check on /');
+    $t->get_ok('/blocked')
+      ->status_is(200)
+      ->text_like('#app' => qr/This application requires JavaScript!/, 'JS requirement check on /blocked');
+    $t->get_ok('/repos')
+      ->status_is(200)
+      ->text_like('#app' => qr/This application requires JavaScript!/, 'JS requirement check on /repos');
+    $t->get_ok('/incident/16860')
+      ->status_is(200)
+      ->text_like('#app' => qr/This application requires JavaScript!/, 'JS requirement check on /incident/16860');
   }
   qr/access_log/, 'access log caught';
 };
