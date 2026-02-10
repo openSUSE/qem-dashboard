@@ -97,6 +97,12 @@ sub _setup_helpers ($self, $config) {
 
   # Application specific commands
   push @{$self->commands->namespaces}, 'Dashboard::Command';
+  $self->commands->hint($self->commands->hint . <<EOF);
+
+Environment variables:
+  DASHBOARD_CONF           Path to configuration file
+  DASHBOARD_CONF_OVERRIDE  JSON string to override configuration values
+EOF
 
   $self->plugin('Dashboard::Plugin::JSON');
   $self->plugin('Dashboard::Plugin::Helpers');
