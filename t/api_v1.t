@@ -14,11 +14,11 @@ use Dashboard::Test::APICommon;
 
 plan skip_all => 'set TEST_ONLINE to enable this test' unless $ENV{TEST_ONLINE};
 
-my $dashboard_test = Dashboard::Test->new(online => $ENV{TEST_ONLINE}, schema => 'api_test');
+my $dashboard_test = Dashboard::Test->new(online => $ENV{TEST_ONLINE}, schema => 'api_v1_test');
 my $config         = $dashboard_test->default_config;
 my $t              = Test::Mojo->new(Dashboard => $config);
 $dashboard_test->no_fixtures($t->app);
 
-run_api_tests($t, '/api');
+run_api_tests($t, '/api/v1');
 
 done_testing();

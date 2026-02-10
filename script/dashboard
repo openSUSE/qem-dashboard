@@ -8,4 +8,15 @@ use lib curfile->dirname->sibling('lib')->to_string;
 use Mojolicious::Commands;
 
 # Start command line interface for application
+if (!@ARGV || $ARGV[0] =~ /^(?:help|-h|--help)$/) {
+    Mojolicious::Commands->start_app('Dashboard');
+    print <<EOF;
+
+Environment variables:
+  DASHBOARD_CONF           Path to configuration file
+  DASHBOARD_CONF_OVERRIDE  JSON string to override configuration values
+EOF
+    exit 0;
+}
+
 Mojolicious::Commands->start_app('Dashboard');
