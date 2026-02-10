@@ -10,7 +10,7 @@ export const useSubmissionDetailStore = defineStore('submission_detail', {
   actions: {
     async fetchSubmission(id) {
       try {
-        const data = await fetch(`/app/api/incident/${id}`).then(res => res.json());
+        const data = await fetch(`/app/api/submission/${id}`).then(res => res.json());
         this.submission = data.details.incident;
         this.submission.buildNr = data.details.build_nr;
         this.jobs = data.details.jobs;

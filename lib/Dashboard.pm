@@ -190,11 +190,13 @@ sub _register_routes ($self, $config) {
   $json->get('/blocked')->to('overview#blocked');
   $json->get('/repos')->to('overview#repos');
   $json->get('/incident/<incident:num>')->to('overview#incident');
+  $json->get('/submission/<incident:num>')->to('overview#incident');
 
   # Catch all for delivering the webpack UI
   $public->get('/')->to('overview#index')->name('index');
   $public->get('/:name' => [name => ['repos', 'blocked']])->to('overview#index');
   $public->get('/incident/<incident:num>')->to('overview#index');
+  $public->get('/submission/<incident:num>')->to('overview#index');
 
   # API (v1 and legacy)
   my $register_api_routes = sub ($api) {

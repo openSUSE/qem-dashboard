@@ -152,6 +152,13 @@ t.test('Test dashboard ui', {skip, timeout: 60000}, async t => {
     t.equal(await page.innerText('.container p'), 'Incident does not exist.');
   });
 
+  await t.test('Direct navigation to submission', async t => {
+    await page.goto(`${url}/submission/16860`);
+    await page.waitForSelector('.packages ul');
+    t.equal(await page.innerText('title'), 'Details for Submission');
+    t.match(await page.innerText('.packages ul'), /perl-Mojolicious/);
+  });
+
   await t.test('Repos page detailed interactions', async t => {
     await page.goto(`${url}/repos`);
     await page.waitForSelector('tbody tr');
