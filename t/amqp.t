@@ -15,6 +15,7 @@ use Mojo::JSON qw(false true);
 
 plan skip_all => 'set TEST_ONLINE to enable this test' unless $ENV{TEST_ONLINE};
 
+local $ENV{MOJO_MODE} = 'production';
 my $dashboard_test = Dashboard::Test->new(online => $ENV{TEST_ONLINE}, schema => 'amqp_test');
 my $config         = $dashboard_test->default_config;
 my $t              = Test::Mojo->new(Dashboard => $config);
