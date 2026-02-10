@@ -22,17 +22,20 @@ The QEM Dashboard is a graphical user interface for [qem-bot](https://github.com
 ### Installation
 
 1. Clone the repository:
+
    ```bash
    git clone https://github.com/openSUSE/qem-dashboard.git
    cd qem-dashboard
    ```
 
 2. Install Perl dependencies:
+
    ```bash
    make install-deps-cpanm
    ```
 
 3. Install Node.js dependencies:
+
    ```bash
    npm install
    ```
@@ -46,11 +49,13 @@ The QEM Dashboard is a graphical user interface for [qem-bot](https://github.com
 ### Running the Application
 
 1. Build the frontend assets:
+
    ```bash
    npm run build
    ```
 
 2. Start the Mojolicious development server:
+
    ```bash
    script/dashboard daemon
    ```
