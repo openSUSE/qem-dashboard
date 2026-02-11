@@ -28,8 +28,8 @@ sub run_api_tests ($t, $prefix) {
   };
 
   subtest 'Migrations' => sub {
-    is $t->app->pg->migrations->latest, 9, 'latest version';
-    is $t->app->pg->migrations->active, 9, 'active version';
+    is $t->app->pg->migrations->latest, 10, 'latest version';
+    is $t->app->pg->migrations->active, 10, 'active version';
   };
 
   subtest 'Unknown endpoint' => sub {
@@ -104,7 +104,7 @@ sub run_api_tests ($t, $prefix) {
         ->status_is(200)
         ->json_is('/message', 'Ok', 'patch incidents returns Ok');
 
-      my $expected = {%$mock_incident, type => '', url => '', scminfo => ''};
+      my $expected = {%$mock_incident, type => 'ibs', url => '', scminfo => ''};
       $t->get_ok("$prefix/incidents"       => $auth_headers)->status_is(200)->json_is('', [$expected]);
       $t->get_ok("$prefix/incidents/16860" => $auth_headers)->status_is(200)->json_is('', $expected);
 

@@ -52,7 +52,7 @@ const sortedBuilds = computed(() => {
           </li>
         </ul>
       </div>
-      <div class="smelt-link" v-if="(submissionDetailStore.submission.type || 'smelt') === 'smelt'">
+      <div class="smelt-link" v-if="['ibs', 'smelt'].includes(submissionDetailStore.submission.type || 'ibs')">
         <h2>Link to Smelt</h2>
         <p>
           <SmeltLink :incident="submissionDetailStore.submission" />

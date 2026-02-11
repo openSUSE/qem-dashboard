@@ -10,6 +10,7 @@ use Test::More;
 use Test::Mojo;
 use Test::Output 'stderr_like';
 use Test::Warnings ':report_warnings';
+use Mojo::JSON qw(false true);
 use Dashboard::Test;
 
 plan skip_all => 'set TEST_ONLINE to enable this test' unless $ENV{TEST_ONLINE};
@@ -38,7 +39,7 @@ subtest 'List incidents' => sub {
           "rr_number"   => 230066,
           "scminfo"     => "",
           "url"         => "",
-          "type"        => "",
+          "type"        => "ibs",
         },
         {
           "approved"    => 0,
@@ -55,7 +56,7 @@ subtest 'List incidents' => sub {
           "rr_number"   => undef,
           "scminfo"     => "",
           "url"         => "",
-          "type"        => "",
+          "type"        => "ibs",
         },
         {
           "approved"    => 1,
@@ -72,7 +73,7 @@ subtest 'List incidents' => sub {
           "rr_number"   => undef,
           "scminfo"     => "",
           "url"         => "",
-          "type"        => "",
+          "type"        => "ibs",
         },
         {
           "approved" => 0,
@@ -105,7 +106,7 @@ subtest 'List incidents' => sub {
           "rr_number"   => 302772,
           "scminfo"     => "",
           "url"         => "",
-          "type"        => "",
+          "type"        => "ibs",
         },
         {
           "approved"    => 0,
@@ -153,7 +154,7 @@ subtest 'Blocked by Tests' => sub {
             "rr_number"   => 230066,
             "scminfo"     => "",
             "url"         => "",
-            "type"        => "",
+            "type"        => "ibs",
           },
           "incident_results" => {
             "55" => {
@@ -218,7 +219,7 @@ subtest 'Blocked by Tests' => sub {
             "rr_number"   => 302772,
             "scminfo"     => "",
             "url"         => "",
-            "type"        => "",
+            "type"        => "ibs",
           },
           "incident_results" => {},
           "update_results"   => {
@@ -360,7 +361,7 @@ subtest 'Incident Details' => sub {
         "rr_number"   => 230066,
         "scminfo"     => "",
         "url"         => "",
-        "type"        => "",
+        "type"        => "ibs",
       }
       )
       ->json_is(

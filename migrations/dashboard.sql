@@ -123,3 +123,6 @@ ALTER TABLE incidents
   ADD COLUMN scminfo TEXT NOT NULL DEFAULT '',
   ADD COLUMN url TEXT NOT NULL DEFAULT '',
   ADD COLUMN type TEXT NOT NULL DEFAULT '';
+
+-- 10 up
+UPDATE incidents SET type = 'ibs' WHERE type = 'smelt' OR type = '';

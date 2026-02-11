@@ -158,7 +158,7 @@ Content-Type: application/json
 
 `PATCH /api/incidents`
 
-Update incident data from SMELT. Old incidents that are no longer included will be considered inactive.
+Update incident data from IBS/SMELT. Old incidents that are no longer included will be considered inactive.
 
 **Request parameters:**
 
@@ -199,7 +199,7 @@ Content-Type: application/json
 
 `PATCH /api/incidents/<incident_number>`
 
-Update a specific incident with data from SMELT. All other incidents will not be affected.
+Update a specific incident with data from IBS/SMELT. All other incidents will not be affected.
 
 **Request parameters:**
 
