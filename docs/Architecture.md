@@ -6,7 +6,7 @@ This document describes the high-level architecture of the QEM Dashboard and how
 
 ```mermaid
 graph TD
-    SMELT[SMELT] -->|Incidents| BOT[qem-bot]
+    IBS[IBS/SMELT] -->|Incidents| BOT[qem-bot]
     openQA[openQA] -->|Job Results| BOT
     BOT -->|Updates| AMQP[RabbitMQ/AMQP]
     AMQP -->|Messages| Backend[Perl/Mojolicious Backend]
@@ -16,7 +16,7 @@ graph TD
 
 ## Data Lifecycle
 
-1.  **External Sources**: SMELT provides information about maintenance incidents. openQA provides test results for those incidents.
+1.  **External Sources**: IBS (coordinated via SMELT) provides information about maintenance incidents. openQA provides test results for those incidents.
 2.  **Bot Interaction**: `qem-bot` monitors these sources and publishes updates to a RabbitMQ exchange.
 3.  **Real-time Updates**: The `amqp_watcher` (a Mojolicious command) listens for messages on the message bus.
 4.  **Backend Processing**: When a message is received, the backend updates the PostgreSQL database.
