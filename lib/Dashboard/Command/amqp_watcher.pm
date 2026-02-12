@@ -41,6 +41,7 @@ sub _connect ($self, $backoff) {
   $client->connect_p->then(
     sub ($client) {
       $log->info(Mojo::JSON::encode_json({type => 'amqp_connected', message => 'RabbitMQ watcher connected'}));
+      $backoff = 0;
       return $client->acquire_channel_p;
     }
   )->then(
