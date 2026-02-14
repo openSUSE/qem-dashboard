@@ -73,9 +73,10 @@ subtest 'App config endpoint' => sub {
     $t->get_ok('/app-config')
       ->status_is(200)
       ->json_has('/bootId')
-      ->json_is('/openqaUrl', 'https://openqa.suse.de/tests/overview')
-      ->json_is('/obsUrl',    'https://build.suse.de')
-      ->json_is('/smeltUrl',  'https://smelt.suse.de');
+      ->json_is('/openqaUrl',             'https://openqa.suse.de/tests/overview')
+      ->json_is('/obsUrl',                'https://build.suse.de')
+      ->json_is('/smeltUrl',              'https://smelt.suse.de')
+      ->json_is('/giteaFallbackPriority', Dashboard::GITEA_FALLBACK_PRIORITY_DEFAULT);
   }
   qr/access_log/, 'access log caught';
 };

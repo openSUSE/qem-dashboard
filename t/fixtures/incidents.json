@@ -70,5 +70,20 @@
     "embargoed": false,
     "isActive": true,
     "priority": 700
+  },
+  {
+    "number": 30000,
+    "project": "SUSE:Maintenance:30000",
+    "packages": ["gitea-pr"],
+    "channels": ["Test"],
+    "rr_number": null,
+    "inReview": true,
+    "inReviewQAM": true,
+    "approved": false,
+    "emu": false,
+    "embargoed": false,
+    "isActive": true,
+    "type": "git",
+    "priority": null
   }
 ]

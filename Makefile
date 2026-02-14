@@ -95,10 +95,22 @@ test-js-unit:  # Run JS unit tests
 
 .PHONY: check-audits-cpan
 check-audits-cpan:
+	# CPANSA-Mojolicious-2024-58134, CPANSA-Mojolicious-2024-58135: session secrets handled in config
+	#   See https://github.com/mojolicious/mojo/pull/2200
+	# CPANSA-File-Temp-2011-4116: CVE-2011-4116
+	#   See https://github.com/Perl-Toolchain-Gang/File-Temp/issues/14
+	# CPANSA-YAML-LibYAML-2025-001: CVE-2025-40908 (path traversal)
+	#   See https://github.com/ingydotnet/yaml-libyaml-pm/issues/120
+	# CPANSA-YAML-LibYAML-2012-1152, CPANSA-YAML-LibYAML-2014-9130, CPANSA-YAML-LibYAML-2016-01:
+	#   See https://github.com/ingydotnet/yaml-libyaml-pm/issues/45
 	PERL5LIB=~/perl5/lib/perl5:$$PERL5LIB PATH=~/perl5/bin:$$PATH cpan-audit deps . \
 		--exclude CPANSA-Mojolicious-2024-58134 \
 		--exclude CPANSA-Mojolicious-2024-58135 \
-		--exclude CPANSA-File-Temp-2011-4116
+		--exclude CPANSA-File-Temp-2011-4116 \
+		--exclude CPANSA-YAML-LibYAML-2025-001 \
+		--exclude CPANSA-YAML-LibYAML-2012-1152 \
+		--exclude CPANSA-YAML-LibYAML-2014-9130 \
+		--exclude CPANSA-YAML-LibYAML-2016-01
 
 .PHONY: check-audits-npm
 check-audits-npm:

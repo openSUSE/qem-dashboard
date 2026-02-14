@@ -4,6 +4,7 @@
 package Dashboard::Test;
 use Mojo::Base -base, -signatures;
 
+use Dashboard;
 use Mojo::JSON qw(true false);
 use Mojo::Pg;
 use Mojo::URL;
@@ -29,6 +30,7 @@ sub default_config ($self) {
     openqa                  => {url => 'https://openqa.suse.de'},
     obs                     => {url => 'https://build.suse.de'},
     smelt                   => {url => 'https://smelt.suse.de'},
+    gitea_fallback_priority => Dashboard::GITEA_FALLBACK_PRIORITY_DEFAULT,
     days_to_keep_aggregates => 90
   };
 }

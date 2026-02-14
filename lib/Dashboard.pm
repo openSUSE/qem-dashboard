@@ -13,6 +13,8 @@ use Dashboard::Model::Settings;
 use Dashboard::Model::AMQP;
 use Dashboard::Model::MCP;
 
+use constant GITEA_FALLBACK_PRIORITY_DEFAULT => 550;
+
 # Avoid installing random npm packages bypassing package-lock.json
 BEGIN { $ENV{MOJO_NPM_BINARY} = curfile->sibling('../script/npm-noop') }
 
@@ -97,6 +99,12 @@ sub _setup_helpers ($self, $config) {
 
   # Application specific commands
   push @{$self->commands->namespaces}, 'Dashboard::Command';
+  $self->commands->hint($self->commands->hint . <<EOF);
+
+Environment variables:
+  DASHBOARD_CONF           Path to configuration file
+  DASHBOARD_CONF_OVERRIDE  JSON string to override configuration values
+EOF
 
   $self->plugin('Dashboard::Plugin::JSON');
   $self->plugin('Dashboard::Plugin::Helpers');
@@ -181,10 +189,11 @@ sub _register_routes ($self, $config) {
       my $config = $c->app->config;
       $c->render(
         json => {
-          bootId    => $self->{boot_id},
-          openqaUrl => $c->openqa_url->path('/tests/overview'),
-          obsUrl    => $config->{obs}{url},
-          smeltUrl  => $config->{smelt}{url}
+          bootId                => $self->{boot_id},
+          openqaUrl             => $c->openqa_url->path('/tests/overview'),
+          obsUrl                => $config->{obs}{url},
+          smeltUrl              => $config->{smelt}{url},
+          giteaFallbackPriority => $config->{gitea_fallback_priority} // GITEA_FALLBACK_PRIORITY_DEFAULT
         }
       );
     }
