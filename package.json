@@ -38,7 +38,6 @@
     "@vitejs/plugin-vue": "^6.0.4",
     "bootstrap": "^5.3.8",
     "date-fns": "^4.1.0",
-    "json5": "^2.2.3",
     "pinia": "^3.0.4",
     "vite": "^7.3.1",
     "vue": "^3.5.26",
