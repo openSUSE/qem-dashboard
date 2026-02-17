@@ -114,7 +114,7 @@ check-audits-cpan:
 
 .PHONY: check-audits-npm
 check-audits-npm:
-	npm audit
+	npm audit --audit-level=high
 
 .PHONY: check-audits
 check-audits: check-audits-cpan check-audits-npm  # Run audits
