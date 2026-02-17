@@ -293,26 +293,10 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                incident_number:
-                  type: string
-                  pattern: ^[0-9]+$
-                text:
-                  type: string
-              required:
-                - text
+              $ref: '#/components/schemas/job_remark_update'
           application/x-www-form-urlencoded:
             schema:
-              type: object
-              properties:
-                incident_number:
-                  type: string
-                  pattern: ^[0-9]+$
-                text:
-                  type: string
-              required:
-                - text
+              $ref: '#/components/schemas/job_remark_update'
       responses:
         "200": *success_message_response
         "404": *error_response
@@ -513,3 +497,13 @@ components:
           type: string
         build:
           type: string
+    job_remark_update:
+      type: object
+      properties:
+        incident_number:
+          type: string
+          pattern: ^[0-9]+$
+        text:
+          type: string
+      required:
+        - text
