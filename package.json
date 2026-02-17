@@ -33,7 +33,7 @@
     "minimatch": "^10.2.2"
   },
   "dependencies": {
-    "@fortawesome/fontawesome-free": "^7.1.0",
+    "@fortawesome/fontawesome-free": "^7.2.0",
     "@mojojs/core": "^1.26.12",
     "@mojojs/path": "^1.7.0",
     "@mojolicious/server-starter": "^2.2.0",
