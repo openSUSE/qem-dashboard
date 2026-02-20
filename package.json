@@ -39,7 +39,6 @@
     "date-fns": "^4.1.0",
     "eslint": "^9.39.2",
     "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prettier": "^5.5.5",
     "eslint-plugin-vue": "^10.7.0",
     "globals": "^17.3.0",
