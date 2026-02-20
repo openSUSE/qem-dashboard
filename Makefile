@@ -127,8 +127,12 @@ lint-npm:
 .PHONY: checkstyle-perl
 checkstyle-perl: tidy-perl check-audits-cpan
 
+.PHONY: check-vite-deps
+check-vite-deps:
+	@node -e 'const pkg = require("./package.json"); if (pkg.devDependencies && pkg.devDependencies.vite) { console.error("Error: vite must be in dependencies for production builds (see 912fb927)"); process.exit(1); }'
+
 .PHONY: checkstyle-npm
-checkstyle-npm: lint-npm tidy-npm check-audits-npm
+checkstyle-npm: lint-npm tidy-npm check-audits-npm check-vite-deps
 
 .PHONY: checkstyle
 checkstyle: checkstyle-perl checkstyle-npm
