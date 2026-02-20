@@ -29,6 +29,9 @@
   "engines": {
     "node": ">= 18"
   },
+  "overrides": {
+    "minimatch": "^10.2.2"
+  },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^7.1.0",
     "@mojojs/core": "^1.26.12",
