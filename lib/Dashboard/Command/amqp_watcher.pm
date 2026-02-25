@@ -11,6 +11,7 @@ use Mojo::RabbitMQ::Client;
 
 has description => 'Watch message bus for job results';
 has usage       => sub { shift->extract_usage };
+has 'client';
 
 sub run ($self, @args) {    # uncoverable statement
   Mojo::IOLoop->singleton->reactor->unsubscribe('error');
@@ -22,7 +23,8 @@ sub _connect ($self, $backoff) {
   my $amqp = $self->app->amqp;
   my $log  = $self->app->log;
 
-  my $client = Mojo::RabbitMQ::Client->new(url => $self->app->config->{rabbitmq});
+  $self->client(Mojo::RabbitMQ::Client->new(url => $self->app->config->{rabbitmq}));
+  my $client = $self->client;
   my $queue_name;
 
   $client->on(
