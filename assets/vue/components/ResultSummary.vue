@@ -1,6 +1,7 @@
 <script setup>
 import {computed} from 'vue';
 import {useConfigStore} from '@/stores/config';
+import {getResultState} from '../helpers/filtering.js';
 
 const props = defineProps({
   result: {type: Object, required: true}
@@ -8,6 +9,7 @@ const props = defineProps({
 
 const configStore = useConfigStore();
 
+const state = computed(() => getResultState(props.result));
 const stopped = computed(() => props.result.stopped || 0);
 const passed = computed(() => props.result.passed || 0);
 const waiting = computed(() => props.result.waiting || 0);
@@ -29,22 +31,22 @@ const link = computed(() => {
 </script>
 
 <template>
-  <a v-if="failed > 0" :href="link" class="btn btn-danger" target="_blank">
+  <a v-if="state === 'failed'" :href="link" class="btn btn-danger" target="_blank">
     <i class="fas fa-times-circle me-1" aria-hidden="true"></i>
     {{ result.name }} <span class="badge bg-light text-dark">{{ failed }}/{{ total }}</span>
     <span class="visually-hidden">failed jobs</span>
   </a>
-  <a v-else-if="stopped > 0" :href="link" class="btn btn-secondary" target="_blank">
+  <a v-else-if="state === 'stopped'" :href="link" class="btn btn-secondary" target="_blank">
     <i class="fas fa-stop-circle me-1" aria-hidden="true"></i>
     {{ result.name }} <span class="badge bg-light text-dark">{{ stopped }}/{{ total }}</span>
     <span class="visually-hidden">stopped jobs</span>
   </a>
-  <a v-else-if="waiting > 0" :href="link" class="btn btn-primary" target="_blank">
+  <a v-else-if="state === 'waiting'" :href="link" class="btn btn-primary" target="_blank">
     <i class="fas fa-clock me-1" aria-hidden="true"></i>
     {{ result.name }} <span class="badge bg-light text-dark">{{ waiting }}/{{ total }}</span>
     <span class="visually-hidden">waiting jobs</span>
   </a>
-  <a v-else-if="passed == total && total > 0" :href="link" class="btn btn-success" target="_blank">
+  <a v-else-if="state === 'passed'" :href="link" class="btn btn-success" target="_blank">
     <i class="fas fa-check-circle me-1" aria-hidden="true"></i>
     {{ result.name }} <span class="badge bg-light text-dark">{{ total }}</span>
     <span class="visually-hidden">passed jobs</span>

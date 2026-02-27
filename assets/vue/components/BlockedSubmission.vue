@@ -11,13 +11,25 @@ const props = defineProps({
   submissionResults: {type: Object, required: true},
   updateResults: {type: Object, required: true},
   groupFlavors: {type: Boolean, required: true},
-  groupNames: {type: String, required: true}
+  groupNames: {type: String, required: true},
+  selectedStates: {type: Array, required: true}
 });
 
 const updateResultsGrouped = computed(() => {
-  if (props.groupFlavors === false) return props.updateResults;
-  const results = {};
   const filters = filtering.makeGroupNamesFilters(props.groupNames);
+  if (props.groupFlavors === false) {
+    const results = {};
+    for (const [key, value] of Object.entries(props.updateResults)) {
+      if (
+        (props.groupNames === '' || filtering.checkResult(value, filters)) &&
+        filtering.checkState(value, props.selectedStates)
+      ) {
+        results[key] = value;
+      }
+    }
+    return results;
+  }
+  const results = {};
   for (const value of Object.values(props.updateResults)) {
     const {flavor} = value.linkinfo;
     const {version} = value.linkinfo;
@@ -42,15 +54,26 @@ const updateResultsGrouped = computed(() => {
       res.failed += value.failed || 0;
     }
   }
-  return results;
+  // Filter grouped results by state
+  const filteredResults = {};
+  for (const [key, value] of Object.entries(results)) {
+    if (filtering.checkState(value, props.selectedStates)) {
+      filteredResults[key] = value;
+    }
+  }
+  return filteredResults;
 });
 
 const submissionResultsGrouped = computed(() => {
-  if (props.groupNames === '') return props.submissionResults;
-  const results = [];
   const filters = filtering.makeGroupNamesFilters(props.groupNames);
+  const results = [];
   for (const value of Object.values(props.submissionResults)) {
-    if (filtering.checkResult(value, filters)) results.push(value);
+    if (
+      (props.groupNames === '' || filtering.checkResult(value, filters)) &&
+      filtering.checkState(value, props.selectedStates)
+    ) {
+      results.push(value);
+    }
   }
   return results;
 });
