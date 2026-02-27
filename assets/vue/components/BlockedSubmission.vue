@@ -11,72 +11,50 @@ const props = defineProps({
   submissionResults: {type: Object, required: true},
   updateResults: {type: Object, required: true},
   groupFlavors: {type: Boolean, required: true},
-  groupNames: {type: String, required: true},
+  groupFilters: {type: Array, required: true},
   selectedStates: {type: Array, required: true}
 });
 
+const filterByTextAndState = result =>
+  filtering.checkResult(result, props.groupFilters) && filtering.checkState(result, props.selectedStates);
+
 const updateResultsGrouped = computed(() => {
-  const filters = filtering.makeGroupNamesFilters(props.groupNames);
+  const filtered = Object.values(props.updateResults).filter(res => filtering.checkResult(res, props.groupFilters));
+
   if (props.groupFlavors === false) {
-    const results = {};
-    for (const [key, value] of Object.entries(props.updateResults)) {
-      if (
-        (props.groupNames === '' || filtering.checkResult(value, filters)) &&
-        filtering.checkState(value, props.selectedStates)
-      ) {
-        results[key] = value;
-      }
-    }
-    return results;
+    return filtered.filter(res => filtering.checkState(res, props.selectedStates));
   }
-  const results = {};
-  for (const value of Object.values(props.updateResults)) {
-    const {flavor} = value.linkinfo;
-    const {version} = value.linkinfo;
-    const {groupid} = value.linkinfo;
-    const newkey = `${groupid}:${version}`;
-    if (props.groupNames === '' || filtering.checkResult(value, filters)) {
-      if (results[newkey] === undefined) {
-        results[newkey] = {
-          name: value.name,
-          passed: 0,
-          failed: 0,
-          stopped: 0,
-          waiting: 0,
-          linkinfo: {...value.linkinfo, flavor: []}
-        };
-      }
-      const res = results[newkey];
-      res.linkinfo.flavor.push(flavor);
-      res.passed += value.passed || 0;
-      res.stopped += value.stopped || 0;
-      res.waiting += value.waiting || 0;
-      res.failed += value.failed || 0;
+
+  const grouped = filtered.reduce((acc, value) => {
+    const {flavor, version, groupid} = value.linkinfo;
+    const key = `${groupid}:${version}`;
+
+    if (!acc[key]) {
+      acc[key] = {
+        name: value.name,
+        passed: 0,
+        failed: 0,
+        stopped: 0,
+        waiting: 0,
+        linkinfo: {...value.linkinfo, flavor: []}
+      };
     }
-  }
-  // Filter grouped results by state
-  const filteredResults = {};
-  for (const [key, value] of Object.entries(results)) {
-    if (filtering.checkState(value, props.selectedStates)) {
-      filteredResults[key] = value;
-    }
-  }
-  return filteredResults;
+
+    const res = acc[key];
+    res.linkinfo.flavor.push(flavor);
+    res.passed += value.passed || 0;
+    res.stopped += value.stopped || 0;
+    res.waiting += value.waiting || 0;
+    res.failed += value.failed || 0;
+    return acc;
+  }, {});
+
+  return Object.fromEntries(
+    Object.entries(grouped).filter(([, res]) => filtering.checkState(res, props.selectedStates))
+  );
 });
 
-const submissionResultsGrouped = computed(() => {
-  const filters = filtering.makeGroupNamesFilters(props.groupNames);
-  const results = [];
-  for (const value of Object.values(props.submissionResults)) {
-    if (
-      (props.groupNames === '' || filtering.checkResult(value, filters)) &&
-      filtering.checkState(value, props.selectedStates)
-    ) {
-      results.push(value);
-    }
-  }
-  return results;
-});
+const submissionResultsGrouped = computed(() => Object.values(props.submissionResults).filter(filterByTextAndState));
 </script>
 
 <template>
