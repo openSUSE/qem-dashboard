@@ -14,6 +14,7 @@ const configStore = useConfigStore();
 const groupFlavors = ref(route.query.group_flavors !== '0');
 const matchText = ref(route.query.submission || route.query.incident || '');
 const groupNames = ref(route.query.group_names || '');
+const selectedStates = ref(route.query.states ? route.query.states.split(',') : ['failed', 'stopped', 'waiting']);
 
 usePolling(() => blockedStore.fetchBlocked());
 
@@ -54,6 +55,20 @@ const matchedSubmissions = computed(() => {
     searchParams.set('group_flavors', '0');
   }
 
+  if (
+    selectedStates.value.length > 0 &&
+    !(
+      selectedStates.value.length === 3 &&
+      selectedStates.value.includes('failed') &&
+      selectedStates.value.includes('stopped') &&
+      selectedStates.value.includes('waiting')
+    )
+  ) {
+    searchParams.set('states', selectedStates.value.join(','));
+  } else {
+    searchParams.delete('states');
+  }
+
   history.pushState({}, '', url);
 
   const getPriority = incident => {
@@ -89,11 +104,23 @@ watch(groupFlavors, enabled => {
           </label>
         </div>
       </div>
+      <div class="col-auto my-1 border-start">
+        <div
+          v-for="state in ['failed', 'passed', 'stopped', 'waiting']"
+          :key="state"
+          class="form-check form-check-inline ms-2"
+        >
+          <label class="form-check-label text-capitalize" :for="state">
+            <input class="form-check-input" type="checkbox" :id="state" :value="state" v-model="selectedStates" />
+            {{ state }}
+          </label>
+        </div>
+      </div>
     </div>
-    <table class="table">
+    <table class="table table-fixed">
       <thead>
         <tr>
-          <th>
+          <th class="col-submission">
             <label for="inlineSearchSubmissions">
               Submission
               <input
@@ -106,7 +133,7 @@ watch(groupFlavors, enabled => {
               />
             </label>
           </th>
-          <th>
+          <th class="col-groups">
             <label for="inlineSearchGroups">
               Groups
               <input
@@ -130,6 +157,7 @@ watch(groupFlavors, enabled => {
           :update-results="submission.update_results"
           :group-flavors="groupFlavors"
           :group-names="groupNames"
+          :selected-states="selectedStates"
         />
       </tbody>
     </table>
@@ -142,3 +170,20 @@ export default {
   name: 'PageBlockedSubmissions'
 };
 </script>
+
+<style scoped>
+.table-fixed {
+  table-layout: fixed;
+  width: 100%;
+}
+.col-submission {
+  width: 250px;
+}
+.col-groups {
+  width: auto;
+}
+th label {
+  display: block;
+  width: 100%;
+}
+</style>
