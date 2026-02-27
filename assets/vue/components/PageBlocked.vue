@@ -14,9 +14,11 @@ const configStore = useConfigStore();
 const groupFlavors = ref(route.query.group_flavors !== '0');
 const matchText = ref(route.query.submission || route.query.incident || '');
 const groupNames = ref(route.query.group_names || '');
-const selectedStates = ref(route.query.states ? route.query.states.split(',') : ['failed', 'stopped', 'waiting']);
+const selectedStates = ref(route.query.states ? route.query.states.split(',') : [...filtering.DEFAULT_STATES]);
 
 usePolling(() => blockedStore.fetchBlocked());
+
+const groupFilters = computed(() => filtering.makeGroupNamesFilters(groupNames.value));
 
 const matchedSubmissions = computed(() => {
   const url = new URL(location);
@@ -39,11 +41,10 @@ const matchedSubmissions = computed(() => {
 
   if (groupNames.value) {
     url.searchParams.set('group_names', groupNames.value);
-    const filters = filtering.makeGroupNamesFilters(groupNames.value);
     results = results.filter(
       submission =>
-        filtering.checkResults(submission.update_results, filters) ||
-        filtering.checkResults(submission.incident_results, filters)
+        filtering.checkResults(submission.update_results, groupFilters.value) ||
+        filtering.checkResults(submission.incident_results, groupFilters.value)
     );
   } else {
     searchParams.delete('group_names');
@@ -105,11 +106,7 @@ watch(groupFlavors, enabled => {
         </div>
       </div>
       <div class="col-auto my-1 border-start">
-        <div
-          v-for="state in ['failed', 'passed', 'stopped', 'waiting']"
-          :key="state"
-          class="form-check form-check-inline ms-2"
-        >
+        <div v-for="state in filtering.VISIBLE_STATES" :key="state" class="form-check form-check-inline ms-2">
           <label class="form-check-label text-capitalize" :for="state">
             <input class="form-check-input" type="checkbox" :id="state" :value="state" v-model="selectedStates" />
             {{ state }}
@@ -156,7 +153,7 @@ watch(groupFlavors, enabled => {
           :submission-results="submission.incident_results"
           :update-results="submission.update_results"
           :group-flavors="groupFlavors"
-          :group-names="groupNames"
+          :group-filters="groupFilters"
           :selected-states="selectedStates"
         />
       </tbody>

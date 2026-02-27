@@ -1,4 +1,8 @@
+export const VISIBLE_STATES = ['failed', 'passed', 'stopped', 'waiting'];
+export const DEFAULT_STATES = ['failed', 'stopped', 'waiting'];
+
 export function makeGroupNamesFilters(groupNames) {
+  if (!groupNames) return [];
   return groupNames
     .split(',')
     .map(groupName => groupName.trim())
@@ -7,17 +11,12 @@ export function makeGroupNamesFilters(groupNames) {
 }
 
 export function checkResult(result, filters) {
-  for (const filter of filters) {
-    if (filter.test(result.name)) return true;
-  }
-  return false;
+  if (filters.length === 0) return true;
+  return filters.some(filter => filter.test(result.name));
 }
 
 export function checkResults(results, filters) {
-  for (const result of Object.values(results)) {
-    if (checkResult(result, filters)) return true;
-  }
-  return false;
+  return Object.values(results).some(result => checkResult(result, filters));
 }
 
 export function getResultState(result) {
