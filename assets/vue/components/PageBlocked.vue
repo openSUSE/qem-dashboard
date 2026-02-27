@@ -21,56 +21,22 @@ usePolling(() => blockedStore.fetchBlocked());
 const groupFilters = computed(() => filtering.makeGroupNamesFilters(groupNames.value));
 
 const matchedSubmissions = computed(() => {
-  const url = new URL(location);
-  const searchParams = url.searchParams;
   let results = blockedStore.submissions;
 
   if (matchText.value) {
-    searchParams.set('submission', matchText.value);
     results = results.filter(submission => {
       if (String(submission.incident.number).includes(matchText.value)) return true;
-      for (const pack of submission.incident.packages) {
-        if (pack.includes(matchText.value)) return true;
-      }
-      return false;
+      return submission.incident.packages.some(pack => pack.includes(matchText.value));
     });
-  } else {
-    searchParams.delete('submission');
-    searchParams.delete('incident');
   }
 
   if (groupNames.value) {
-    url.searchParams.set('group_names', groupNames.value);
     results = results.filter(
       submission =>
         filtering.checkResults(submission.update_results, groupFilters.value) ||
         filtering.checkResults(submission.incident_results, groupFilters.value)
     );
-  } else {
-    searchParams.delete('group_names');
   }
-
-  if (groupFlavors.value) {
-    searchParams.delete('group_flavors');
-  } else {
-    searchParams.set('group_flavors', '0');
-  }
-
-  if (
-    selectedStates.value.length > 0 &&
-    !(
-      selectedStates.value.length === 3 &&
-      selectedStates.value.includes('failed') &&
-      selectedStates.value.includes('stopped') &&
-      selectedStates.value.includes('waiting')
-    )
-  ) {
-    searchParams.set('states', selectedStates.value.join(','));
-  } else {
-    searchParams.delete('states');
-  }
-
-  history.pushState({}, '', url);
 
   const getPriority = incident => {
     if (incident.priority !== null) return incident.priority;
@@ -83,12 +49,40 @@ const matchedSubmissions = computed(() => {
 
 const smelt = computed(() => configStore.smeltUrl);
 
-watch(groupFlavors, enabled => {
-  const url = new URL(location);
-  const params = url.searchParams;
-  enabled ? params.delete('group_flavors') : params.set('group_flavors', '0');
-  history.pushState({}, '', url);
-});
+watch(
+  [groupFlavors, matchText, groupNames, selectedStates],
+  ([flavors, match, groups, states]) => {
+    const url = new URL(location);
+    const params = url.searchParams;
+
+    flavors ? params.delete('group_flavors') : params.set('group_flavors', '0');
+
+    if (match) {
+      params.set('submission', match);
+    } else {
+      params.delete('submission');
+      params.delete('incident');
+    }
+
+    if (groups) {
+      params.set('group_names', groups);
+    } else {
+      params.delete('group_names');
+    }
+
+    const isDefaultStates =
+      states.length === filtering.DEFAULT_STATES.length && states.every(s => filtering.DEFAULT_STATES.includes(s));
+
+    if (states.length > 0 && !isDefaultStates) {
+      params.set('states', states.join(','));
+    } else {
+      params.delete('states');
+    }
+
+    history.pushState({}, '', url);
+  },
+  {deep: true}
+);
 </script>
 
 <template>
