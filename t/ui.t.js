@@ -140,6 +140,33 @@ t.test('Test dashboard ui', {skip, timeout: 60000}, async t => {
     t.match(await page.innerText('tbody tr:nth-of-type(1) td:nth-of-type(2)'), /SAP\/HA Maintenance 1\/5/);
   });
 
+  await t.test('Filtering by state on "Blocked" page', async t => {
+    await page.goto(`${url}/blocked`);
+    await page.waitForSelector('tbody');
+    const list = page.locator('tbody > tr');
+    t.equal(await list.count(), 3, 'All submissions are visible by default');
+
+    t.ok(await page.getByLabel('failed').isChecked());
+    t.ok(await page.getByLabel('stopped').isChecked());
+    t.ok(await page.getByLabel('waiting').isChecked());
+    t.notOk(await page.getByLabel('passed').isChecked());
+
+    t.ok(await page.isVisible('text=SAP/HA Maintenance 1/5'));
+    t.ok(await page.isVisible('text=SLE 12 SP5 1/1'));
+
+    await page.getByLabel('failed').uncheck();
+    t.notOk(await page.isVisible('text=SAP/HA Maintenance 1/5'));
+    t.notOk(await page.isVisible('text=SLE 12 SP5 1/1'));
+    t.match(await page.url(), /states=stopped%2Cwaiting/);
+
+    await page.getByLabel('passed').check();
+    t.match(await page.url(), /states=stopped%2Cwaiting%2Cpassed/);
+
+    await page.getByLabel('failed').check();
+    await page.getByLabel('passed').uncheck();
+    t.notMatch(await page.url(), /states=/);
+  });
+
   await t.test('Incident popup', async t => {
     await page.goto(`${url}/repos`);
     await page.click('text=2 Incidents');
