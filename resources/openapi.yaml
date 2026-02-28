@@ -1,0 +1,509 @@
+openapi: 3.0.0
+info:
+  title: QEM Dashboard API
+  version: 1.0.0
+
+# YAML anchors for reuse
+x-anchors:
+  responses:
+    error: &error_response
+      description: Error
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+    success_message: &success_message_response
+      description: Success
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+  parameters:
+    incident_path: &incident_path_param
+      name: incident
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: ^[0-9]+$
+    job_id_path: &job_id_path_param
+      name: job_id
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: ^[0-9]+$
+
+paths:
+  /incidents:
+    get:
+      x-mojo-to: API::Incidents#list
+      operationId: listIncidents
+      description: List all incidents
+      responses:
+        "200":
+          description: List of incidents
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/incident'
+    patch:
+      x-mojo-to: API::Incidents#sync
+      operationId: syncIncidents
+      description: Sync incidents
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/incident'
+      responses:
+        "200": *success_message_response
+        "400": *error_response
+  /incidents/{incident}:
+    get:
+      x-mojo-to: API::Incidents#show
+      operationId: showIncident
+      description: Show a specific incident
+      parameters:
+        - *incident_path_param
+      responses:
+        "200":
+          description: Incident details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/incident'
+        "404": *error_response
+    patch:
+      x-mojo-to: API::Incidents#update
+      operationId: updateIncident
+      description: Update a specific incident
+      parameters:
+        - *incident_path_param
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/incident'
+      responses:
+        "200": *success_message_response
+        "400": *error_response
+  /incident_settings:
+    put:
+      x-mojo-to: API::Settings#add_incident_settings
+      operationId: addIncidentSettings
+      description: Add incident settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/incident_settings'
+      responses:
+        "200":
+          description: Settings added
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  id:
+                    type: integer
+        "400": *error_response
+  /incident_settings/{incident}:
+    get:
+      x-mojo-to: API::Settings#get_incident_settings
+      operationId: getIncidentSettings
+      description: Get settings for a specific incident
+      parameters:
+        - *incident_path_param
+      responses:
+        "200":
+          description: Incident settings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/incident_settings'
+        "400": *error_response
+  /update_settings:
+    get:
+      x-mojo-to: API::Settings#search_update_settings
+      operationId: searchUpdateSettings
+      description: Search for update settings
+      parameters:
+        - name: product
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: arch
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: string
+            pattern: ^[0-9]+$
+      responses:
+        "200":
+          description: List of update settings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/update_settings'
+    put:
+      x-mojo-to: API::Settings#add_update_settings
+      operationId: addUpdateSettings
+      description: Add update settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/update_settings'
+      responses:
+        "200":
+          description: Settings added
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  id:
+                    type: integer
+        "400": *error_response
+  /update_settings/{incident}:
+    get:
+      x-mojo-to: API::Settings#get_update_settings
+      operationId: getUpdateSettings
+      description: Get update settings for a specific incident
+      parameters:
+        - *incident_path_param
+      responses:
+        "200":
+          description: Update settings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/update_settings'
+        "400": *error_response
+  /jobs:
+    put:
+      x-mojo-to: API::Jobs#add
+      operationId: addJob
+      description: Add a new job
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/job'
+      responses:
+        "200": *success_message_response
+        "400": *error_response
+  /jobs/{job_id}:
+    get:
+      x-mojo-to: API::Jobs#show
+      operationId: showJob
+      description: Show job details
+      parameters:
+        - *job_id_path_param
+      responses:
+        "200":
+          description: Job details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/job'
+        "400": *error_response
+    patch:
+      x-mojo-to: API::Jobs#modify
+      operationId: modifyJob
+      description: Modify a job
+      parameters:
+        - *job_id_path_param
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                obsolete:
+                  type: boolean
+      responses:
+        "200": *success_message_response
+        "400": *error_response
+  /jobs/{job_id}/remarks:
+    get:
+      x-mojo-to: API::Jobs#show_remarks
+      operationId: showJobRemarks
+      description: Show job remarks
+      parameters:
+        - *job_id_path_param
+      responses:
+        "200":
+          description: Job remarks
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  remarks:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        text:
+                          type: string
+                        incident:
+                          type: integer
+        "404": *error_response
+    patch:
+      x-mojo-to: API::Jobs#update_remark
+      operationId: updateJobRemark
+      description: Update job remark
+      parameters:
+        - *job_id_path_param
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/job_remark_update'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/job_remark_update'
+      responses:
+        "200": *success_message_response
+        "404": *error_response
+  /jobs/incident/{incident_settings}:
+    get:
+      x-mojo-to: API::Jobs#incidents
+      operationId: getJobsForIncidentSettings
+      description: Get jobs for incident settings
+      parameters:
+        - name: incident_settings
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: ^[0-9]+$
+      responses:
+        "200":
+          description: Jobs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/job'
+  /jobs/update/{update_settings}:
+    get:
+      x-mojo-to: API::Jobs#updates
+      operationId: getJobsForUpdateSettings
+      description: Get jobs for update settings
+      parameters:
+        - name: update_settings
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: ^[0-9]+$
+      responses:
+        "200":
+          description: Jobs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/job'
+components:
+  schemas:
+    incident:
+      type: object
+      required:
+        - number
+        - project
+        - packages
+        - channels
+        - rr_number
+        - inReview
+        - inReviewQAM
+        - approved
+        - emu
+        - isActive
+        - embargoed
+      properties:
+        number:
+          type: integer
+          minimum: 1
+        project:
+          type: string
+        packages:
+          type: array
+          items:
+            type: string
+        channels:
+          type: array
+          items:
+            type: string
+        rr_number:
+          type: integer
+          minimum: 1
+          nullable: true
+        inReview:
+          type: boolean
+        inReviewQAM:
+          type: boolean
+        approved:
+          type: boolean
+        emu:
+          type: boolean
+        isActive:
+          type: boolean
+        embargoed:
+          type: boolean
+        priority:
+          type: integer
+          nullable: true
+        scminfo:
+          type: string
+        url:
+          type: string
+        type:
+          type: string
+      additionalProperties: true
+    incident_settings:
+      type: object
+      required:
+        - incident
+        - version
+        - flavor
+        - arch
+        - withAggregate
+        - settings
+      properties:
+        incident:
+          type: integer
+          minimum: 1
+        version:
+          type: string
+        flavor:
+          type: string
+        arch:
+          type: string
+        withAggregate:
+          type: boolean
+        settings:
+          type: object
+    update_settings:
+      type: object
+      required:
+        - incidents
+        - product
+        - arch
+        - build
+        - repohash
+        - settings
+      properties:
+        incidents:
+          type: array
+          minItems: 1
+          items:
+            type: integer
+            minimum: 1
+        product:
+          type: string
+        arch:
+          type: string
+        build:
+          type: string
+        repohash:
+          type: string
+        settings:
+          type: object
+    job:
+      type: object
+      required:
+        - name
+        - job_group
+        - job_id
+        - group_id
+        - status
+        - distri
+        - flavor
+        - version
+        - arch
+        - build
+      properties:
+        incident_settings:
+          type: integer
+          minimum: 1
+          nullable: true
+        update_settings:
+          type: integer
+          minimum: 1
+          nullable: true
+        name:
+          type: string
+        job_group:
+          type: string
+        job_id:
+          type: integer
+          minimum: 1
+        group_id:
+          type: integer
+          minimum: 1
+        status:
+          type: string
+          enum:
+            - unknown
+            - waiting
+            - passed
+            - failed
+            - stopped
+        distri:
+          type: string
+        flavor:
+          type: string
+        version:
+          type: string
+        arch:
+          type: string
+        build:
+          type: string
+    job_remark_update:
+      type: object
+      properties:
+        incident_number:
+          type: string
+          pattern: ^[0-9]+$
+        text:
+          type: string
+      required:
+        - text
