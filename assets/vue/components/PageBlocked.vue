@@ -14,47 +14,29 @@ const configStore = useConfigStore();
 const groupFlavors = ref(route.query.group_flavors !== '0');
 const matchText = ref(route.query.submission || route.query.incident || '');
 const groupNames = ref(route.query.group_names || '');
+const selectedStates = ref(route.query.states ? route.query.states.split(',') : [...filtering.DEFAULT_STATES]);
 
 usePolling(() => blockedStore.fetchBlocked());
 
+const groupFilters = computed(() => filtering.makeGroupNamesFilters(groupNames.value));
+
 const matchedSubmissions = computed(() => {
-  const url = new URL(location);
-  const searchParams = url.searchParams;
   let results = blockedStore.submissions;
 
   if (matchText.value) {
-    searchParams.set('submission', matchText.value);
     results = results.filter(submission => {
       if (String(submission.incident.number).includes(matchText.value)) return true;
-      for (const pack of submission.incident.packages) {
-        if (pack.includes(matchText.value)) return true;
-      }
-      return false;
+      return submission.incident.packages.some(pack => pack.includes(matchText.value));
     });
-  } else {
-    searchParams.delete('submission');
-    searchParams.delete('incident');
   }
 
   if (groupNames.value) {
-    url.searchParams.set('group_names', groupNames.value);
-    const filters = filtering.makeGroupNamesFilters(groupNames.value);
     results = results.filter(
       submission =>
-        filtering.checkResults(submission.update_results, filters) ||
-        filtering.checkResults(submission.incident_results, filters)
+        filtering.checkResults(submission.update_results, groupFilters.value) ||
+        filtering.checkResults(submission.incident_results, groupFilters.value)
     );
-  } else {
-    searchParams.delete('group_names');
   }
-
-  if (groupFlavors.value) {
-    searchParams.delete('group_flavors');
-  } else {
-    searchParams.set('group_flavors', '0');
-  }
-
-  history.pushState({}, '', url);
 
   const getPriority = incident => {
     if (incident.priority !== null) return incident.priority;
@@ -67,12 +49,40 @@ const matchedSubmissions = computed(() => {
 
 const smelt = computed(() => configStore.smeltUrl);
 
-watch(groupFlavors, enabled => {
-  const url = new URL(location);
-  const params = url.searchParams;
-  enabled ? params.delete('group_flavors') : params.set('group_flavors', '0');
-  history.pushState({}, '', url);
-});
+watch(
+  [groupFlavors, matchText, groupNames, selectedStates],
+  ([flavors, match, groups, states]) => {
+    const url = new URL(location);
+    const params = url.searchParams;
+
+    flavors ? params.delete('group_flavors') : params.set('group_flavors', '0');
+
+    if (match) {
+      params.set('submission', match);
+    } else {
+      params.delete('submission');
+      params.delete('incident');
+    }
+
+    if (groups) {
+      params.set('group_names', groups);
+    } else {
+      params.delete('group_names');
+    }
+
+    const isDefaultStates =
+      states.length === filtering.DEFAULT_STATES.length && states.every(s => filtering.DEFAULT_STATES.includes(s));
+
+    if (states.length > 0 && !isDefaultStates) {
+      params.set('states', states.join(','));
+    } else {
+      params.delete('states');
+    }
+
+    history.pushState({}, '', url);
+  },
+  {deep: true}
+);
 </script>
 
 <template>
@@ -89,11 +99,19 @@ watch(groupFlavors, enabled => {
           </label>
         </div>
       </div>
+      <div class="col-auto my-1 border-start">
+        <div v-for="state in filtering.VISIBLE_STATES" :key="state" class="form-check form-check-inline ms-2">
+          <label class="form-check-label text-capitalize" :for="state">
+            <input class="form-check-input" type="checkbox" :id="state" :value="state" v-model="selectedStates" />
+            {{ state }}
+          </label>
+        </div>
+      </div>
     </div>
-    <table class="table">
+    <table class="table table-fixed">
       <thead>
         <tr>
-          <th>
+          <th class="col-submission">
             <label for="inlineSearchSubmissions">
               Submission
               <input
@@ -106,7 +124,7 @@ watch(groupFlavors, enabled => {
               />
             </label>
           </th>
-          <th>
+          <th class="col-groups">
             <label for="inlineSearchGroups">
               Groups
               <input
@@ -129,7 +147,8 @@ watch(groupFlavors, enabled => {
           :submission-results="submission.incident_results"
           :update-results="submission.update_results"
           :group-flavors="groupFlavors"
-          :group-names="groupNames"
+          :group-filters="groupFilters"
+          :selected-states="selectedStates"
         />
       </tbody>
     </table>
@@ -142,3 +161,20 @@ export default {
   name: 'PageBlockedSubmissions'
 };
 </script>
+
+<style scoped>
+.table-fixed {
+  table-layout: fixed;
+  width: 100%;
+}
+.col-submission {
+  width: 250px;
+}
+.col-groups {
+  width: auto;
+}
+th label {
+  display: block;
+  width: 100%;
+}
+</style>

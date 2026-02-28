@@ -2,59 +2,39 @@
 import {computed} from 'vue';
 import {useRoute} from 'vue-router';
 import {useSubmissionDetailStore} from '@/stores/submission_detail';
-import {useConfigStore} from '@/stores/config';
 import {usePolling} from '../composables/polling';
 import SubmissionBuildSummary from './SubmissionBuildSummary.vue';
+import StatusBadge from './StatusBadge.vue';
 import RequestLink from './RequestLink.vue';
 import SmeltLink from './SmeltLink.vue';
 import SubmissionDetailsIcons from './SubmissionDetailsIcons.vue';
 
 const route = useRoute();
 const submissionDetailStore = useSubmissionDetailStore();
-const configStore = useConfigStore();
 
 usePolling(() => submissionDetailStore.fetchSubmission(route.params.id));
 
 const results = computed(() => {
   if (!submissionDetailStore.summary) return [];
   const parts = [];
-  const statusClasses = {
-    passed: 'bg-success',
-    failed: 'bg-danger',
-    stopped: 'bg-secondary',
-    waiting: 'bg-primary'
-  };
-  const statusIcons = {
-    passed: 'fa-check-circle',
-    failed: 'fa-times-circle',
-    stopped: 'fa-stop-circle',
-    waiting: 'fa-clock'
-  };
 
   if (submissionDetailStore.summary.passed) {
     parts.push({
       count: submissionDetailStore.summary.passed,
-      text: 'passed',
-      class: statusClasses.passed,
-      icon: statusIcons.passed
+      status: 'passed'
     });
   }
   for (const [key, value] of Object.entries(submissionDetailStore.summary)) {
     if (key === 'passed') continue;
     parts.push({
       count: value,
-      text: key,
-      class: statusClasses[key] || 'bg-dark',
-      icon: statusIcons[key] || 'fa-exclamation-triangle'
+      status: key
     });
   }
   return parts;
 });
 
-const openqaLink = computed(() => {
-  const searchParams = new URLSearchParams({build: submissionDetailStore.submission.buildNr});
-  return `${configStore.openqaUrl}?${searchParams.toString()}`;
-});
+const baseParams = computed(() => ({build: submissionDetailStore.submission?.buildNr}));
 
 const sortedBuilds = computed(() => {
   return Object.keys(submissionDetailStore.jobs).sort().reverse();
@@ -95,11 +75,13 @@ const sortedBuilds = computed(() => {
       <h2>Per Submission Results</h2>
       <p v-if="!submissionDetailStore.submission.buildNr">No submission build found</p>
       <p v-else>
-        <span v-for="part in results" :key="part.text" :class="['badge', part.class, 'me-1']">
-          <i :class="['fas', part.icon, 'me-1']" aria-hidden="true"></i>
-          {{ part.count }} {{ part.text }}
-        </span>
-        - see <a :href="openqaLink" target="_blank">openQA</a> for details
+        <StatusBadge
+          v-for="part in results"
+          :key="part.status"
+          :status="part.status"
+          :count="part.count"
+          :base-params="baseParams"
+        />
       </p>
     </div>
 
