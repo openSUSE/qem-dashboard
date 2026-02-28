@@ -12,6 +12,9 @@ sub blocked ($self) {
      WHERE active = TRUE AND approved = FALSE AND review_qam = TRUE AND (rr_number IS NOT NULL OR type = 'git')
      ORDER BY number"
   )->hashes->to_array;
+
+  $self->_map($_) for @$incidents;
+
   return [
     map {
       {
@@ -36,14 +39,14 @@ sub build_nr ($self, $inc) {
 
 sub find ($self, $options = {}) {
   my $incidents = $self->pg->db->query(
-    'SELECT number, project, packages, rr_number, review, review_qam, approved, emu, embargoed, priority, ARRAY_AGG(c.name) as channels,
+    'SELECT number, project, packages, rr_number, review, review_qam, approved, emu, active, embargoed, priority, ARRAY_AGG(c.name) as channels,
             scminfo, url, type
      FROM incidents i INNER JOIN incident_channels ic ON ic.incident = i.id INNER JOIN channels c ON ic.channel = c.id
      WHERE number = COALESCE(?, number) AND active = TRUE
      GROUP BY number, project, packages, rr_number, review, review_qam, approved, emu, active, embargoed, priority, scminfo, url, type
      ORDER BY number', $options->{number}
   )->hashes->to_array;
-  @{$_}{qw(isActive inReview inReviewQAM)} = (1, delete $_->{review}, delete $_->{review_qam}) for @$incidents;
+  $self->_map($_) for @$incidents;
 
   return $incidents;
 }
@@ -81,7 +84,8 @@ sub openqa_summary_only_incident ($self, $inc) {
 }
 
 sub incident_for_number ($self, $number) {
-  return $self->pg->db->query('select * from incidents where number = ? limit 1', $number)->hash;
+  my $incident = $self->pg->db->query('select * from incidents where number = ? limit 1', $number)->hash;
+  return $self->_map($incident);
 }
 
 sub number_for_id ($self, $id) {
@@ -351,6 +355,13 @@ sub _update ($self, $db, $incident) {
     my $cid = $db->query('SELECT id FROM channels WHERE name = ? LIMIT 1', $channel)->hash->{id};
     $db->query('DELETE FROM incident_channels WHERE incident = ? AND channel = ?', $id, $cid);
   }
+}
+
+sub _map ($self, $incident) {
+  return undef unless $incident;
+  @{$incident}{qw(isActive inReview inReviewQAM)}
+    = (delete $incident->{active}, delete $incident->{review}, delete $incident->{review_qam});
+  return $incident;
 }
 
 sub _log ($self, $level, $data) {

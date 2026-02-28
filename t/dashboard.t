@@ -176,4 +176,29 @@ subtest 'Overview API with no jobs' => sub {
   qr/access_log/, 'access log caught';
 };
 
+subtest 'Blocked status' => sub {
+  my $dashboard_test_blocked = Dashboard::Test->new(online => $ENV{TEST_ONLINE}, schema => 'dashboard_blocked_test');
+  my $app_blocked            = Test::Mojo->new(Dashboard => $dashboard_test_blocked->default_config)->app;
+  $dashboard_test_blocked->no_fixtures($app_blocked);
+  my $t = Test::Mojo->new($app_blocked);
+
+  # Insert an incident that should appear in /blocked
+  $t->app->pg->db->query(
+    'INSERT INTO incidents (number, project, packages, active, approved, review_qam, rr_number, review)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)', 12345, 'SUSE:Maintenance:12345', ['pkg1'], 1, 0, 1, 100, 1
+  );
+
+  stderr_like {
+    $t->get_ok('/app/api/blocked')
+      ->status_is(200)
+      ->json_has('/blocked/0/incident/isActive',    'has isActive')
+      ->json_has('/blocked/0/incident/inReview',    'has inReview')
+      ->json_has('/blocked/0/incident/inReviewQAM', 'has inReviewQAM')
+      ->json_is('/blocked/0/incident/isActive',    1)
+      ->json_is('/blocked/0/incident/inReview',    1)
+      ->json_is('/blocked/0/incident/inReviewQAM', 1);
+  }
+  qr/access_log/, 'access log caught';
+};
+
 done_testing();
