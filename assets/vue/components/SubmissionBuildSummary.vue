@@ -1,31 +1,29 @@
 <script setup>
 import {computed} from 'vue';
-import {useConfigStore} from '@/stores/config';
+import StatusBadge from './StatusBadge.vue';
 
 const props = defineProps({
   build: {type: String, required: true},
   jobs: {type: Array, required: true}
 });
 
-const configStore = useConfigStore();
-
 const NumberOfPassed = computed(() => props.jobs.filter(job => job.status === 'passed').length);
+
+const passedBaseParams = computed(() => {
+  const firstJob = props.jobs[0];
+  if (!firstJob) return {};
+  return {
+    version: firstJob.version,
+    groupid: firstJob.group_id,
+    flavor: firstJob.flavor,
+    distri: firstJob.distri,
+    build: firstJob.build
+  };
+});
 
 const interestingGroups = computed(() => {
   const groups = new Map();
   const links = new Map();
-  const statusClasses = {
-    passed: 'bg-success',
-    failed: 'bg-danger',
-    stopped: 'bg-secondary',
-    waiting: 'bg-primary'
-  };
-  const statusIcons = {
-    passed: 'fa-check-circle',
-    failed: 'fa-times-circle',
-    stopped: 'fa-stop-circle',
-    waiting: 'fa-clock'
-  };
   for (const job of props.jobs) {
     if (job.status === 'passed') continue;
     const key = `${job.job_group}@${job.flavor}`;
@@ -44,19 +42,13 @@ const interestingGroups = computed(() => {
   const ret = [];
   for (const [groupBuild, stat] of groups) {
     const summary = [];
-    for (const [key, value] of stat.entries()) {
-      summary.push({
-        count: value,
-        text: key,
-        class: statusClasses[key] || 'bg-dark',
-        icon: statusIcons[key] || 'fa-exclamation-triangle'
-      });
+    for (const [status, count] of stat.entries()) {
+      summary.push({count, status});
     }
-    const searchParams = new URLSearchParams(links.get(groupBuild));
     ret.push({
       build: groupBuild,
-      link: `${configStore.openqaUrl}?${searchParams.toString()}`,
-      summary: summary.sort((a, b) => a.text.localeCompare(b.text))
+      baseParams: links.get(groupBuild),
+      summary: summary.sort((a, b) => a.status.localeCompare(b.status))
     });
   }
   return ret.sort((a, b) => a.build.localeCompare(b.build));
@@ -67,18 +59,18 @@ const interestingGroups = computed(() => {
   <div class="card mb-3">
     <div class="card-header">
       Build {{ build }}
-      <span class="badge bg-success">
-        <i class="fas fa-check-circle me-1" aria-hidden="true"></i>{{ NumberOfPassed }} passed
-      </span>
+      <StatusBadge v-if="NumberOfPassed" status="passed" :count="NumberOfPassed" :base-params="passedBaseParams" />
     </div>
     <div class="card-body text-left">
       <p v-for="group of interestingGroups" :key="group.build">
-        <a :href="group.link" target="_blank">{{ group.build }}</a>
-        -
-        <span v-for="part in group.summary" :key="part.text" :class="['badge', part.class, 'me-1']">
-          <i :class="['fas', part.icon, 'me-1']" aria-hidden="true"></i>
-          {{ part.count }} {{ part.text }}
-        </span>
+        {{ group.build }} -
+        <StatusBadge
+          v-for="part in group.summary"
+          :key="part.status"
+          :status="part.status"
+          :count="part.count"
+          :base-params="group.baseParams"
+        />
       </p>
     </div>
   </div>
