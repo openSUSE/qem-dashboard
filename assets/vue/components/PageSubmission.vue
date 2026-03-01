@@ -1,6 +1,7 @@
 <script setup>
 import {computed} from 'vue';
 import {useRoute} from 'vue-router';
+import {useConfigStore} from '@/stores/config';
 import {useSubmissionDetailStore} from '@/stores/submission_detail';
 import {usePolling} from '../composables/polling';
 import SubmissionBuildSummary from './SubmissionBuildSummary.vue';
@@ -11,6 +12,7 @@ import SubmissionDetailsIcons from './SubmissionDetailsIcons.vue';
 
 const route = useRoute();
 const submissionDetailStore = useSubmissionDetailStore();
+const configStore = useConfigStore();
 
 usePolling(() => submissionDetailStore.fetchSubmission(route.params.id));
 
@@ -24,7 +26,10 @@ const results = computed(() => {
   return parts.sort((a, b) => (a.status === 'passed' ? -1 : b.status === 'passed' ? 1 : 0));
 });
 
-const baseParams = computed(() => ({build: submissionDetailStore.submission?.buildNr}));
+const baseParams = computed(() => ({
+  build: submissionDetailStore.submission?.buildNr,
+  not_group_glob: configStore.openqaNotGroupGlob
+}));
 
 const sortedBuilds = computed(() => {
   return Object.keys(submissionDetailStore.jobs).sort().reverse();

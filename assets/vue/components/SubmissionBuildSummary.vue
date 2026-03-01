@@ -1,11 +1,14 @@
 <script setup>
 import {computed} from 'vue';
+import {useConfigStore} from '@/stores/config';
 import StatusBadge from './StatusBadge.vue';
 
 const props = defineProps({
   build: {type: String, required: true},
   jobs: {type: Array, required: true}
 });
+
+const configStore = useConfigStore();
 
 const NumberOfPassed = computed(() => props.jobs.filter(job => job.status === 'passed').length);
 
@@ -17,7 +20,8 @@ const passedBaseParams = computed(() => {
     groupid: firstJob.group_id,
     flavor: firstJob.flavor,
     distri: firstJob.distri,
-    build: firstJob.build
+    build: firstJob.build,
+    not_group_glob: configStore.openqaNotGroupGlob
   };
 });
 
@@ -34,7 +38,8 @@ const interestingGroups = computed(() => {
         groupid: job.group_id,
         flavor: job.flavor,
         distri: job.distri,
-        build: job.build
+        build: job.build,
+        not_group_glob: configStore.openqaNotGroupGlob
       });
     }
     groups.get(key).set(job.status, (groups.get(key).get(job.status) || 0) + 1);

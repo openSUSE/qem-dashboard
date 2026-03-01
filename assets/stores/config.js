@@ -4,6 +4,7 @@ export const useConfigStore = defineStore('config', {
   state: () => ({
     bootId: '',
     openqaUrl: '',
+    openqaNotGroupGlob: '',
     obsUrl: '',
     smeltUrl: '',
     giteaFallbackPriority: 0,
@@ -14,6 +15,7 @@ export const useConfigStore = defineStore('config', {
       const config = await fetch('/app-config').then(res => res.json());
       this.bootId = config.bootId;
       this.openqaUrl = config.openqaUrl;
+      this.openqaNotGroupGlob = config.openqaNotGroupGlob;
       this.obsUrl = config.obsUrl;
       this.smeltUrl = config.smeltUrl;
       this.giteaFallbackPriority = config.giteaFallbackPriority;

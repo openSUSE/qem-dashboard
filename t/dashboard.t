@@ -55,6 +55,12 @@ subtest 'Config override' => sub {
   is $t->app->config->{obs}{url}, 'https://override.suse.de', 'config overridden via DASHBOARD_CONF_OVERRIDE';
 };
 
+subtest 'openqaNotGroupGlob config override' => sub {
+  local $ENV{DASHBOARD_CONF_OVERRIDE} = '{"openqa":{"url":"https://openqa.suse.de","not_group_glob":"*Custom*"}}';
+  my $t = Test::Mojo->new(Dashboard => $config);
+  $t->get_ok('/app-config')->status_is(200)->json_is('/openqaNotGroupGlob', '*Custom*');
+};
+
 subtest 'Custom config file' => sub {
   local $ENV{DASHBOARD_CONF} = 'dashboard.yml';
   my $t = Test::Mojo->new(Dashboard => $config);
@@ -68,6 +74,7 @@ subtest 'App config endpoint' => sub {
       ->status_is(200)
       ->json_has('/bootId')
       ->json_is('/openqaUrl',             'https://openqa.suse.de/tests/overview')
+      ->json_is('/openqaNotGroupGlob',    '*Devel*,*Test*')
       ->json_is('/obsUrl',                'https://build.suse.de')
       ->json_is('/smeltUrl',              'https://smelt.suse.de')
       ->json_is('/giteaFallbackPriority', Dashboard::GITEA_FALLBACK_PRIORITY_DEFAULT);

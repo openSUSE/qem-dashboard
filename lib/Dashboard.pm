@@ -205,6 +205,7 @@ sub _register_routes ($self, $config) {
         json => {
           bootId                => $self->{boot_id},
           openqaUrl             => $c->openqa_url->path('/tests/overview'),
+          openqaNotGroupGlob    => $config->{openqa}{not_group_glob} // '*Devel*,*Test*',
           obsUrl                => $config->{obs}{url},
           smeltUrl              => $config->{smelt}{url},
           giteaFallbackPriority => $config->{gitea_fallback_priority} // GITEA_FALLBACK_PRIORITY_DEFAULT

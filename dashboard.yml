@@ -7,6 +7,7 @@ tokens:
   - s3cret
 openqa:
   url: https://openqa.opensuse.org
+  # not_group_glob: '*Devel*,*Test*'
 obs:
   url: https://build.opensuse.org
 smelt:

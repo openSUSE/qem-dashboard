@@ -62,7 +62,7 @@ t.test('Test dashboard ui', {skip, timeout: 60000}, async t => {
     t.match(await page.innerText('.incident-results p'), /1\s*passed\s*1\s*failed\s*1\s*waiting/);
     t.equal(
       await page.locator('text=openqa').getAttribute('href'),
-      'https://openqa.suse.de/tests/overview?build=%3A16860%3Aperl-Mojolicious'
+      'https://openqa.suse.de/tests/overview?build=%3A16860%3Aperl-Mojolicious&not_group_glob=%2ADevel%2A%2C%2ATest%2A'
     );
 
     await page.goto(`${url}/obsolete_jobs`);

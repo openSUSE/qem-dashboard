@@ -44,6 +44,7 @@ const link = computed(() => {
     });
   }
   searchParams.delete('distri');
+  searchParams.append('not_group_glob', configStore.openqaNotGroupGlob);
   return `${configStore.openqaUrl}?${searchParams.toString()}`;
 });
 </script>
