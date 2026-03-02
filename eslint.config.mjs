@@ -1,9 +1,9 @@
-import globals from "globals";
-import js from "@eslint/js";
-import eslintConfigPrettier from "eslint-config-prettier";
-import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended";
-import eslintPluginVue from 'eslint-plugin-vue'
-import vuejsAccessibility from 'eslint-plugin-vuejs-accessibility'
+import globals from 'globals';
+import js from '@eslint/js';
+import eslintConfigPrettier from 'eslint-config-prettier';
+import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
+import eslintPluginVue from 'eslint-plugin-vue';
+import vuejsAccessibility from 'eslint-plugin-vuejs-accessibility';
 
 // disable import plugin for now (until https://github.com/import-js/eslint-plugin-import/issues/2948
 // and https://github.com/import-js/eslint-plugin-import/issues/2556 have been resolved)
@@ -15,9 +15,10 @@ export default [
     languageOptions: {
       globals: {
         ...globals.browser,
+        ...globals.node
       },
-      sourceType: "module",
-    },
+      sourceType: 'module'
+    }
   },
   //{
   //  plugins: {
@@ -38,13 +39,13 @@ export default [
   //},
   eslintConfigPrettier,
   eslintPluginPrettierRecommended,
-  ...eslintPluginVue.configs["flat/strongly-recommended"],
-  ...vuejsAccessibility.configs["flat/recommended"],
+  ...eslintPluginVue.configs['flat/strongly-recommended'],
+  ...vuejsAccessibility.configs['flat/recommended'],
   {
     rules: {
-      "vue/max-attributes-per-line": "off",
-      "vue/singleline-html-element-content-newline": "off",
-      "vue/html-self-closing": "off",
-    },
-  },
+      'vue/max-attributes-per-line': 'off',
+      'vue/singleline-html-element-content-newline': 'off',
+      'vue/html-self-closing': 'off'
+    }
+  }
 ];

@@ -7,7 +7,6 @@ import {chromium} from 'playwright';
 import AxeBuilder from '@axe-core/playwright';
 import t from 'tap';
 
-// eslint-disable-next-line no-undef
 const env = process.env;
 const skip = env.TEST_ONLINE === undefined ? {skip: 'set TEST_ONLINE to enable this test'} : {};
 
