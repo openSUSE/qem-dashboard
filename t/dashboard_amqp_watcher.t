@@ -42,8 +42,18 @@ subtest 'amqp_watcher command' => sub {
         Mojo::IOLoop->one_tick;
       }
       qr/amqp_error/, 'logs connection error';
+      isa_ok $amqp_watcher->client, 'Mojo::RabbitMQ::Client', 'new client on connection';
+      my $initial_client = $amqp_watcher->client;
       is scalar(@backoff_counter), 1, 'scheduled one reconnection';
       is $backoff_counter[0],      1, 'initial backoff is 1 second';
+      stderr_like {
+        $amqp_watcher->_connect(0);
+        Mojo::IOLoop->one_tick;
+      }
+      qr/amqp_error/, 'close is reached once again';
+      my $new_client = $amqp_watcher->client;
+      isnt $new_client, undef,           'old client is replaced on recconect';
+      isnt $new_client, $initial_client, 'client is still alive';
     };
 
     subtest 'connection failure' => sub {
