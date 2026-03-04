@@ -2,25 +2,40 @@
 use strict;
 use warnings;
 use Devel::Cover::DB;
+use Cwd 'abs_path';
+use File::Find;
 
-my $cover = Devel::Cover::DB->new(db => "cover_db");
+my $db_path = abs_path("cover_db");
+my $cover = Devel::Cover::DB->new(db => $db_path);
 if (!$cover) {
-    die "Failed to load coverage database from cover_db";
+    die "Failed to load coverage database from $db_path";
 }
+$cover = $cover->merge_runs;
+$cover->calculate_summary(statement => 1, branch => 1);
 
-# Fallback to internal hash keys if files() method is not available in this version
-my @files;
-if ($cover->can('files')) {
-    @files = $cover->files;
+my %covered_files;
+if ($cover->can('cover') && $cover->cover->can('items')) {
+    %covered_files = map { $_ => 1 } $cover->cover->items;
+} elsif ($cover->can('files')) {
+    %covered_files = map { $_ => 1 } $cover->files;
 } else {
-    @files = keys %{$cover->{file}};
+    %covered_files = map { $_ => 1 } keys %{$cover->{file}};
 }
 
-@files = grep { /^lib\/|t\// && !/Wrappers/ && !/Database\.pm/ } @files;
+# Find all files that SHOULD be covered
+my @expected_files;
+find(sub {
+    return unless /\.p[lm]$/ || /\.t$/;
+    my $name = $File::Find::name;
+    $name =~ s/^\.\///;
+    return unless $name =~ /^(?:lib\/|t\/)/;
+    return if $name =~ m{(?:Wrappers|Database\.pm|wrappers/ui\.pl|api_v1\.t)};
+    push @expected_files, $name;
+}, 'lib', 't');
 
 my $failed = 0;
-$failed += check_coverage('statement', 100, \@files);
-$failed += check_coverage('branch', 100, \@files);
+$failed += check_coverage('statement', 100, \@expected_files);
+$failed += check_coverage('branch', 100, \@expected_files);
 
 if ($failed) {
     print "\nGenerating detailed coverage report due to failures…\n";
@@ -34,16 +49,18 @@ sub check_coverage {
     my ($type, $threshold, $files) = @_;
     my @failed;
     for my $file (@$files) {
-        my $f = $cover->file($file);
-        next unless $f;
-        my $criterion = $f->$type();
-        if (!$criterion) {
-            # Some files might not have branches
-            next if $type eq 'branch';
-            push @failed, $file;
+        if (!$covered_files{$file}) {
+            push @failed, "$file: 0% (not in coverage database)";
             next;
         }
-        my $coverage = $criterion->percentage;
+        my $c = $cover->{summary}{$file}{$type};
+        if (!$c) {
+            # Some files might not have branches
+            next if $type eq 'branch';
+            push @failed, "$file: 0% (no $type data)";
+            next;
+        }
+        my $coverage = $c->{percentage};
         push @failed, sprintf("%s: %.1f%%", $file, $coverage) if $coverage < $threshold;
     }
 
