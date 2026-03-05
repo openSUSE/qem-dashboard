@@ -192,9 +192,48 @@ sub run_api_tests ($t, $prefix) {
         ->status_is(200)
         ->json_is('/message', 'Ok', 'put jobs (incident only) returns Ok');
 
+      # Missing branches: job without references
+      $t->put_ok(
+        "$prefix/jobs" => $auth_headers => json => {%$job_data, incident_settings => undef, update_settings => undef})
+        ->status_is(400)
+        ->json_is('/error', 'Job needs to reference incident settings or update settings');
+
+      # Missing branches: non-existent references
+      $t->put_ok(
+        "$prefix/jobs" => $auth_headers => json => {%$job_data, incident_settings => 9999, update_settings => undef})
+        ->status_is(400)
+        ->json_is('/error', 'Referenced incident settings (9999) do not exist');
+      $t->put_ok(
+        "$prefix/jobs" => $auth_headers => json => {%$job_data, incident_settings => undef, update_settings => 9999})
+        ->status_is(400)
+        ->json_is('/error', 'Referenced update settings (9999) do not exist');
+
       # Verify Get jobs by settings
       $t->get_ok("$prefix/jobs/incident/1" => $auth_headers)->status_is(200);
       is scalar @{$t->tx->res->json}, 2, 'two jobs for incident settings 1';
+
+      # Verify Get update settings
+      $t->get_ok("$prefix/update_settings/16860" => $auth_headers)->status_is(200)->json_is('/0/product', 'SLES-15-GA');
+
+      # Verify Get jobs by update settings
+      $t->get_ok("$prefix/jobs/update/1" => $auth_headers)->status_is(200)->json_is('/0/name', 'mau-webserver@64bit');
+
+      # Verify search update settings
+      $t->get_ok("$prefix/update_settings?product=SLES-15-GA&arch=x86_64" => $auth_headers)
+        ->status_is(200)
+        ->json_is('/0/product', 'SLES-15-GA');
+
+      # Branch coverage: search with no results
+      $t->get_ok("$prefix/update_settings?product=None&arch=x86_64" => $auth_headers)->status_is(200)->json_is('', []);
+
+      # Modify job
+      $t->patch_ok("$prefix/jobs/4953193" => $auth_headers => json => {obsolete => true})
+        ->status_is(200)
+        ->json_is('/message', 'Ok', 'patch jobs returns Ok');
+      $t->get_ok("$prefix/jobs/4953193" => $auth_headers)->status_is(200)->json_is('/obsolete', 1);
+
+      # Missing branch: non-existent job in show
+      $t->get_ok("$prefix/jobs/9999999" => $auth_headers)->status_is(400)->json_is('/error', 'Job not found');
 
       # Branch coverage: same group_id for multiple jobs in _incident_openqa_jobs
       my $job_data_same_group = {%$job_data, job_id => 4953195, name => 'third-job@64bit', status => 'failed'};
