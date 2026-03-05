@@ -7,6 +7,7 @@ use Mojo::Base 'Mojolicious', -signatures;
 use Mojo::Pg;
 use Mojo::File qw(curfile);
 use Mojo::JSON;
+use Scalar::Util 'blessed';
 use Dashboard::Model::Incidents;
 use Dashboard::Model::Jobs;
 use Dashboard::Model::Settings;
@@ -25,8 +26,10 @@ sub startup ($self) {
   my $custom_file = '/home/lurklur/dashboard.yml';
 
   # Load configuration from config file
-  my $file   = $ENV{DASHBOARD_CONF} || (-r $custom_file ? $custom_file : 'dashboard.yml');    # uncoverable branch true
-                                                                                              # uncoverable branch true
+  my $file = 'dashboard.yml';
+  $file = $custom_file         if -r $custom_file;        # uncoverable branch true
+  $file = $ENV{DASHBOARD_CONF} if $ENV{DASHBOARD_CONF};
+
   my $config = $self->plugin(NotYAMLConfig => {file => $file});
 
   if (my $override = $ENV{DASHBOARD_CONF_OVERRIDE}) {
@@ -50,7 +53,7 @@ sub startup ($self) {
 sub _setup_logging ($self) {
 
   # Short logs for systemd
-  if ($self->mode eq 'production') {    # uncoverable branch true
+  if ($self->mode eq 'production') {
     $self->log->short(1);
 
     # All interesting log messages are "info" or higher
@@ -61,9 +64,9 @@ sub _setup_logging ($self) {
   $self->hook(
     before_dispatch => sub ($c) {
       $c->stash(
-        request_id => $c->req->request_id // Mojo::Util::monkey_patch(    # uncoverable branch true
-          'Mojo::Transaction', 'request_id' =>
-            sub { shift->{request_id} ||= Mojo::Util::md5_sum(Time::HiRes::time() . rand()) }  # uncoverable branch true
+        request_id => $c->req->request_id // Mojo::Util::monkey_patch(
+          'Mojo::Transaction',
+          'request_id' => sub { shift->{request_id} ||= Mojo::Util::md5_sum(Time::HiRes::time() . rand()) }
         )
       );
     }
@@ -137,7 +140,7 @@ EOF
         -e $path ? Mojo::JSON::decode_json($path->slurp) : undef;
       };
 
-      if (!$manifest && $self->mode eq 'development') {    # uncoverable branch true
+      if (!$manifest && $self->mode eq 'development') {
         return Mojo::ByteStream->new(qq{<script type="module" src="http://localhost:5173/asset/$entry"></script>});
       }
 
@@ -245,8 +248,12 @@ sub _register_routes ($self, $config) {
       if (ref $data eq 'HASH' && $data->{errors}) {
         my $status = $data->{status} // 400;
         if ($status == 404) { return Mojo::JSON::encode_json({error => 'Resource not found'}) }
-        my @errors = map { ref $_ ? {message => $_->message, path => $_->path . ""} : {message => "$_", path => ""} }
-          @{$data->{errors}};
+        my @errors = map {
+          blessed($_)
+            && $_->can('path')
+            ? {message => $_->message, path => $_->path . ""}
+            : {message => "$_", path => ""}
+        } @{$data->{errors}};
         return Mojo::JSON::encode_json({error => "Validation failed", errors => \@errors});
       }
       return Mojo::JSON::encode_json($data);
