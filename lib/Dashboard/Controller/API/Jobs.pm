@@ -7,15 +7,6 @@ use Mojo::Base 'Mojolicious::Controller', -signatures;
 sub add ($self) {
   return if $self->stash('openapi.path') && !$self->openapi->valid_input;
 
-  if (!$self->stash('openapi.path')) {
-    return $self->render(json => {error => 'Job in JSON format required'}, status => 400)
-      unless my $job = $self->req->json;
-
-    my $jv     = $self->schema('job');
-    my @errors = $jv->validate($job);
-    return $self->render(json => {error => "Job does not match the JSON schema: @errors"}, status => 400) if @errors;
-  }
-
   my $job   = $self->req->json;
   my $is_id = $job->{incident_settings};
   my $us_id = $job->{update_settings};
@@ -44,10 +35,6 @@ sub incidents ($self) {
 
 sub modify ($self) {
   return if $self->stash('openapi.path') && !$self->openapi->valid_input;
-
-  if (!$self->stash('openapi.path')) {
-    return $self->render(json => {error => 'Job data in JSON format required'}, status => 400) unless $self->req->json;
-  }
 
   my $job_id   = $self->param('job_id');
   my $job_data = $self->req->json;

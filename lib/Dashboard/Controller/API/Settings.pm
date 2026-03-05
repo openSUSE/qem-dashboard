@@ -9,15 +9,6 @@ use Mojo::JSON qw(true false);
 sub add_incident_settings ($self) {
   return if $self->stash('openapi.path') && !$self->openapi->valid_input;
 
-  if (!$self->stash('openapi.path')) {
-    return $self->render(json => {error => 'Settings in JSON format required'}, status => 400)
-      unless my $settings = $self->req->json;
-
-    my $jv     = $self->schema('incident_settings');
-    my @errors = $jv->validate($settings);
-    return $self->render(json => {error => "Settings do not match the JSON schema: @errors"}, status => 400) if @errors;
-  }
-
   my $settings = $self->req->json;
   return $self->render(json => {error => 'Incident not found'}, status => 400)
     unless my $incident_id = $self->incidents->id_for_number($settings->{incident});
@@ -28,15 +19,6 @@ sub add_incident_settings ($self) {
 
 sub add_update_settings ($self) {
   return if $self->stash('openapi.path') && !$self->openapi->valid_input;
-
-  if (!$self->stash('openapi.path')) {
-    return $self->render(json => {error => 'Settings in JSON format required'}, status => 400)
-      unless my $settings = $self->req->json;
-
-    my $jv     = $self->schema('update_settings');
-    my @errors = $jv->validate($settings);
-    return $self->render(json => {error => "Settings do not match the JSON schema: @errors"}, status => 400) if @errors;
-  }
 
   my $settings = $self->req->json;
   my @incident_ids;
