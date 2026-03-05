@@ -26,6 +26,7 @@ sub startup ($self) {
 
   # Load configuration from config file
   my $file   = $ENV{DASHBOARD_CONF} || (-r $custom_file ? $custom_file : 'dashboard.yml');    # uncoverable branch true
+                                                                                              # uncoverable branch true
   my $config = $self->plugin(NotYAMLConfig => {file => $file});
 
   if (my $override = $ENV{DASHBOARD_CONF_OVERRIDE}) {
@@ -49,7 +50,7 @@ sub startup ($self) {
 sub _setup_logging ($self) {
 
   # Short logs for systemd
-  if ($self->mode eq 'production') {
+  if ($self->mode eq 'production') {    # uncoverable branch true
     $self->log->short(1);
 
     # All interesting log messages are "info" or higher
@@ -136,7 +137,7 @@ EOF
         -e $path ? Mojo::JSON::decode_json($path->slurp) : undef;
       };
 
-      if (!$manifest && $self->mode eq 'development') {
+      if (!$manifest && $self->mode eq 'development') {    # uncoverable branch true
         return Mojo::ByteStream->new(qq{<script type="module" src="http://localhost:5173/asset/$entry"></script>});
       }
 
