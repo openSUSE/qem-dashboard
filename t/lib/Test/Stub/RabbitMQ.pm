@@ -22,8 +22,8 @@ sub _stub_common_client_methods ($cls) {
   );
 
   $rabbit->redefine(
-    emit => sub ($self, $event) {
-      $event_handlers{$event}->($self) if exists $event_handlers{$event};
+    emit => sub ($self, $event, @args) {
+      $event_handlers{$event}->($self, @args) if exists $event_handlers{$event};
     }
   );
 
@@ -66,7 +66,7 @@ sub setup_successful_connection ($cls) {
 
   $rabbit_channel->redefine(bind_queue_p => sub ($self, @) { Mojo::Promise->resolve($self) });
   $rabbit_channel->redefine(consume      => sub ($self, @) { bless {}, 'Mojo::RabbitMQ::Client::Consumer' });
-  my $rabbit_queue_result = Test::MockModule->new('QueueResult', no_auto => 1);
+  my $rabbit_queue_result = Test::MockModule->new('QueueResults', no_auto => 1);
   $rabbit_queue_result->mock(method_frame => sub ($self) { return $self->{_method_frame} });
 
   my $rabbit_consumer = Test::MockModule->new('Mojo::RabbitMQ::Client::Consumer', no_auto => 1);
