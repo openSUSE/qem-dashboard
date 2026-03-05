@@ -91,10 +91,102 @@ subtest 'amqp_watcher command' => sub {
       $amqp_watcher->_connect(30);
       stderr_like { Mojo::IOLoop->one_tick }
       qr/amqp_connected/, 'logs successful connection';
+
+      # Branch coverage: connect event
+      my $mock_stream = bless {}, 'MockStream';
+      {
+        no strict 'refs';
+        *{"MockStream::timeout"} = sub { };
+      }
+      $new_rabbitmq_client->emit('connect', $mock_stream);
+      Mojo::IOLoop->one_tick;
+
       stderr_like { $new_rabbitmq_client->emit('close') }
       qr/amqp_reconnect/, 'logs reconnect on close';
       is $backoff_counter[-1], 1, 'backoff resets to 1 second after successful connection';
     };
+
+    subtest 'message handling' => sub {
+      my ($rabbit, $rabbit_channel, $rabbit_queue_result, $rabbit_consumer)
+        = Test::Stub::RabbitMQ->setup_successful_connection();
+      my $msg_cb;
+      $rabbit_consumer->mock(on => sub { (my $self, my $event, $msg_cb) = @_; $self });
+
+      $amqp_watcher->_connect(0);
+
+      # The promise chain is asynchronous, ensure it finishes
+      for (1 .. 5) { Mojo::IOLoop->one_tick }
+
+      ok $msg_cb, 'consumer message callback registered';
+
+      subtest 'valid message' => sub {
+        my $mock_amqp = Test::MockModule->new('Dashboard::Model::AMQP');
+        my ($handled_key, $handled_data);
+        $mock_amqp->redefine(handle => sub { (my $self, $handled_key, $handled_data) = @_; });
+
+        my $frame = {
+          body    => bless({payload => '{"foo":"bar"}'}, 'MockBody'),
+          deliver => {method_frame => {routing_key => 'test.key'}}
+        };
+        {
+          no strict 'refs';
+          *{"MockBody::to_raw_payload"} = sub { shift->{payload} };
+        }
+        $msg_cb->(undef, $frame);
+        is $handled_key, 'test.key', 'correct routing key handled';
+        is_deeply $handled_data, {foo => 'bar'}, 'correct data handled';
+      };
+
+      subtest 'invalid JSON' => sub {
+        my $frame = {
+          body    => bless({payload => 'invalid json'}, 'MockBody2'),
+          deliver => {method_frame => {routing_key => 'test.key'}}
+        };
+        {
+          no strict 'refs';
+          *{"MockBody2::to_raw_payload"} = sub { shift->{payload} };
+        }
+        stderr_like { $msg_cb->(undef, $frame) } qr/amqp_error/, 'logs error on invalid JSON';
+      };
+    };
+
+    subtest 'connection error catch' => sub {
+      my ($rabbit, $rabbit_channel, $rabbit_queue_result, $rabbit_consumer)
+        = Test::Stub::RabbitMQ->setup_successful_connection();
+      $rabbit_channel->redefine(declare_exchange_p => sub { Mojo::Promise->reject('Exchange error') });
+
+      stderr_like {
+        $amqp_watcher->_connect(0);
+
+        # The promise chain is asynchronous, ensure it finishes
+        for (1 .. 5) { Mojo::IOLoop->one_tick }
+      }
+      qr/amqp_error/, 'catches and logs error in promise chain';
+    };
+  };
+
+  subtest 'run method' => sub {
+    my $mock_ioloop = Test::MockModule->new('Mojo::IOLoop');
+    my $started     = 0;
+    $mock_ioloop->redefine(start      => sub { $started++ });
+    $mock_ioloop->redefine(is_running => sub {0});
+
+    # Mock _connect to avoid actually trying to connect
+    my $connected    = 0;
+    my $mock_watcher = Test::MockModule->new('Dashboard::Command::amqp_watcher');
+    $mock_watcher->redefine(_connect => sub { $connected++ });
+
+    $amqp_watcher->run();
+    is $connected, 1, '_connect called';
+    is $started,   1, 'IOLoop started';
+
+    # Branch coverage: IOLoop already running
+    $connected = 0;
+    $started   = 0;
+    $mock_ioloop->redefine(is_running => sub {1});
+    $amqp_watcher->run();
+    is $connected, 1, '_connect called again';
+    is $started,   0, 'IOLoop NOT started again';
   };
 };
 
