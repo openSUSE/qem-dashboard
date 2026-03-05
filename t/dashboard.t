@@ -200,6 +200,14 @@ subtest 'Blocked status' => sub {
       ->json_is('/blocked/0/incident/inReviewQAM', 1);
   }
   qr/access_log/, 'access log caught';
+
+  subtest 'coverage for Dashboard.pm helper/hooks' => sub {
+    $t->get_ok('/api/incidents/abc' => {Authorization => 'Token test_token'})->status_is(400);
+    $t->app->routes->get('/test_400_no_json' => sub ($c) { $c->render(text => 'error', status => 400) });
+    $t->get_ok('/test_400_no_json')->status_is(400);
+    is $t->app->openapi->build_response_body([]), '[]', 'handles non-hash data';
+    is $t->app->openapi->build_response_body({}), '{}', 'handles hash without errors';
+  };
 };
 
 done_testing();
