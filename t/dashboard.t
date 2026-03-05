@@ -207,6 +207,21 @@ subtest 'Blocked status' => sub {
     $t->get_ok('/test_400_no_json')->status_is(400);
     is $t->app->openapi->build_response_body([]), '[]', 'handles non-hash data';
     is $t->app->openapi->build_response_body({}), '{}', 'handles hash without errors';
+
+    # Coverage for blessed object with path
+    {
+
+      package MockError;
+      sub new     { bless {message => 'foo', path => '/bar'}, shift }
+      sub message { shift->{message} }
+      sub path    { shift->{path} }
+    }
+    is $t->app->openapi->build_response_body({errors => [MockError->new]}),
+      '{"error":"Validation failed","errors":[{"message":"foo","path":"\/bar"}]}', 'handles blessed error with path';
+
+    # Coverage for string error without path
+    is $t->app->openapi->build_response_body({errors => ['plain string error']}),
+      '{"error":"Validation failed","errors":[{"message":"plain string error","path":""}]}', 'handles string error';
   };
 };
 
