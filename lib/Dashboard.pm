@@ -36,6 +36,9 @@ sub startup ($self) {
 
   $self->secrets($config->{secrets});
 
+  # Show IPv6 compatible "localhost" instead of IPv4 loopback 127.0.0.1
+  $ENV{MOJO_LISTEN} //= 'http://localhost:3000';
+
   $self->{boot_id} = Mojo::Util::md5_sum(Time::HiRes::time() . rand());
 
   $self->_setup_logging;
