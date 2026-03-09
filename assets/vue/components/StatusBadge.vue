@@ -1,7 +1,7 @@
 <template>
   <a :href="link" target="_blank" :class="['badge', badgeClass, 'me-1', 'text-decoration-none']">
     <i :class="['fas', iconClass, 'me-1']" aria-hidden="true"></i>
-    {{ count }} {{ text || status }}
+    {{ count }} {{ status }}
   </a>
 </template>
 
@@ -14,7 +14,6 @@ import {getOpenQALink} from '@/vue/utils/openqa';
 const props = defineProps({
   status: {type: String, required: true},
   count: {type: [Number, String], required: true},
-  text: {type: String, default: ''},
   baseParams: {type: Object, required: true}
 });
 

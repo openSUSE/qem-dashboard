@@ -16,22 +16,12 @@ usePolling(() => submissionDetailStore.fetchSubmission(route.params.id));
 
 const results = computed(() => {
   if (!submissionDetailStore.summary) return [];
-  const parts = [];
-
-  if (submissionDetailStore.summary.passed) {
-    parts.push({
-      count: submissionDetailStore.summary.passed,
-      status: 'passed'
-    });
-  }
-  for (const [key, value] of Object.entries(submissionDetailStore.summary)) {
-    if (key === 'passed') continue;
-    parts.push({
-      count: value,
-      status: key
-    });
-  }
-  return parts;
+  const parts = Object.entries(submissionDetailStore.summary).map(([status, count]) => ({
+    count,
+    status
+  }));
+  // Ensure 'passed' stays first if it exists, matching the old behavior
+  return parts.sort((a, b) => (a.status === 'passed' ? -1 : b.status === 'passed' ? 1 : 0));
 });
 
 const baseParams = computed(() => ({build: submissionDetailStore.submission?.buildNr}));
