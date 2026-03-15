@@ -14,10 +14,14 @@ export default defineConfig({
   },
   root: path.resolve(__dirname, 'assets'),
   base: '/asset/',
+  css: {
+    transformer: 'lightningcss'
+  },
   build: {
     outDir: path.resolve(__dirname, 'public/asset'),
     emptyOutDir: true,
     manifest: true,
+    cssMinify: 'lightningcss',
     rollupOptions: {
       input: path.resolve(__dirname, 'assets/main.js')
     }
