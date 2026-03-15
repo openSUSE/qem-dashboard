@@ -133,7 +133,6 @@ EOF
 
       state $manifest = eval {
         my $path = $self->home->child('public', 'asset', '.vite', 'manifest.json');
-        $path = $self->home->child('public', 'asset', 'manifest.json') unless -e $path;
         -e $path ? Mojo::JSON::decode_json($path->slurp) : undef;
       };
 
