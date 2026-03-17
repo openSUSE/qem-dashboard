@@ -15,7 +15,9 @@ use Time::HiRes ();
 use File::Temp  ();
 use Mojo::File;
 
-plan skip_all => 'set TEST_ONLINE to enable this test' unless $ENV{TEST_ONLINE};
+if (!$ENV{TEST_ONLINE}) {    # uncoverable branch true
+  plan skip_all => 'set TEST_ONLINE to enable this test';    # uncoverable statement
+}
 
 my $dashboard_test = Dashboard::Test->new(online => $ENV{TEST_ONLINE}, schema => 'dashboard_test');
 my $config         = $dashboard_test->default_config;
@@ -178,6 +180,14 @@ subtest 'Overview API with no jobs' => sub {
   qr/access_log/, 'access log caught';
 };
 
+{
+
+  package MockError;    # uncoverable statement
+  sub new     { bless {message => 'foo', path => '/bar'}, shift }
+  sub message { shift->{message} }
+  sub path    { shift->{path} }
+}
+
 subtest 'Blocked status' => sub {
   my $dashboard_test_blocked = Dashboard::Test->new(online => $ENV{TEST_ONLINE}, schema => 'dashboard_blocked_test');
   my $app_blocked            = Test::Mojo->new(Dashboard => $dashboard_test_blocked->default_config)->app;
@@ -211,13 +221,6 @@ subtest 'Blocked status' => sub {
     is $t->app->openapi->build_response_body({}), '{}', 'handles hash without errors';
 
     # Coverage for blessed object with path
-    {
-
-      package MockError;
-      sub new     { bless {message => 'foo', path => '/bar'}, shift }
-      sub message { shift->{message} }
-      sub path    { shift->{path} }
-    }
     is $t->app->openapi->build_response_body({errors => [MockError->new]}),
       '{"error":"Validation failed","errors":[{"message":"foo","path":"\/bar"}]}', 'handles blessed error with path';
 

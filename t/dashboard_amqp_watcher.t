@@ -15,7 +15,9 @@ use Dashboard::Test;
 use Test::Stub::IOLoop;
 use Test::Stub::RabbitMQ;
 
-plan skip_all => 'set TEST_ONLINE to enable this test' unless $ENV{TEST_ONLINE};
+if (!$ENV{TEST_ONLINE}) {    # uncoverable branch true
+  plan skip_all => 'set TEST_ONLINE to enable this test';    # uncoverable statement
+}
 local $ENV{MOJO_MODE} = 'production';
 
 my $dashboard_test = Dashboard::Test->new(online => $ENV{TEST_ONLINE}, schema => 'dashboard_test');
@@ -94,11 +96,30 @@ subtest 'amqp_watcher command' => sub {
 
       # Branch coverage: connect event
       my $mock_stream = bless {}, 'MockStream';
+      my $timeout_val;
       {
         no strict 'refs';
-        *{"MockStream::timeout"} = sub { };
+        *{"MockStream::timeout"} = sub { (my $self, $timeout_val) = @_; };
       }
+
+      # Redefine timer to execute callback immediately for this test
+      my $ioloop_mock = Test::MockModule->new('Mojo::IOLoop');
+      $ioloop_mock->redefine(
+        timer => sub {
+          (my $loop, my $delay, my $cb) = @_;
+          push @backoff_counter, $delay if defined $delay;    # uncoverable branch false
+          $cb->();
+        }
+      );
+
       $new_rabbitmq_client->emit('connect', $mock_stream);
+      is $timeout_val, 120, 'stream timeout set to 120 on connect';
+
+      $ioloop_mock->unmock('timer');
+
+      # Re-stub timer for the rest of the test
+      Test::Stub::IOLoop->stub_timer(\@backoff_counter);
+
       Mojo::IOLoop->one_tick;
 
       stderr_like { $new_rabbitmq_client->emit('close') }

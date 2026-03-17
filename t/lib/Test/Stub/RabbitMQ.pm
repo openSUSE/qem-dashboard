@@ -23,7 +23,7 @@ sub _stub_common_client_methods ($cls) {
 
   $rabbit->redefine(
     emit => sub ($self, $event, @args) {
-      $event_handlers{$event}->($self, @args) if exists $event_handlers{$event};
+      $event_handlers{$event}->($self, @args) if exists $event_handlers{$event};    # uncoverable branch false
     }
   );
 
