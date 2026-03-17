@@ -17,7 +17,7 @@ sub add_incident_settings ($self) {
 }
 
 sub add_update_settings ($self) {
-  $self = $self->openapi->valid_input or return;    # uncoverable branch true
+  $self = $self->openapi->valid_input or return;
   my $settings = $self->req->json;
   my @incident_ids;
   my $incidents = $self->incidents;
@@ -39,7 +39,7 @@ sub get_incident_settings ($self) {
 }
 
 sub get_update_settings ($self) {
-  $self = $self->openapi->valid_input or return;    # uncoverable branch true
+  $self = $self->openapi->valid_input or return;
   return $self->render(json => {error => 'Incident not found'}, status => 400)
     unless my $incident_id = $self->incidents->id_for_number($self->param('incident'));
   $self->render(json => $self->settings->get_update_settings($incident_id));

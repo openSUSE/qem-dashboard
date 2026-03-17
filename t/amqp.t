@@ -13,7 +13,9 @@ use Test::Warnings ':report_warnings';
 use Dashboard::Test;
 use Mojo::JSON qw(false true);
 
-plan skip_all => 'set TEST_ONLINE to enable this test' unless $ENV{TEST_ONLINE};
+if (!$ENV{TEST_ONLINE}) {    # uncoverable branch true
+  plan skip_all => 'set TEST_ONLINE to enable this test';    # uncoverable statement
+}
 
 local $ENV{MOJO_MODE} = 'production';
 my $dashboard_test = Dashboard::Test->new(online => $ENV{TEST_ONLINE}, schema => 'amqp_test');
@@ -117,7 +119,10 @@ subtest 'Handle delete job' => sub {
 };
 
 subtest 'Handle missing data' => sub {
-  is $t->app->amqp->handle('suse.openqa.job.done', {id => 123}), undef, 'returns early with missing arguments';
+  is $t->app->amqp->handle('suse.openqa.job.done',    {id => 123}), undef, 'returns early with missing arguments';
+  is $t->app->amqp->handle('suse.openqa.job.cancel',  {}),          undef, 'returns early with missing id for cancel';
+  is $t->app->amqp->handle('suse.openqa.job.delete',  {}),          undef, 'returns early with missing id for delete';
+  is $t->app->amqp->handle('suse.openqa.job.restart', {}), undef, 'returns early with missing result for restart';
 };
 
 subtest 'Unknown type' => sub {

@@ -13,7 +13,9 @@ use Test::Warnings ':report_warnings';
 use Dashboard::Test;
 use Mojo::JSON qw(false true);
 
-plan skip_all => 'set TEST_ONLINE to enable this test' unless $ENV{TEST_ONLINE};
+if (!$ENV{TEST_ONLINE}) {    # uncoverable branch true
+  plan skip_all => 'set TEST_ONLINE to enable this test';    # uncoverable statement
+}
 
 my $auth_headers = {Authorization => 'Token test_token', Accept => 'application/json'};
 

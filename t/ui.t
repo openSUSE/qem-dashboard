@@ -12,7 +12,9 @@ use Test::Output 'stderr_like';
 use Test::Warnings ':report_warnings';
 use Dashboard::Test;
 
-plan skip_all => 'set TEST_ONLINE to enable this test' unless $ENV{TEST_ONLINE};
+if (!$ENV{TEST_ONLINE}) {    # uncoverable branch true
+  plan skip_all => 'set TEST_ONLINE to enable this test';    # uncoverable statement
+}
 
 my $dashboard_test = Dashboard::Test->new(online => $ENV{TEST_ONLINE}, schema => 'ui_test');
 my $config         = $dashboard_test->default_config;

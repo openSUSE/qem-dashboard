@@ -9,7 +9,7 @@ sub stub_timer ($cls, $delays_ref) {
   my $ioloop = Test::MockModule->new('Mojo::IOLoop');
   $ioloop->redefine(
     timer => sub ($loop, $delay, $cb) {
-      push @$delays_ref, $delay if defined $delay;
+      push @$delays_ref, $delay if defined $delay;    # uncoverable branch false
     }
   );
   return $ioloop;
