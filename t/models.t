@@ -10,8 +10,11 @@ use Test::More;
 use Test::Mojo;
 use Test::Warnings ':report_warnings';
 use Dashboard::Test;
+use Mojo::JSON qw(true false);
 
-plan skip_all => 'set TEST_ONLINE to enable this test' unless $ENV{TEST_ONLINE};
+if (!$ENV{TEST_ONLINE}) {    # uncoverable branch true
+  plan skip_all => 'set TEST_ONLINE to enable this test';    # uncoverable statement
+}
 
 my $dashboard_test = Dashboard::Test->new(online => $ENV{TEST_ONLINE}, schema => 'models_test');
 my $config         = $dashboard_test->default_config;
@@ -19,7 +22,21 @@ my $t              = Test::Mojo->new(Dashboard => $config);
 $dashboard_test->minimal_fixtures($t->app);
 
 subtest 'Dashboard::Model::Incidents' => sub {
-  my $incidents = $t->app->incidents;
+  my $incidents     = $t->app->incidents;
+  my $mock_incident = {
+    number      => 16860,
+    project     => 'SUSE:Maintenance:16860',
+    packages    => ['pkg1'],
+    channels    => ['Test'],
+    rr_number   => undef,
+    inReview    => true,
+    inReviewQAM => true,
+    approved    => false,
+    emu         => true,
+    isActive    => true,
+    embargoed   => false,
+    priority    => 123,
+  };
 
   subtest 'id_for_number and number_for_id' => sub {
     is $incidents->id_for_number(16860), 1,     'correct id for 16860';
@@ -124,6 +141,32 @@ subtest 'Dashboard::Model::Incidents' => sub {
     my $res1002 = $incs->_update_openqa_jobs({id => $inc1002_id, number => 1002});
     is $res1002->{"100 f v"}{failed}, undef, 'Incident 1002 does NOT see failed job of 1001';
     is $res1002->{"100 f v"}{passed}, 1,     'Incident 1002 sees generic job';
+
+    # rr_number change
+    $incs->update({%$mock_incident, number => 1001, rr_number => 100});
+    is $incs->incident_for_number(1001)->{rr_number}, 100, 'rr_number updated';
+    $incs->update({%$mock_incident, number => 1001, rr_number => 200});
+    is $incs->incident_for_number(1001)->{rr_number}, 200, 'rr_number changed again';
+
+    # Map undef
+    is $incs->_map(undef), undef, '_map returns undef for undef input';
+
+    # Sync without types
+    $incs->sync([$mock_incident]);
+    ok $incs->incident_for_number(16860), 'sync works without types';
+
+    # Channel removal
+    $incs->update({%$mock_incident, number => 16860, channels => ['Test', 'NewChannel']});
+    is scalar(@{$incs->find({number => 16860})->[0]{channels}}), 2, 'channels added';
+    $incs->update({%$mock_incident, number => 16860, channels => ['Test']});
+    is scalar(@{$incs->find({number => 16860})->[0]{channels}}), 1, 'channel removed';
+
+    # Missing optional fields
+    $incs->update({%$mock_incident, number => 16860, scminfo => undef, url => undef, type => undef});
+    my $inc = $incs->find({number => 16860})->[0];
+    is $inc->{scminfo}, '', 'scminfo default';
+    is $inc->{url},     '', 'url default';
+    is $inc->{type},    '', 'type default';
   };
 
   subtest 'openqa_summary_only_aggregates branch coverage' => sub {
@@ -275,9 +318,10 @@ subtest 'Dashboard::Model::Jobs' => sub {
 };
 
 subtest 'Dashboard::Plugin::Helpers' => sub {
-  subtest 'schema helper from file' => sub {
+  subtest 'schema helper' => sub {
     my $schema = $t->app->schema('incident');
-    ok $schema, 'loaded incident schema from file';
+    ok $schema,                             'loaded incident schema from file';
+    ok $t->app->schema({type => 'object'}), 'loaded schema from reference';
   };
 };
 

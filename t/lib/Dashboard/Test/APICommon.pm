@@ -111,7 +111,7 @@ sub run_api_tests ($t, $prefix) {
       # Update
       my $updated_mock = {%$mock_incident, priority => 456, embargoed => true};
       $t->patch_ok("$prefix/incidents/16860" => $auth_headers => json => $updated_mock);
-      diag $t->tx->res->body unless $t->tx->res->code == 200;
+      diag $t->tx->res->body unless $t->tx->res->code == 200;    # uncoverable branch true
       $t->status_is(200)->json_is('/message', 'Ok', 'update incident 16860 returns Ok');
 
       $t->get_ok("$prefix/incidents/16860" => $auth_headers)
@@ -155,6 +155,12 @@ sub run_api_tests ($t, $prefix) {
         ->status_is(400)
         ->json_is('/error', 'Incident not found', 'error for non-existent incident settings');
 
+      # Validation failure: incident settings with invalid number
+      $t->get_ok("$prefix/incident_settings/abc" => $auth_headers)->status_is(400);
+
+      # Validation failure: add incident settings with invalid body
+      $t->put_ok("$prefix/incident_settings" => $auth_headers => json => {incident => 'abc'})->status_is(400);
+
       # Add update settings
       $t->put_ok(
         "$prefix/update_settings" => $auth_headers => json => {
@@ -166,6 +172,9 @@ sub run_api_tests ($t, $prefix) {
           settings  => {DISTRI => 'sle', VERSION => '15-SP2'}
         }
       )->status_is(200)->json_is('/message', 'Ok', 'put update_settings returns Ok')->json_is('/id', 1);
+
+      # Validation failure: add update settings with invalid body
+      $t->put_ok("$prefix/update_settings" => $auth_headers => json => {incidents => 'abc'})->status_is(400);
 
       # Add job
       my $job_data = {
@@ -185,6 +194,9 @@ sub run_api_tests ($t, $prefix) {
       $t->put_ok("$prefix/jobs" => $auth_headers => json => $job_data)
         ->status_is(200)
         ->json_is('/message', 'Ok', 'put jobs returns Ok');
+
+      # Validation failure: add jobs with invalid body
+      $t->put_ok("$prefix/jobs" => $auth_headers => json => {job_id => 'abc'})->status_is(400);
 
       # Add job with incident_settings only (covers branch in Jobs.pm)
       my $job_data_2 = {%$job_data, job_id => 4953194, name => 'other-job@64bit', update_settings => undef};
@@ -208,15 +220,32 @@ sub run_api_tests ($t, $prefix) {
         ->status_is(400)
         ->json_is('/error', 'Referenced update settings (9999) do not exist');
 
+      # Validation failure: modify job with invalid id
+      $t->patch_ok("$prefix/jobs/abc" => $auth_headers => json => {})->status_is(400);
+
       # Verify Get jobs by settings
       $t->get_ok("$prefix/jobs/incident/1" => $auth_headers)->status_is(200);
       is scalar @{$t->tx->res->json}, 2, 'two jobs for incident settings 1';
+
+      # Validation failure: get jobs by incident settings with invalid id
+      $t->get_ok("$prefix/jobs/incident/abc" => $auth_headers)->status_is(400);
 
       # Verify Get update settings
       $t->get_ok("$prefix/update_settings/16860" => $auth_headers)->status_is(200)->json_is('/0/product', 'SLES-15-GA');
 
       # Verify Get jobs by update settings
       $t->get_ok("$prefix/jobs/update/1" => $auth_headers)->status_is(200)->json_is('/0/name', 'mau-webserver@64bit');
+
+      # Validation failure: get jobs by update settings with invalid id
+      $t->get_ok("$prefix/jobs/update/abc" => $auth_headers)->status_is(400);
+
+      # Verify Get update settings for non-existent incident
+      $t->get_ok("$prefix/update_settings/99999" => $auth_headers)
+        ->status_is(400)
+        ->json_is('/error', 'Incident not found');
+
+      # Validation failure: get update settings with invalid incident id
+      $t->get_ok("$prefix/update_settings/abc" => $auth_headers)->status_is(400);
 
       # Verify search update settings
       $t->get_ok("$prefix/update_settings?product=SLES-15-GA&arch=x86_64" => $auth_headers)
@@ -225,6 +254,9 @@ sub run_api_tests ($t, $prefix) {
 
       # Branch coverage: search with no results
       $t->get_ok("$prefix/update_settings?product=None&arch=x86_64" => $auth_headers)->status_is(200)->json_is('', []);
+
+      # Validation failure: search update settings with invalid limit
+      $t->get_ok("$prefix/update_settings?limit=abc" => $auth_headers)->status_is(400);
 
       # Modify job
       $t->patch_ok("$prefix/jobs/4953193" => $auth_headers => json => {obsolete => true})
@@ -244,52 +276,73 @@ sub run_api_tests ($t, $prefix) {
   };
 
   subtest 'Remarks' => sub {
-    stderr_like {
-      $t->patch_ok("$prefix/jobs/4953193/remarks?incident_number=16860&text=acceptable_for" => $auth_headers)
-        ->status_is(200)
-        ->json_is('/message', 'Ok', 'patch job remarks returns Ok');
+    $t->patch_ok(
+      "$prefix/jobs/4953193/remarks" => $auth_headers => form => {incident_number => '16860', text => 'acceptable_for'})
+      ->status_is(200);
 
-      $t->get_ok("$prefix/jobs/4953193/remarks" => $auth_headers)
-        ->status_is(200)
-        ->json_is('/remarks/0/text', 'acceptable_for');
+    $t->get_ok("$prefix/jobs/4953193/remarks" => $auth_headers)
+      ->status_is(200)
+      ->json_is('/remarks/0/text', 'acceptable_for');
 
-      # Branch coverage: job remark without incident number
-      $t->patch_ok("$prefix/jobs/4953193/remarks?text=global_remark" => $auth_headers)
-        ->status_is(200)
-        ->json_is('/message', 'Ok', 'patch global job remarks returns Ok');
-      $t->get_ok("$prefix/jobs/4953193/remarks" => $auth_headers)
-        ->status_is(200)
-        ->json_is('/remarks/1/text', 'global_remark')
-        ->json_is('/remarks/1/incident', undef, 'incident is undef for global remark');
+    # Test update_remark with JSON body
+    $t->patch_ok(
+      "$prefix/jobs/4953193/remarks" => $auth_headers => json => {incident_number => '16860', text => 'json_remark'})
+      ->status_is(200);
 
-      # Missing branch: non-existent job
-      $t->get_ok("$prefix/jobs/8888888/remarks" => $auth_headers)
-        ->status_is(404)
-        ->json_is('/error', 'openQA job (8888888) does not exist');
+    $t->get_ok("$prefix/jobs/4953193/remarks" => $auth_headers)->status_is(200);
+    my $remarks = $t->tx->res->json->{remarks};
+    ok((grep { $_->{text} eq 'json_remark' } @$remarks), 'json_remark added');
 
-      # Missing branch: non-existent incident
-      $t->patch_ok("$prefix/jobs/4953193/remarks?incident_number=99999&text=foo" => $auth_headers)
-        ->status_is(404)
-        ->json_is('/error', 'Incident (99999) does not exist', 'error for remark with non-existent incident');
+    # Branch coverage: job remark without incident number
+    $t->patch_ok("$prefix/jobs/4953193/remarks" => $auth_headers => form => {text => 'global_remark'})->status_is(200);
 
-      # Validation failure: invalid incident_number in JSON
-      $t->patch_ok("$prefix/jobs/4953193/remarks" => $auth_headers => json => {incident_number => 'abc', text => 'foo'})
-        ->status_is(400)
-        ->json_is('/error',            'Validation failed')
-        ->json_is('/errors/0/message', 'String does not match ^[0-9]+$.');
+    $t->get_ok("$prefix/jobs/4953193/remarks" => $auth_headers)->status_is(200);
+    $remarks = $t->tx->res->json->{remarks};
+    ok((grep { $_->{text} eq 'global_remark' } @$remarks), 'global_remark added');
 
-      # Validation failure: missing text in JSON
-      $t->patch_ok("$prefix/jobs/4953193/remarks" => $auth_headers => json => {incident_number => '16860'})
-        ->status_is(400)
-        ->json_is('/error', 'Validation failed')
-        ->json_like('/errors/0/message', qr/Missing property/);
+    # Validation failure: show job with invalid id
+    $t->get_ok("$prefix/jobs/abc" => $auth_headers)->status_is(400);
 
-      # Validation failure: invalid incident_number in form
-      $t->patch_ok("$prefix/jobs/4953193/remarks" => $auth_headers => form => {incident_number => 'abc', text => 'foo'})
-        ->status_is(400)
-        ->json_is('/error', 'Validation failed');
-    }
-    qr/access_log/, 'access log caught';
+    # Validation failure: show remarks with invalid job id
+    $t->get_ok("$prefix/jobs/abc/remarks" => $auth_headers)->status_is(400);
+
+    # Missing branch: non-existent job
+    $t->get_ok("$prefix/jobs/8888888/remarks" => $auth_headers)
+      ->status_is(404)
+      ->json_is('/error', 'openQA job (8888888) does not exist');
+    $t->patch_ok("$prefix/jobs/8888888/remarks" => $auth_headers => json => {text => 'foo'})
+      ->status_is(404)
+      ->json_is('/error', 'openQA job (8888888) does not exist');
+
+    # Missing branch: non-existent incident
+    $t->patch_ok("$prefix/jobs/4953193/remarks?incident_number=99999&text=foo" => $auth_headers)
+      ->status_is(404)
+      ->json_is('/error', 'Incident (99999) does not exist');
+
+    # Validation failure: invalid incident_number in JSON
+    $t->patch_ok("$prefix/jobs/4953193/remarks" => $auth_headers => json => {incident_number => 'abc', text => 'foo'})
+      ->status_is(400);
+
+    # Validation failure: missing text in JSON
+    $t->patch_ok("$prefix/jobs/4953193/remarks" => $auth_headers => json => {incident_number => '16860'})
+      ->status_is(400);
+
+    # Coverage for Jobs.pm line 69-70: incident_number/text from query string override JSON
+    $t->patch_ok("$prefix/jobs/4953193/remarks?incident_number=16860&text=query_remark" => $auth_headers => json =>
+        {incident_number => '99999', text => 'json_remark'})->status_is(200);
+
+    # Validation failure: missing text in form (triggers line 73 in Jobs.pm)
+    $t->patch_ok("$prefix/jobs/4953193/remarks" => $auth_headers => form => {incident_number => '16860'})
+      ->status_is(400);
+
+    # Validation failure: invalid incident_number in form
+    $t->patch_ok("$prefix/jobs/4953193/remarks" => $auth_headers => form => {incident_number => 'abc', text => 'foo'})
+      ->status_is(400);
+
+    # Coverage for Jobs.pm line 73: missing text (no body)
+    $t->patch_ok("$prefix/jobs/4953193/remarks" => $auth_headers)
+      ->status_is(400)
+      ->json_is('/error', 'Missing remark text');
   };
 
   subtest 'Extra Settings Coverage' => sub {

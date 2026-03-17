@@ -5,7 +5,7 @@ package Dashboard::Controller::API::Jobs;
 use Mojo::Base 'Mojolicious::Controller', -signatures;
 
 sub add ($self) {
-  $self = $self->openapi->valid_input or return;    # uncoverable branch true
+  $self = $self->openapi->valid_input or return;
   my $job = $self->req->json;
 
   my $is_id = $job->{incident_settings};
@@ -48,7 +48,7 @@ sub _incident ($incidents, $remark) {
 }
 
 sub show_remarks ($self) {
-  $self = $self->openapi->valid_input or return;    # uncoverable branch true
+  $self = $self->openapi->valid_input or return;
   my $openqa_job_id   = $self->param('job_id');
   my $internal_job_id = $self->jobs->internal_job_id($openqa_job_id);
   return $self->render(json => {error => "openQA job ($openqa_job_id) does not exist"}, status => 404)
@@ -92,7 +92,7 @@ sub show ($self) {
 }
 
 sub updates ($self) {
-  $self = $self->openapi->valid_input or return;    # uncoverable branch true
+  $self = $self->openapi->valid_input or return;
   my $job = $self->jobs->get_update_settings($self->param('update_settings'));
   $self->render(json => $job);
 }
