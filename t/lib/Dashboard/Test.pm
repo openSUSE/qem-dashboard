@@ -24,6 +24,7 @@ sub new ($class, %options) {
 
 sub default_config ($self) {
   return {
+    log                     => {level => 'warn'},
     secrets                 => ['just_a_test'],
     tokens                  => ['test_token'],
     pg                      => $self->postgres_url,

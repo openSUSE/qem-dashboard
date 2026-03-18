@@ -21,14 +21,15 @@ if (!$ENV{TEST_ONLINE}) {    # uncoverable branch true
 
 my $dashboard_test = Dashboard::Test->new(online => $ENV{TEST_ONLINE}, schema => 'dashboard_test');
 my $config         = $dashboard_test->default_config;
+my $access_log     = $config->{log}{level} eq 'info' ? qr/access_log/ : qr/^$/;
 
 subtest 'Production mode' => sub {
   local $ENV{MOJO_MODE} = 'production';
   my $t = Test::Mojo->new(Dashboard => $config);
   is $t->app->mode, 'production', 'app is in production mode';
   ok $t->app->log->short, 'short logging is enabled';
-  is $t->app->log->level, 'info', 'log level is info';
-  stderr_like { $t->get_ok('/')->status_is(200) } qr/access_log/, 'access log caught';
+  is $t->app->log->level, $config->{log}{level}, 'log level is ' . $config->{log}{level};
+  stderr_like { $t->get_ok('/')->status_is(200) } $access_log, 'access log caught';
 };
 
 subtest 'Pre-set Request ID' => sub {
@@ -39,7 +40,7 @@ subtest 'Pre-set Request ID' => sub {
   stderr_like {
     $t->get_ok('/')->status_is(200);
   }
-  qr/request_id":"test-id-123"/, 'custom request id is preserved';
+  $access_log =~ s/access_log/request_id":"test-id-123"/r, 'custom request id is preserved';
   monkey_patch 'Mojo::Message::Request', request_id => $original;
 };
 
@@ -48,7 +49,8 @@ subtest 'Zero elapsed time log' => sub {
   my $t = Test::Mojo->new(Dashboard => $config);
   no warnings 'redefine';
   local *Time::HiRes::tv_interval = sub { return 0 };
-  stderr_like { $t->get_ok('/')->status_is(200) } qr/rps":"\?\?"/, 'access log with unknown rps caught';
+  stderr_like { $t->get_ok('/')->status_is(200) } $access_log =~ s/access_log/rps":"\?\?"/r,
+    'access log with unknown rps caught';
 };
 
 subtest 'Config override' => sub {
@@ -81,7 +83,7 @@ subtest 'App config endpoint' => sub {
       ->json_is('/smeltUrl',              'https://smelt.suse.de')
       ->json_is('/giteaFallbackPriority', Dashboard::GITEA_FALLBACK_PRIORITY_DEFAULT);
   }
-  qr/access_log/, 'access log caught';
+  $access_log, 'access log caught';
 };
 
 subtest 'Migrate command' => sub {
@@ -176,7 +178,7 @@ subtest 'Overview API with no jobs' => sub {
   stderr_like {
     $t->get_ok('/app/api/list')->status_is(200)->json_is('/last_updated', undef, 'last_updated is undef when no jobs');
   }
-  qr/access_log/, 'access log caught';
+  $access_log, 'access log caught';
 };
 
 {
@@ -209,7 +211,7 @@ subtest 'Blocked status' => sub {
       ->json_is('/blocked/0/incident/inReview',    1)
       ->json_is('/blocked/0/incident/inReviewQAM', 1);
   }
-  qr/access_log/, 'access log caught';
+  $access_log, 'access log caught';
 
   subtest 'coverage for Dashboard.pm helper/hooks' => sub {
     $t->get_ok('/api/incidents/abc' => {Authorization => 'Token test_token'})->status_is(400);
