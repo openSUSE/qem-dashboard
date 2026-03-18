@@ -164,9 +164,9 @@ subtest 'Dashboard::Model::Incidents' => sub {
     # Missing optional fields
     $incs->update({%$mock_incident, number => 16860, scminfo => undef, url => undef, type => undef});
     my $inc = $incs->find({number => 16860})->[0];
-    is $inc->{scminfo}, '', 'scminfo default';
-    is $inc->{url},     '', 'url default';
-    is $inc->{type},    '', 'type default';
+    is $inc->{scminfo}, '',    'scminfo default';
+    is $inc->{url},     '',    'url default';
+    is $inc->{type},    'ibs', 'type default';
   };
 
   subtest 'openqa_summary_only_aggregates branch coverage' => sub {
