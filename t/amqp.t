@@ -22,8 +22,9 @@ my $dashboard_test = Dashboard::Test->new(online => $ENV{TEST_ONLINE}, schema =>
 my $config         = $dashboard_test->default_config;
 my $t              = Test::Mojo->new(Dashboard => $config);
 $dashboard_test->minimal_fixtures($t->app);
-my $db     = $t->app->pg->db;
-my $job_id = 11;
+my $db      = $t->app->pg->db;
+my $job_id  = 11;
+my $log_msg = $t->app->log->level eq 'info' ? sub ($regex) {$regex} : sub ($regex) {qr/^$/};
 
 sub _is_field ($field, $expected) {
   is($db->query("SELECT $field FROM openqa_jobs WHERE id = $job_id")->hash->{$field}, $expected);
@@ -59,9 +60,10 @@ subtest 'Handle done job' => sub {
     "result"    => "passed"
   );
   my $test = sub ($topic, $regex, $status, $label) {
-    stderr_like { $t->app->amqp->handle($topic, \%results) } $regex, $label;
+    stderr_like { $t->app->amqp->handle($topic, \%results) } $log_msg->($regex), $label;
     _is_field('status', $status);
   };
+
 
   is $t->app->amqp->handle('suse.openqa.jobs.done', \%results), undef,
     'return early because of wrong object in the topic format';
@@ -95,7 +97,7 @@ subtest 'Handle cancel job' => sub {
   _set_default();
   my %results = (%$msg, "group_id" => 328, "remaining" => 0);
   stderr_like { $t->app->amqp->handle('suse.openqa.job.cancel', \%results) }
-  qr/user_cancelled.*job_update/, 'amqp log message';
+  $log_msg->(qr/user_cancelled.*job_update/), 'amqp log message';
   _is_field('status', 'stopped');
 };
 
@@ -104,7 +106,7 @@ subtest 'Handle restart job' => sub {
   my %results
     = (%$msg, "auto" => 0, "bugref" => undef, "group_id" => 328, "remaining" => 1, "result" => {"4953203" => 7764022});
   stderr_like { $t->app->amqp->handle('suse.openqa.job.restart', \%results) }
-  qr/job_restart/, 'amqp log message';
+  $log_msg->(qr/job_restart/), 'amqp log message';
   _is_field('status', 'waiting');
   _is_field('job_id', 7764022);
 };
@@ -114,7 +116,7 @@ subtest 'Handle delete job' => sub {
   _is_count(1);
   my %results = (%$msg, "group_id" => 328, "remaining" => 1);
   stderr_like { $t->app->amqp->handle('suse.openqa.job.delete', \%results) }
-  qr/job_delete/, 'amqp log message';
+  $log_msg->(qr/job_delete/), 'amqp log message';
   _is_count(0);
 };
 

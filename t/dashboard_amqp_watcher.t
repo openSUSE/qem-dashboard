@@ -26,6 +26,10 @@ my $config         = $dashboard_test->default_config;
 subtest 'amqp_watcher command' => sub {
   my $t            = Test::Mojo->new(Dashboard => $config);
   my $amqp_watcher = Dashboard::Command::amqp_watcher->new(app => $t->app);
+  my $amqp_log     = sub ($regex, $level = 'info') {
+    return $regex if $t->app->log->is_level($level);
+    return qr/^$/;
+  };
 
   subtest 'command smoke test' => sub {
     is $amqp_watcher->description, 'Watch message bus for job results', 'correct description';
@@ -43,7 +47,7 @@ subtest 'amqp_watcher command' => sub {
         $amqp_watcher->_connect(0);
         Mojo::IOLoop->one_tick;
       }
-      qr/amqp_error/, 'logs connection error';
+      $amqp_log->(qr/amqp_error/, 'error'), 'logs connection error';
       isa_ok $amqp_watcher->client, 'Mojo::RabbitMQ::Client', 'new client on connection';
       my $initial_client = $amqp_watcher->client;
       is scalar(@backoff_counter), 1, 'scheduled one reconnection';
@@ -52,7 +56,7 @@ subtest 'amqp_watcher command' => sub {
         $amqp_watcher->_connect(0);
         Mojo::IOLoop->one_tick;
       }
-      qr/amqp_error/, 'close is reached once again';
+      $amqp_log->(qr/amqp_error/, 'error'), 'close is reached once again';
       my $new_client = $amqp_watcher->client;
       isnt $new_client, undef,           'old client is replaced on recconect';
       isnt $new_client, $initial_client, 'client is still alive';
@@ -73,7 +77,7 @@ subtest 'amqp_watcher command' => sub {
         my $ioloop = Test::Stub::IOLoop->stub_timer(\@backoff_counter);
         $amqp_watcher->_connect($backoff);
         stderr_like { Mojo::IOLoop->one_tick }
-        qr/amqp_error/, 'amqp log message';
+        $amqp_log->(qr/amqp_error/, 'error'), 'amqp log message';
         is $backoff_counter[0], $expected, $comment;
       }
     };
@@ -92,7 +96,7 @@ subtest 'amqp_watcher command' => sub {
       );
       $amqp_watcher->_connect(30);
       stderr_like { Mojo::IOLoop->one_tick }
-      qr/amqp_connected/, 'logs successful connection';
+      $amqp_log->(qr/amqp_connected/, 'info'), 'logs successful connection';
 
       # Branch coverage: connect event
       my $mock_stream = bless {}, 'MockStream';
@@ -123,7 +127,7 @@ subtest 'amqp_watcher command' => sub {
       Mojo::IOLoop->one_tick;
 
       stderr_like { $new_rabbitmq_client->emit('close') }
-      qr/amqp_reconnect/, 'logs reconnect on close';
+      $amqp_log->(qr/amqp_reconnect/, 'info'), 'logs reconnect on close';
       is $backoff_counter[-1], 1, 'backoff resets to 1 second after successful connection';
     };
 
@@ -167,7 +171,7 @@ subtest 'amqp_watcher command' => sub {
           no strict 'refs';
           *{"MockBody2::to_raw_payload"} = sub { shift->{payload} };
         }
-        stderr_like { $msg_cb->(undef, $frame) } qr/amqp_error/, 'logs error on invalid JSON';
+        stderr_like { $msg_cb->(undef, $frame) } $amqp_log->(qr/amqp_error/, 'error'), 'logs error on invalid JSON';
       };
     };
 
@@ -182,7 +186,7 @@ subtest 'amqp_watcher command' => sub {
         # The promise chain is asynchronous, ensure it finishes
         for (1 .. 5) { Mojo::IOLoop->one_tick }
       }
-      qr/amqp_error/, 'catches and logs error in promise chain';
+      $amqp_log->(qr/amqp_error/, 'error'), 'catches and logs error in promise chain';
     };
   };
 
