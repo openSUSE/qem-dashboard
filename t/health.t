@@ -10,9 +10,11 @@ use Test::Output 'stderr_like';
 use Dashboard::Test;
 use Mojo::Util qw(monkey_patch);
 
-my $env    = \%ENV;
-my $tester = Dashboard::Test->new(online => $env->{TEST_ONLINE}, schema => 'health_test');
-my $t      = Test::Mojo->new(Dashboard => $tester->default_config);
+my $env        = \%ENV;
+my $tester     = Dashboard::Test->new(online => $env->{TEST_ONLINE}, schema => 'health_test');
+my $config     = $tester->default_config;
+my $t          = Test::Mojo->new(Dashboard => $config);
+my $access_log = $config->{log}{level} eq 'info' ? qr/access_log/ : qr/./;
 
 stderr_like {
   $t->get_ok('/health')->status_is(200)->json_is('/status' => 'ok');
@@ -33,6 +35,6 @@ stderr_like {
     monkey_patch 'Mojo::Message::Request', request_id => $original;
   }
 }
-qr/access_log/, 'access log caught';
+$access_log, 'access log caught';
 
 done_testing();

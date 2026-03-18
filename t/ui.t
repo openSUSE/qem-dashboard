@@ -18,6 +18,7 @@ if (!$ENV{TEST_ONLINE}) {    # uncoverable branch true
 
 my $dashboard_test = Dashboard::Test->new(online => $ENV{TEST_ONLINE}, schema => 'ui_test');
 my $config         = $dashboard_test->default_config;
+my $access_log     = $config->{log}{level} eq 'info' ? qr/access_log/ : qr/^$/;
 my $t              = Test::Mojo->new(Dashboard => $config);
 $dashboard_test->minimal_fixtures($t->app);
 
@@ -36,7 +37,7 @@ subtest 'Webpack provided under various URLs' => sub {
       ->status_is(200)
       ->text_like('#app' => qr/This application requires JavaScript!/, 'JS requirement check on /incident/16860');
   }
-  qr/access_log/, 'access log caught';
+  $access_log, 'access log caught';
 };
 
 

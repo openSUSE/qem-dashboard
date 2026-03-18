@@ -18,6 +18,7 @@ if (!$ENV{TEST_ONLINE}) {    # uncoverable branch true
 
 my $dashboard_test = Dashboard::Test->new(online => $ENV{TEST_ONLINE}, schema => 'auth_test');
 my $config         = $dashboard_test->default_config;
+my $access_log     = $config->{log}{level} eq 'info' ? qr/access_log/ : qr/^$/;
 
 subtest 'No tokens configured' => sub {
   my $no_token_config = {%$config, tokens => []};
@@ -27,7 +28,7 @@ subtest 'No tokens configured' => sub {
     $t->patch_ok('/api/incidents' => json => [])
       ->status_is(200, 'POST/PATCH/etc should work because no tokens are required');
   }
-  qr/access_log/, 'access log caught';
+  $access_log, 'access log caught';
 };
 
 subtest 'Tokens configured' => sub {
@@ -50,7 +51,7 @@ subtest 'Tokens configured' => sub {
     $t->patch_ok('/api/incidents' => {Authorization => 'Token '} => json => [])->status_is(403, 'token is empty');
     $t->patch_ok('/api/incidents' => {Authorization => 'Token'}  => json => [])->status_is(403, 'token prefix only');
   }
-  qr/access_log/, 'access log caught';
+  $access_log, 'access log caught';
 };
 
 done_testing();
