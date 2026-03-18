@@ -24,7 +24,16 @@ my $t              = Test::Mojo->new(Dashboard => $config);
 $dashboard_test->minimal_fixtures($t->app);
 my $db      = $t->app->pg->db;
 my $job_id  = 11;
-my $log_msg = $t->app->log->level eq 'info' ? sub ($regex) {$regex} : sub ($regex) {qr/^$/};
+my $log_msg = sub ($regex) { $t->app->log->level eq 'info' ? $regex : qr/^$/ };
+
+subtest 'Log level coverage' => sub {
+  my $old_level = $t->app->log->level;
+  $t->app->log->level('info');
+  like 'foo', $log_msg->(qr/foo/), 'log_msg info branch';
+  $t->app->log->level('warn');
+  like '', $log_msg->(qr/foo/), 'log_msg warn branch';
+  $t->app->log->level($old_level);
+};
 
 sub _is_field ($field, $expected) {
   is($db->query("SELECT $field FROM openqa_jobs WHERE id = $job_id")->hash->{$field}, $expected);
