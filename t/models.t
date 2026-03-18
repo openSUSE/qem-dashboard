@@ -155,6 +155,10 @@ subtest 'Dashboard::Model::Incidents' => sub {
     $incs->sync([$mock_incident]);
     ok $incs->incident_for_number(16860), 'sync works without types';
 
+    # Sync WITH types
+    $incs->sync([{%$mock_incident, type => 'ibs'}], ['ibs', 'obs']);
+    is $incs->incident_for_number(16860)->{type}, 'ibs', 'sync works with types';
+
     # Channel removal
     $incs->update({%$mock_incident, number => 16860, channels => ['Test', 'NewChannel']});
     is scalar(@{$incs->find({number => 16860})->[0]{channels}}), 2, 'channels added';
@@ -164,9 +168,74 @@ subtest 'Dashboard::Model::Incidents' => sub {
     # Missing optional fields
     $incs->update({%$mock_incident, number => 16860, scminfo => undef, url => undef, type => undef});
     my $inc = $incs->find({number => 16860})->[0];
-    is $inc->{scminfo}, '',    'scminfo default';
-    is $inc->{url},     '',    'url default';
-    is $inc->{type},    'ibs', 'type default';
+    is $inc->{scminfo}, '', 'scminfo default';
+    is $inc->{url},     '', 'url default';
+    is $inc->{type},    '', 'type default';
+
+    # Providing optional fields
+    $incs->update({%$mock_incident, number => 16860, scminfo => 'git://foo', url => 'https://bar'});
+    $inc = $incs->find({number => 16860})->[0];
+    is $inc->{scminfo}, 'git://foo',   'scminfo provided';
+    is $inc->{url},     'https://bar', 'url provided';
+
+    # rr_number NOT changed
+    $incs->update({%$mock_incident, number => 16860, rr_number => 100});
+    $incs->update({%$mock_incident, number => 16860, rr_number => 100});
+    is $incs->incident_for_number(16860)->{rr_number}, 100, 'rr_number unchanged';
+
+    # rr_number undef
+    $incs->update({%$mock_incident, number => 16860, rr_number => undef});
+    is $incs->incident_for_number(16860)->{rr_number}, undef, 'rr_number undef works';
+  };
+
+  subtest '_incident_openqa_jobs branch coverage' => sub {
+    my $incs     = $t->app->incidents;
+    my $settings = $t->app->settings;
+    my $jobs     = $t->app->jobs;
+    my $inc      = $incs->incident_for_number(16860);
+
+    # Add another job with same group_id (282)
+    $jobs->add(
+      {
+        incident_settings => 1,
+        name              => 'another-job',
+        job_group         => 'Maintenance: SLE 12 SP5 Incidents',
+        status            => 'passed',
+        job_id            => 999001,
+        group_id          => 282,
+        distri            => 'd',
+        flavor            => 'f',
+        version           => 'v',
+        arch              => 'a',
+        build             => 'b'
+      }
+    );
+    ok $incs->_incident_openqa_jobs($inc), 'works with multiple jobs in same group';
+  };
+
+  subtest 'repos extra branch coverage' => sub {
+    my $incs     = $t->app->incidents;
+    my $settings = $t->app->settings;
+
+    # Add a repo with jobs but NO incidents
+    my $sid = $settings->add_update_settings([],
+      {product => 'NoIncsProduct', arch => 'x86_64', build => '456', repohash => 'h', settings => {}});
+    $t->app->jobs->add(
+      {
+        update_settings => $sid,
+        name            => 'n-job',
+        job_group       => 'G',
+        status          => 'passed',
+        job_id          => 999002,
+        group_id        => 1,
+        distri          => 'd',
+        flavor          => 'f',
+        version         => 'v',
+        arch            => 'a',
+        build           => 'b'
+      }
+    );
+    ok $incs->repos, 'repos works even with a repo having no incidents';
   };
 
   subtest 'openqa_summary_only_aggregates branch coverage' => sub {
@@ -186,7 +255,7 @@ subtest 'Dashboard::Model::Incidents' => sub {
     my $incs     = $t->app->incidents;
     my $settings = $t->app->settings;
 
-    # Add a repo (update settings) with NO jobs to trigger line 120 branch
+    # Add a repo (update settings) with NO jobs
     $settings->add_update_settings([1],
       {product => 'NoJobsProduct', arch => 'x86_64', build => '123', repohash => 'h', settings => {}});
     ok $incs->repos, 'repos works even with a repo having no jobs';
@@ -326,4 +395,3 @@ subtest 'Dashboard::Plugin::Helpers' => sub {
 };
 
 done_testing();
-
