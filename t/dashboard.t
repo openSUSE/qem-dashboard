@@ -21,36 +21,58 @@ if (!$ENV{TEST_ONLINE}) {    # uncoverable branch true
 
 my $dashboard_test = Dashboard::Test->new(online => $ENV{TEST_ONLINE}, schema => 'dashboard_test');
 my $config         = $dashboard_test->default_config;
-my $access_log     = $config->{log}{level} eq 'info' ? qr/access_log/ : qr/^$/;
+my $t              = Test::Mojo->new(Dashboard => $config);
+my $access_log     = sub { $t->app->log->level eq 'info' ? qr/access_log/ : qr/^$/ };
+
+subtest 'Log level coverage' => sub {
+  my $old_level = $t->app->log->level;
+  $t->app->log->level('info');
+  like 'access_log', $access_log->(), 'access_log info branch';
+  $t->app->log->level('warn');
+  like '', $access_log->(), 'access_log warn branch';
+  $t->app->log->level($old_level);
+};
 
 subtest 'Production mode' => sub {
   local $ENV{MOJO_MODE} = 'production';
-  my $t = Test::Mojo->new(Dashboard => $config);
-  is $t->app->mode, 'production', 'app is in production mode';
-  ok $t->app->log->short, 'short logging is enabled';
-  is $t->app->log->level, $config->{log}{level}, 'log level is ' . $config->{log}{level};
-  stderr_like { $t->get_ok('/')->status_is(200) } $access_log, 'access log caught';
+  for my $level (qw(warn info)) {
+    my $tp = Test::Mojo->new(Dashboard => $config);
+    $tp->app->log->level($level);
+    is $tp->app->mode, 'production', "app is in production mode ($level)";
+    ok $tp->app->log->short, 'short logging is enabled';
+    stderr_like { $tp->get_ok('/')->status_is(200) }
+    sub { $tp->app->log->level eq 'info' ? qr/access_log/ : qr/^$/ }
+      ->(), "access log caught ($level)";
+  }
 };
 
 subtest 'Pre-set Request ID' => sub {
   use Mojo::Util qw(monkey_patch);
   my $original = Mojo::Message::Request->can('request_id');
   monkey_patch 'Mojo::Message::Request', request_id => sub {'test-id-123'};
-  my $t = Test::Mojo->new(Dashboard => $config);
-  stderr_like {
-    $t->get_ok('/')->status_is(200);
+  for my $level (qw(warn info)) {
+    my $tr = Test::Mojo->new(Dashboard => $config);
+    $tr->app->log->level($level);
+    stderr_like {
+      $tr->get_ok('/')->status_is(200);
+    }
+    sub { $tr->app->log->level eq 'info' ? qr/request_id":"test-id-123"/ : qr/^$/ }
+      ->(), "custom request id is preserved ($level)";
   }
-  $access_log =~ s/access_log/request_id":"test-id-123"/r, 'custom request id is preserved';
   monkey_patch 'Mojo::Message::Request', request_id => $original;
 };
 
 subtest 'Zero elapsed time log' => sub {
   local $ENV{MOJO_MODE} = 'production';
-  my $t = Test::Mojo->new(Dashboard => $config);
-  no warnings 'redefine';
-  local *Time::HiRes::tv_interval = sub { return 0 };
-  stderr_like { $t->get_ok('/')->status_is(200) } $access_log =~ s/access_log/rps":"\?\?"/r,
-    'access log with unknown rps caught';
+  for my $level (qw(warn info)) {
+    my $tz = Test::Mojo->new(Dashboard => $config);
+    $tz->app->log->level($level);
+    no warnings 'redefine';
+    local *Time::HiRes::tv_interval = sub { return 0 };
+    stderr_like { $tz->get_ok('/')->status_is(200) }
+    sub { $tz->app->log->level eq 'info' ? qr/rps":"\?\?"/ : qr/^$/ }
+      ->(), "access log with unknown rps caught ($level)";
+  }
 };
 
 subtest 'Config override' => sub {
@@ -84,7 +106,7 @@ subtest 'App config endpoint' => sub {
       ->json_is('/smeltUrl',           'https://smelt.suse.de')
       ->json_is('/defaultPriority',    Dashboard::DEFAULT_PRIORITY);
   }
-  $access_log, 'access log caught';
+  $access_log->(), 'access log caught';
 };
 
 subtest 'Migrate command' => sub {
@@ -179,7 +201,7 @@ subtest 'Overview API with no jobs' => sub {
   stderr_like {
     $t->get_ok('/app/api/list')->status_is(200)->json_is('/last_updated', undef, 'last_updated is undef when no jobs');
   }
-  $access_log, 'access log caught';
+  $access_log->(), 'access log caught';
 };
 
 {
@@ -212,7 +234,7 @@ subtest 'Blocked status' => sub {
       ->json_is('/blocked/0/incident/inReview',    1)
       ->json_is('/blocked/0/incident/inReviewQAM', 1);
   }
-  $access_log, 'access log caught';
+  $access_log->(), 'access log caught';
 
   subtest 'coverage for Dashboard.pm helper/hooks' => sub {
     $t->app->log->level('warn');

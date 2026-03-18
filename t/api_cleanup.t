@@ -89,8 +89,19 @@ subtest 'Clean up jobs after rr_number change (during sync)' => sub {
   my $app            = $t->app;
   $dashboard_test->minimal_fixtures($app);
 
-  my $cleanup_access_log = $app->log->level eq 'info' ? qr/incident_rr_change.*access_log/s : qr/^$/;
-  my $job_delete_log     = $app->log->level eq 'info' ? qr/job_delete/                      : qr/^$/;
+  my $cleanup_access_log = sub { $app->log->level eq 'info' ? qr/incident_rr_change.*access_log/s : qr/^$/ };
+  my $job_delete_log     = sub { $app->log->level eq 'info' ? qr/job_delete/                      : qr/^$/ };
+
+  subtest 'Log level coverage' => sub {
+    my $old_level = $app->log->level;
+    $app->log->level('info');
+    like 'incident_rr_change access_log', $cleanup_access_log->(), 'cleanup_access_log info branch';
+    like 'job_delete',                    $job_delete_log->(),     'job_delete_log info branch';
+    $app->log->level('warn');
+    like '', $cleanup_access_log->(), 'cleanup_access_log warn branch';
+    like '', $job_delete_log->(),     'job_delete_log warn branch';
+    $app->log->level($old_level);
+  };
 
   stderr_like {
     $t->patch_ok(
@@ -175,12 +186,12 @@ subtest 'Clean up jobs after rr_number change (during sync)' => sub {
       ->json_is('/details/incident/packages', ['curl'])
       ->json_is('/details/incident_summary',  {passed => 1});
   }
-  $cleanup_access_log, 'cleanup message and access logs caught';
+  $cleanup_access_log->(), 'cleanup message and access logs caught';
 
   subtest 'Job with remark can be cleaned up' => sub {
 
     my $jobs = $app->jobs;
-    stderr_like { $jobs->delete_job(4953600) } $job_delete_log, 'amqp log message';
+    stderr_like { $jobs->delete_job(4953600) } $job_delete_log->(), 'amqp log message';
     is $jobs->internal_job_id(4953600),                                      undef, 'job no longer exists';
     is $app->pg->db->query('SELECT count(id) FROM job_remarks')->array->[0], 0,     'remark removed as well';
   };
