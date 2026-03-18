@@ -20,7 +20,16 @@ my $dashboard_test = Dashboard::Test->new(online => $ENV{TEST_ONLINE}, schema =>
 my $config         = $dashboard_test->default_config;
 my $t              = Test::Mojo->new(Dashboard => $config);
 $dashboard_test->minimal_fixtures($t->app);
-my $access_log = $config->{log}{level} eq 'info' ? qr/access_log/ : qr/^$/;
+my $access_log = sub { $t->app->log->level eq 'info' ? qr/access_log/ : qr/^$/ };
+
+subtest 'Log level coverage' => sub {
+  my $old_level = $t->app->log->level;
+  $t->app->log->level('info');
+  like 'access_log', $access_log->(), 'access_log info branch';
+  $t->app->log->level('warn');
+  like '', $access_log->(), 'access_log warn branch';
+  $t->app->log->level($old_level);
+};
 
 my $session_id;
 subtest 'MCP Initialization' => sub {
@@ -38,7 +47,7 @@ subtest 'MCP Initialization' => sub {
       }
     )->status_is(200);
   }
-  $access_log, 'access log caught';
+  $access_log->(), 'access log caught';
   $session_id = $t->tx->res->headers->header('Mcp-Session-Id');
   ok $session_id, 'got session ID';
 };
@@ -54,7 +63,7 @@ subtest 'MCP Discovery' => sub {
       ->json_is('/result/tools/2/name', 'list_blocked')
       ->json_is('/result/tools/3/name', 'get_repo_status');
   }
-  $access_log, 'access log caught';
+  $access_log->(), 'access log caught';
 };
 
 subtest 'MCP Tool: list_submissions' => sub {
@@ -86,7 +95,7 @@ subtest 'MCP Tool: list_submissions' => sub {
       }
     )->status_is(200);
   }
-  $access_log, 'access log caught';
+  $access_log->(), 'access log caught';
   my $text = $t->tx->res->json('/result/content/0/text');
   my $res  = decode_json($text);
   is $res->[0]{number}, 12345, 'correct incident number';
@@ -103,7 +112,7 @@ subtest 'MCP Tool: get_submission_details (found)' => sub {
       }
     )->status_is(200);
   }
-  $access_log, 'access log caught';
+  $access_log->(), 'access log caught';
   my $text = $t->tx->res->json('/result/content/0/text');
   my $res  = decode_json($text);
   is $res->{incident}{number}, 12345, 'correct incident number in details';
@@ -120,7 +129,7 @@ subtest 'MCP Tool: get_submission_details (not found)' => sub {
       }
     )->status_is(200)->json_is('/result/content/0/text', '{"error":"Incident 99999 not found"}');
   }
-  $access_log, 'access log caught';
+  $access_log->(), 'access log caught';
 };
 
 subtest 'MCP Tool: list_blocked' => sub {
@@ -130,7 +139,7 @@ subtest 'MCP Tool: list_blocked' => sub {
       ->status_is(200)
       ->json_is('/result/content/0/type', 'text');
   }
-  $access_log, 'access log caught';
+  $access_log->(), 'access log caught';
 };
 
 subtest 'MCP Tool: get_repo_status' => sub {
@@ -140,7 +149,7 @@ subtest 'MCP Tool: get_repo_status' => sub {
       ->status_is(200)
       ->json_is('/result/content/0/type', 'text');
   }
-  $access_log, 'access log caught';
+  $access_log->(), 'access log caught';
 };
 
 done_testing();

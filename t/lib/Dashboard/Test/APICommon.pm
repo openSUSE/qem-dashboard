@@ -27,15 +27,23 @@ sub run_api_tests ($t, $prefix) {
     priority    => 123,
   };
 
-  my $is_info     = $t->app->log->level eq 'info';
   my $stderr_test = sub ($code, $label) {
-    if ($is_info) {
+    if ($t->app->log->level eq 'info') {
       stderr_like { $code->() } qr/access_log/, $label;
     }
     else {
       $code->();
       ok 1, $label;
     }
+  };
+
+  subtest 'Log level coverage' => sub {
+    my $old_level = $t->app->log->level;
+    $t->app->log->level('info');
+    $stderr_test->(sub { $t->app->log->info('access_log') }, 'stderr_test info branch');
+    $t->app->log->level('warn');
+    $stderr_test->(sub { $t->app->log->info('access_log') }, 'stderr_test warn branch');
+    $t->app->log->level($old_level);
   };
 
   subtest 'Migrations' => sub {

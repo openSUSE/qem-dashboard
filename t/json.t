@@ -18,18 +18,34 @@ if (!$ENV{TEST_ONLINE}) {    # uncoverable branch true
 
 my $dashboard_test = Dashboard::Test->new(online => $ENV{TEST_ONLINE}, schema => 'json_test');
 my $config         = $dashboard_test->default_config;
-my $is_info        = $config->{log}{level} eq 'info';
 my $t              = Test::Mojo->new(Dashboard => $config);
 $dashboard_test->minimal_fixtures($t->app);
 
 my $stderr_test = sub ($code, $label) {
-  if ($is_info) {
+  if ($t->app->log->level eq 'info') {
     stderr_like { $code->() } qr/access_log/, $label;
   }
   else {
     $code->();
     ok 1, $label;
   }
+};
+
+subtest 'Log level coverage' => sub {
+  my $old_level = $t->app->log->level;
+  $t->app->log->level('info');
+  $stderr_test->(sub { $t->app->log->info('access_log') }, 'stderr_test info branch');
+
+  # Coverage for line 501 info branch
+  stderr_like {
+    $t->app->routes->get('/die_info' => sub { die "intentional death info" });
+    $t->get_ok('/die_info' => {Accept => 'application/json'})->status_is(500);
+  }
+  qr/intentional death info.*access_log/s, 'exception and access logs caught (info level)';
+
+  $t->app->log->level('warn');
+  $stderr_test->(sub { $t->app->log->info('access_log') }, 'stderr_test warn branch');
+  $t->app->log->level($old_level);
 };
 
 subtest 'List incidents' => sub {
@@ -484,20 +500,24 @@ subtest 'Incident Details' => sub {
 };
 
 subtest 'Plugin::JSON' => sub {
-  stderr_like {
-    $t->get_ok('/non_existent' => {Accept => 'application/json'})
-      ->status_is(404, 'trigger 404 for JSON client')
-      ->json_is({error => 'Resource not found'});
+  for my $level (qw(warn info)) {
+    $t->app->log->level($level);
+    stderr_like {
+      $t->get_ok('/non_existent' => {Accept => 'application/json'})
+        ->status_is(404, 'trigger 404 for JSON client')
+        ->json_is({error => 'Resource not found'});
 
-    $t->get_ok('/non_existent' => {Accept => 'text/html'})
-      ->status_is(404, 'trigger 404 for non-JSON client (should not return JSON error)')
-      ->content_unlike(qr/Resource not found/);
-    $t->app->routes->get('/die' => sub { die "intentional death" });
-    $t->get_ok('/die' => {Accept => 'application/json'})
-      ->status_is(500, 'trigger exception (by accessing a route that dies)')
-      ->json_is({error => 'Unexpected server error'});
+      $t->get_ok('/non_existent' => {Accept => 'text/html'})
+        ->status_is(404, 'trigger 404 for non-JSON client (should not return JSON error)')
+        ->content_unlike(qr/Resource not found/);
+      $t->app->routes->get("/die_$level" => sub { die "intentional death $level" });
+      $t->get_ok("/die_$level" => {Accept => 'application/json'})
+        ->status_is(500, 'trigger exception (by accessing a route that dies)')
+        ->json_is({error => 'Unexpected server error'});
+    }
+    ($t->app->log->level eq 'info') ? qr/intentional death $level.*access_log/s : qr/intentional death $level/s,
+      "exception and access logs caught ($level)";
   }
-  $is_info ? qr/intentional death.*access_log/s : qr/intentional death/s, 'exception and access logs caught';
 };
 
 
