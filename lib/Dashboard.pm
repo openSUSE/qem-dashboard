@@ -57,7 +57,7 @@ sub _setup_logging ($self) {
     $self->log->short(1);
 
     # All interesting log messages are "info" or higher
-    $self->log->level('info');
+    $self->log->level($self->config->{log}{level} // 'info');
   }
 
   # Structured JSON logging
