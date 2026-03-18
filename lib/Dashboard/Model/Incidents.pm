@@ -157,7 +157,7 @@ sub repos ($self) {
 }
 
 sub sync ($self, $incidents, $types = []) {
-  push @$types, '', 'ibs' unless @$types;
+  push @$types, '', 'smelt' unless @$types;
   my $db = $self->pg->db;
   my $tx = $db->begin;
 
@@ -316,7 +316,7 @@ sub _update ($self, $db, $incident) {
        embargoed = ?, priority = ?, scminfo = ?, url = ?, type = ? WHERE id = ?', $incident->{packages},
     $incident->{rr_number}, $incident->{inReview}, $incident->{inReviewQAM}, $incident->{approved}, $incident->{emu},
     $incident->{isActive}, $incident->{embargoed}, $incident->{priority}, $incident->{scminfo} // '',
-    $incident->{url} // '', ($incident->{type} || 'ibs'), $id
+    $incident->{url} // '', $incident->{type} // '', $id
   );
 
   # Remove old jobs after release request number changed (because incidents might be reused)
