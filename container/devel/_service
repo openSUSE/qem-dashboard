@@ -1,0 +1,15 @@
+<services>
+  <service name="obs_scm">
+    <param name="url">https://github.com/openSUSE/qem-dashboard</param>
+    <param name="scm">git</param>
+    <param name="revision">feature/container_devel</param>
+    <param name="versionprefix">1</param>
+    <param name="versionformat">%ct.%h</param>
+    <param name="subdir">container/devel</param>
+    <param name="extract">Dockerfile</param>
+    <param name="changesgenerate">enable</param>
+    <param name="changesauthor">okurz@suse.de</param>
+  </service>
+  <service name="kiwi_metainfo_helper" mode="buildtime"/>
+  <service name="docker_label_helper" mode="buildtime"/>
+</services>
