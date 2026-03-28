@@ -38,11 +38,7 @@ const matchedSubmissions = computed(() => {
     );
   }
 
-  const getPriority = incident => {
-    if (incident.priority) return incident.priority;
-    if (!['ibs', 'smelt'].includes(incident.type)) return configStore.giteaFallbackPriority;
-    return 0;
-  };
+  const getPriority = incident => incident.priority ?? configStore.giteaFallbackPriority;
 
   return results.sort((a, b) => getPriority(b.incident) - getPriority(a.incident));
 });
