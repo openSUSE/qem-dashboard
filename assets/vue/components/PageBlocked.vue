@@ -39,8 +39,8 @@ const matchedSubmissions = computed(() => {
   }
 
   const getPriority = incident => {
-    if (incident.priority !== null) return incident.priority;
-    if (incident.type === 'git') return configStore.giteaFallbackPriority;
+    if (incident.priority) return incident.priority;
+    if (!['ibs', 'smelt'].includes(incident.type)) return configStore.giteaFallbackPriority;
     return 0;
   };
 
