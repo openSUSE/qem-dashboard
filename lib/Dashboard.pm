@@ -13,7 +13,7 @@ use Dashboard::Model::Settings;
 use Dashboard::Model::AMQP;
 use Dashboard::Model::MCP;
 
-use constant GITEA_FALLBACK_PRIORITY_DEFAULT => 550;    # https://progress.opensuse.org/issues/159549
+use constant DEFAULT_PRIORITY => 550;    # https://progress.opensuse.org/issues/159549
 
 # Avoid installing random npm packages bypassing package-lock.json
 BEGIN { $ENV{MOJO_NPM_BINARY} = curfile->sibling('../script/npm-noop') }
@@ -202,12 +202,12 @@ sub _register_routes ($self, $config) {
       my $config = $c->app->config;
       $c->render(
         json => {
-          bootId                => $self->{boot_id},
-          openqaUrl             => $c->openqa_url->path('/tests/overview'),
-          openqaNotGroupGlob    => $config->{openqa}{not_group_glob} // '*Devel*,*Test*',
-          obsUrl                => $config->{obs}{url},
-          smeltUrl              => $config->{smelt}{url},
-          giteaFallbackPriority => $config->{gitea_fallback_priority} // GITEA_FALLBACK_PRIORITY_DEFAULT
+          bootId             => $self->{boot_id},
+          openqaUrl          => $c->openqa_url->path('/tests/overview'),
+          openqaNotGroupGlob => $config->{openqa}{not_group_glob} // '*Devel*,*Test*',
+          obsUrl             => $config->{obs}{url},
+          smeltUrl           => $config->{smelt}{url},
+          defaultPriority    => $config->{default_priority} // DEFAULT_PRIORITY
         }
       );
     }

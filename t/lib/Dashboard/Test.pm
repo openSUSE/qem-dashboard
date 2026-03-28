@@ -30,7 +30,7 @@ sub default_config ($self) {
     openqa                  => {url => 'https://openqa.suse.de'},
     obs                     => {url => 'https://build.suse.de'},
     smelt                   => {url => 'https://smelt.suse.de'},
-    gitea_fallback_priority => Dashboard::GITEA_FALLBACK_PRIORITY_DEFAULT,
+    default_priority        => Dashboard::DEFAULT_PRIORITY,
     days_to_keep_aggregates => 90
   };
 }

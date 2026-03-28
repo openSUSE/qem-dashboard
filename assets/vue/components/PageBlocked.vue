@@ -38,7 +38,7 @@ const matchedSubmissions = computed(() => {
     );
   }
 
-  const getPriority = incident => incident.priority || configStore.giteaFallbackPriority;
+  const getPriority = incident => incident.priority || configStore.defaultPriority;
 
   return [...results].sort((a, b) => getPriority(b.incident) - getPriority(a.incident));
 });
