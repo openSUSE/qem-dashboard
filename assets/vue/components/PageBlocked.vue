@@ -38,9 +38,9 @@ const matchedSubmissions = computed(() => {
     );
   }
 
-  const getPriority = incident => incident.priority ?? configStore.giteaFallbackPriority;
+  const getPriority = incident => incident.priority || configStore.giteaFallbackPriority;
 
-  return results.sort((a, b) => getPriority(b.incident) - getPriority(a.incident));
+  return [...results].sort((a, b) => getPriority(b.incident) - getPriority(a.incident));
 });
 
 const smelt = computed(() => configStore.smeltUrl);
