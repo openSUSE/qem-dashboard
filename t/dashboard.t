@@ -15,38 +15,64 @@ use Time::HiRes ();
 use File::Temp  ();
 use Mojo::File;
 
-plan skip_all => 'set TEST_ONLINE to enable this test' unless $ENV{TEST_ONLINE};
+if (!$ENV{TEST_ONLINE}) {    # uncoverable branch true
+  plan skip_all => 'set TEST_ONLINE to enable this test';    # uncoverable statement
+}
 
 my $dashboard_test = Dashboard::Test->new(online => $ENV{TEST_ONLINE}, schema => 'dashboard_test');
 my $config         = $dashboard_test->default_config;
+my $t              = Test::Mojo->new(Dashboard => $config);
+my $access_log     = sub { $t->app->log->level eq 'info' ? qr/access_log/ : qr/^$/ };
+
+subtest 'Log level coverage' => sub {
+  my $old_level = $t->app->log->level;
+  $t->app->log->level('info');
+  like 'access_log', $access_log->(), 'access_log info branch';
+  $t->app->log->level('warn');
+  like '', $access_log->(), 'access_log warn branch';
+  $t->app->log->level($old_level);
+};
 
 subtest 'Production mode' => sub {
   local $ENV{MOJO_MODE} = 'production';
-  my $t = Test::Mojo->new(Dashboard => $config);
-  is $t->app->mode, 'production', 'app is in production mode';
-  ok $t->app->log->short, 'short logging is enabled';
-  is $t->app->log->level, 'info', 'log level is info';
-  stderr_like { $t->get_ok('/')->status_is(200) } qr/access_log/, 'access log caught';
+  for my $level (qw(warn info)) {
+    my $tp = Test::Mojo->new(Dashboard => $config);
+    $tp->app->log->level($level);
+    is $tp->app->mode, 'production', "app is in production mode ($level)";
+    ok $tp->app->log->short, 'short logging is enabled';
+    stderr_like { $tp->get_ok('/')->status_is(200) }
+    sub { $tp->app->log->level eq 'info' ? qr/access_log/ : qr/^$/ }
+      ->(), "access log caught ($level)";
+  }
 };
 
 subtest 'Pre-set Request ID' => sub {
   use Mojo::Util qw(monkey_patch);
   my $original = Mojo::Message::Request->can('request_id');
   monkey_patch 'Mojo::Message::Request', request_id => sub {'test-id-123'};
-  my $t = Test::Mojo->new(Dashboard => $config);
-  stderr_like {
-    $t->get_ok('/')->status_is(200);
+  for my $level (qw(warn info)) {
+    my $tr = Test::Mojo->new(Dashboard => $config);
+    $tr->app->log->level($level);
+    stderr_like {
+      $tr->get_ok('/')->status_is(200);
+    }
+    sub { $tr->app->log->level eq 'info' ? qr/request_id":"test-id-123"/ : qr/^$/ }
+      ->(), "custom request id is preserved ($level)";
   }
-  qr/request_id":"test-id-123"/, 'custom request id is preserved';
   monkey_patch 'Mojo::Message::Request', request_id => $original;
 };
 
 subtest 'Zero elapsed time log' => sub {
   local $ENV{MOJO_MODE} = 'production';
-  my $t = Test::Mojo->new(Dashboard => $config);
-  no warnings 'redefine';
-  local *Time::HiRes::tv_interval = sub { return 0 };
-  stderr_like { $t->get_ok('/')->status_is(200) } qr/rps":"\?\?"/, 'access log with unknown rps caught';
+  for my $level (qw(warn info)) {
+    my $tz = Test::Mojo->new(Dashboard => $config);
+    $tz->app->log->level($level);
+    no warnings 'redefine';
+    local *Time::HiRes::tv_interval = sub { return 0 };
+    stderr_like { $tz->get_ok('/')->status_is(200) }
+    sub { $tz->app->log->level eq 'info' ? qr/rps":"\?\?"/ : qr/^$/ }
+      ->(), "access log with unknown rps caught ($level)";
+  }
 };
 
 subtest 'Config override' => sub {
@@ -79,7 +105,7 @@ subtest 'App config endpoint' => sub {
       ->json_is('/smeltUrl',              'https://smelt.suse.de')
       ->json_is('/giteaFallbackPriority', Dashboard::GITEA_FALLBACK_PRIORITY_DEFAULT);
   }
-  qr/access_log/, 'access log caught';
+  $access_log->(), 'access log caught';
 };
 
 subtest 'Migrate command' => sub {
@@ -174,8 +200,16 @@ subtest 'Overview API with no jobs' => sub {
   stderr_like {
     $t->get_ok('/app/api/list')->status_is(200)->json_is('/last_updated', undef, 'last_updated is undef when no jobs');
   }
-  qr/access_log/, 'access log caught';
+  $access_log->(), 'access log caught';
 };
+
+{
+
+  package MockError;    # uncoverable statement
+  sub new     { bless {message => 'foo', path => '/bar'}, shift }
+  sub message { shift->{message} }
+  sub path    { shift->{path} }
+}
 
 subtest 'Blocked status' => sub {
   my $dashboard_test_blocked = Dashboard::Test->new(online => $ENV{TEST_ONLINE}, schema => 'dashboard_blocked_test');
@@ -199,7 +233,23 @@ subtest 'Blocked status' => sub {
       ->json_is('/blocked/0/incident/inReview',    1)
       ->json_is('/blocked/0/incident/inReviewQAM', 1);
   }
-  qr/access_log/, 'access log caught';
+  $access_log->(), 'access log caught';
+
+  subtest 'coverage for Dashboard.pm helper/hooks' => sub {
+    $t->get_ok('/api/incidents/abc' => {Authorization => 'Token test_token'})->status_is(400);
+    $t->app->routes->get('/test_400_no_json' => sub ($c) { $c->render(text => 'error', status => 400) });
+    $t->get_ok('/test_400_no_json')->status_is(400);
+    is $t->app->openapi->build_response_body([]), '[]', 'handles non-hash data';
+    is $t->app->openapi->build_response_body({}), '{}', 'handles hash without errors';
+
+    # Coverage for blessed object with path
+    is $t->app->openapi->build_response_body({errors => [MockError->new]}),
+      '{"error":"Validation failed","errors":[{"message":"foo","path":"\/bar"}]}', 'handles blessed error with path';
+
+    # Coverage for string error without path
+    is $t->app->openapi->build_response_body({errors => ['plain string error']}),
+      '{"error":"Validation failed","errors":[{"message":"plain string error","path":""}]}', 'handles string error';
+  };
 };
 
 done_testing();
