@@ -1,0 +1,30 @@
+# Specify the license of the container build description (see also the LICENSE file)
+# SPDX-License-Identifier: MIT
+# Define the names/tags of the container
+#!BuildTag: opensuse/qem-dashboard_devel:latest opensuse/qem-dashboard_devel:%RELEASE%
+
+# hadolint ignore=DL3006
+FROM opensuse/tumbleweed
+
+# Define labels according to https://en.opensuse.org/Building_derived_containers
+# labelprefix=org.opensuse.qem-dashboard_devel
+LABEL org.opencontainers.image.title="qem-dashboard devel container"
+LABEL org.opencontainers.image.description="qem-dashboard development container"
+LABEL org.opencontainers.image.version="%RELEASE%"
+LABEL org.opensuse.reference="registry.opensuse.org/opensuse/qem-dashboard_devel:%RELEASE%"
+LABEL org.openbuildservice.disturl="%DISTURL%"
+LABEL org.opencontainers.image.created="%BUILDTIME%"
+# endlabelprefix
+
+# hadolint ignore=DL3037
+RUN zypper in -y -C \
+    retry \
+    perl-Mojolicious \
+    perl-Mojolicious-Plugin-Webpack \
+    perl-Mojo-Pg \
+    perl-Cpanel-JSON-XS \
+    perl-JSON-Validator \
+    perl-IO-Socket-SSL \
+    nodejs-default \
+    npm && \
+    zypper clean -a
