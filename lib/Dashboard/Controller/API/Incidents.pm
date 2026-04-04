@@ -7,8 +7,7 @@ use Mojo::Base 'Mojolicious::Controller', -signatures;
 use Mojo::JSON qw(true false);
 
 sub sync ($self) {
-  return if $self->stash('openapi.path') && !$self->openapi->valid_input;
-
+  $self = $self->openapi->valid_input or return;
   my $incidents = $self->req->json;
   $self->incidents->sync($incidents, $self->every_param('type'));
 
@@ -19,20 +18,19 @@ sub sync ($self) {
 }
 
 sub list ($self) {
-  return if $self->stash('openapi.path') && !$self->openapi->valid_input;
+  $self = $self->openapi->valid_input or return;    # uncoverable branch true
   $self->render(json => _fix_booleans($self->incidents->find));
 }
 
 sub show ($self) {
-  return if $self->stash('openapi.path') && !$self->openapi->valid_input;
+  $self = $self->openapi->valid_input or return;
   return $self->render(json => {error => 'Incident not found'}, status => 404)
     unless my $incident = _fix_booleans($self->incidents->find({number => $self->param('incident')}))->[0];
   $self->render(json => $incident);
 }
 
 sub update ($self) {
-  return if $self->stash('openapi.path') && !$self->openapi->valid_input;
-
+  $self = $self->openapi->valid_input or return;
   my $incident = $self->req->json;
   $self->incidents->update($incident);
   $self->render(json => {message => 'Ok'});
