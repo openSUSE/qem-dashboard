@@ -15,7 +15,8 @@ To install all required dependencies, run
 
     sudo zypper in -C postgresql-server postgresql-contrib
     sudo zypper in -C perl-Mojolicious perl-Mojolicious-Plugin-Webpack \
-      perl-Mojo-Pg perl-Cpanel-JSON-XS perl-JSON-Validator perl-IO-Socket-SSL nodejs-default npm
+      perl-Mojo-Pg perl-Cpanel-JSON-XS perl-JSON-Validator perl-IO-Socket-SSL \
+      perl-MCP perl-Mojolicious-Plugin-OpenAPI nodejs-default npm
     npm clean-install --ignore-scripts
 
 if you are on an apt-based system, run
