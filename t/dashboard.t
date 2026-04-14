@@ -58,6 +58,7 @@ subtest 'Config override' => sub {
 subtest 'openqaNotGroupGlob config override' => sub {
   local $ENV{DASHBOARD_CONF_OVERRIDE} = '{"openqa":{"url":"https://openqa.suse.de","not_group_glob":"*Custom*"}}';
   my $t = Test::Mojo->new(Dashboard => $config);
+  $t->app->log->level('warn');
   $t->get_ok('/app-config')->status_is(200)->json_is('/openqaNotGroupGlob', '*Custom*');
 };
 
@@ -202,6 +203,7 @@ subtest 'Blocked status' => sub {
   qr/access_log/, 'access log caught';
 
   subtest 'coverage for Dashboard.pm helper/hooks' => sub {
+    $t->app->log->level('warn');
     $t->get_ok('/api/incidents/abc' => {Authorization => 'Token test_token'})->status_is(400);
     $t->app->routes->get('/test_400_no_json' => sub ($c) { $c->render(text => 'error', status => 400) });
     $t->get_ok('/test_400_no_json')->status_is(400);
