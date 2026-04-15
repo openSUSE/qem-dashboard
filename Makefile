@@ -72,7 +72,8 @@ tidy-npm: ## Format JS code using npm run lint:fix
 
 .PHONY: tidy-perl
 tidy-perl: ## Format Perl code using perltidy
-	bash -c 'shopt -s extglob globstar nullglob; perltidy --pro=.../.perltidyrc -b -bext='/' **/*.p[lm] **/*.t && git diff --exit-code'
+	find . \( -iname '*.pm' -or -iname '*.pl' -or -iname '*.t' \) -not -ipath '*external*' -exec perltidy --pro=.../.perltidyrc -b -bext='/' {} \+
+	git diff --exit-code
 
 .PHONY: tidy
 tidy: tidy-npm tidy-perl ## Format both JS and Perl code
