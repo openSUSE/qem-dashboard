@@ -5,6 +5,7 @@ COVERAGE_OPTS ?= PERL5OPT='$(HARNESS_PERL_SWITCHES)'
 TEST_WRAPPER_COVERAGE ?= 1
 ASSET_SOURCES := $(shell find assets -type f) package-lock.json vite.config.js vitest.config.js
 COMMIT_ARGS ?= --last
+PROVE ?= tools/prove_wrapper
 
 .DEFAULT_GOAL := help
 
@@ -71,7 +72,8 @@ tidy-npm: ## Format JS code using npm run lint:fix
 
 .PHONY: tidy-perl
 tidy-perl: ## Format Perl code using perltidy
-	bash -c 'shopt -s extglob globstar nullglob; perltidy --pro=.../.perltidyrc -b -bext='/' **/*.p[lm] **/*.t && git diff --exit-code'
+	find . \( -iname '*.pm' -or -iname '*.pl' -or -iname '*.t' \) -not -ipath '*external*' -exec perltidy --pro=.../.perltidyrc -b -bext='/' {} \+
+	git diff --exit-code
 
 .PHONY: tidy
 tidy: tidy-npm tidy-perl ## Format both JS and Perl code
@@ -81,7 +83,7 @@ test-unit: public/asset ## Run Perl unit tests
 	MOJO_MODE=$(MOJO_MODE) \
 	TEST_ONLINE=$(TEST_ONLINE) \
 	HARNESS_PERL_SWITCHES=$(HARNESS_PERL_SWITCHES) \
-	prove -l t/*.t
+	"${PROVE}" -l t/*.t
 
 .PHONY: test-ui
 test-ui: public/asset ## Run Playwright UI tests
@@ -89,7 +91,7 @@ test-ui: public/asset ## Run Playwright UI tests
 	TEST_ONLINE=$(TEST_ONLINE) \
 	TEST_WRAPPER_COVERAGE=$(TEST_WRAPPER_COVERAGE) \
 	$(if $(TEST_WRAPPER_COVERAGE),$(COVERAGE_OPTS)) \
-	prove -l t/*.t.js
+	"${PROVE}" -l t/*.t.js
 
 .PHONY: test-js-unit
 test-js-unit: ## Run JS unit tests
