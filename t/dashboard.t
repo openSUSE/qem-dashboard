@@ -84,8 +84,10 @@ subtest 'Config override' => sub {
 subtest 'openqaNotGroupGlob config override' => sub {
   local $ENV{DASHBOARD_CONF_OVERRIDE} = '{"openqa":{"url":"https://openqa.suse.de","not_group_glob":"*Custom*"}}';
   my $t = Test::Mojo->new(Dashboard => $config);
-  $t->app->log->level('warn');
-  $t->get_ok('/app-config')->status_is(200)->json_is('/openqaNotGroupGlob', '*Custom*');
+  stderr_like {
+    $t->get_ok('/app-config')->status_is(200)->json_is('/openqaNotGroupGlob', '*Custom*');
+  }
+  qr/access_log/, 'access log caught';
 };
 
 subtest 'Custom config file' => sub {
