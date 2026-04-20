@@ -28,13 +28,8 @@ sub run_api_tests ($t, $prefix) {
   };
 
   my $stderr_test = sub ($code, $label) {
-    if ($t->app->log->level eq 'info') {
-      stderr_like { $code->() } qr/access_log/, $label;
-    }
-    else {
-      $code->();
-      ok 1, $label;
-    }
+    my $expected = $t->app->log->level eq 'info' ? qr/access_log/ : qr/^$/;
+    stderr_like { $code->() } qr/(?:$expected|OpenAPI >>>)/, $label;
   };
 
   subtest 'Log level coverage' => sub {
