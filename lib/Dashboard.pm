@@ -226,7 +226,7 @@ sub _register_routes ($self, $config) {
   $json->get('/submission/<incident:num>')->to('overview#incident');
 
   # MCP
-  $public->any('/app/mcp' => $self->mcp->server->to_action);
+  $public->any('/mcp' => $self->mcp->server->to_action);
 
   # Catch all for delivering the webpack UI
   $public->get('/')->to('overview#index')->name('index');
