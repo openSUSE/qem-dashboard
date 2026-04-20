@@ -11,7 +11,7 @@ use Dashboard::Model::Incidents;
 use Dashboard::Model::Jobs;
 use Dashboard::Model::Settings;
 use Dashboard::Model::AMQP;
-use Dashboard::Model::MCP;
+use Dashboard::Controller::MCP;
 
 use constant DEFAULT_PRIORITY => 550;    # https://progress.opensuse.org/issues/159549
 
@@ -172,7 +172,7 @@ EOF
   $self->helper(amqp     => sub ($c) { state $amqp     = Dashboard::Model::AMQP->new(log => $log, jobs => $c->jobs) });
   $self->helper(
     mcp => sub ($c) {
-      state $mcp = Dashboard::Model::MCP->new(incidents => $c->incidents, jobs => $c->jobs);
+      state $mcp = Dashboard::Controller::MCP->new(incidents => $c->incidents, jobs => $c->jobs);
     }
   );
 
