@@ -36,7 +36,7 @@
   "dependencies": {
     "@fortawesome/fontawesome-free": "^7.2.0",
     "@mojojs/path": "^1.7.0",
-    "@vitejs/plugin-vue": "^6.0.5",
+    "@vitejs/plugin-vue": "^6.0.6",
     "bootstrap": "^5.3.8",
     "date-fns": "^4.1.0",
     "pinia": "^3.0.4",
