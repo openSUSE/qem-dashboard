@@ -13,15 +13,27 @@ use Test::Warnings ':report_warnings';
 use Dashboard::Test;
 use Mojo::JSON qw(false true);
 
-plan skip_all => 'set TEST_ONLINE to enable this test' unless $ENV{TEST_ONLINE};
+if (!$ENV{TEST_ONLINE}) {    # uncoverable branch true
+  plan skip_all => 'set TEST_ONLINE to enable this test';    # uncoverable statement
+}
 
 local $ENV{MOJO_MODE} = 'production';
 my $dashboard_test = Dashboard::Test->new(online => $ENV{TEST_ONLINE}, schema => 'amqp_test');
 my $config         = $dashboard_test->default_config;
 my $t              = Test::Mojo->new(Dashboard => $config);
 $dashboard_test->minimal_fixtures($t->app);
-my $db     = $t->app->pg->db;
-my $job_id = 11;
+my $db      = $t->app->pg->db;
+my $job_id  = 11;
+my $log_msg = sub ($regex) { $t->app->log->level eq 'info' ? $regex : qr/^$/ };
+
+subtest 'Log level coverage' => sub {
+  my $old_level = $t->app->log->level;
+  $t->app->log->level('info');
+  like 'foo', $log_msg->(qr/foo/), 'log_msg info branch';
+  $t->app->log->level('warn');
+  like '', $log_msg->(qr/foo/), 'log_msg warn branch';
+  $t->app->log->level($old_level);
+};
 
 sub _is_field ($field, $expected) {
   is($db->query("SELECT $field FROM openqa_jobs WHERE id = $job_id")->hash->{$field}, $expected);
@@ -57,9 +69,10 @@ subtest 'Handle done job' => sub {
     "result"    => "passed"
   );
   my $test = sub ($topic, $regex, $status, $label) {
-    stderr_like { $t->app->amqp->handle($topic, \%results) } $regex, $label;
+    stderr_like { $t->app->amqp->handle($topic, \%results) } $log_msg->($regex), $label;
     _is_field('status', $status);
   };
+
 
   is $t->app->amqp->handle('suse.openqa.jobs.done', \%results), undef,
     'return early because of wrong object in the topic format';
@@ -93,7 +106,7 @@ subtest 'Handle cancel job' => sub {
   _set_default();
   my %results = (%$msg, "group_id" => 328, "remaining" => 0);
   stderr_like { $t->app->amqp->handle('suse.openqa.job.cancel', \%results) }
-  qr/user_cancelled.*job_update/, 'amqp log message';
+  $log_msg->(qr/user_cancelled.*job_update/), 'amqp log message';
   _is_field('status', 'stopped');
 };
 
@@ -102,7 +115,7 @@ subtest 'Handle restart job' => sub {
   my %results
     = (%$msg, "auto" => 0, "bugref" => undef, "group_id" => 328, "remaining" => 1, "result" => {"4953203" => 7764022});
   stderr_like { $t->app->amqp->handle('suse.openqa.job.restart', \%results) }
-  qr/job_restart/, 'amqp log message';
+  $log_msg->(qr/job_restart/), 'amqp log message';
   _is_field('status', 'waiting');
   _is_field('job_id', 7764022);
 };
@@ -112,12 +125,15 @@ subtest 'Handle delete job' => sub {
   _is_count(1);
   my %results = (%$msg, "group_id" => 328, "remaining" => 1);
   stderr_like { $t->app->amqp->handle('suse.openqa.job.delete', \%results) }
-  qr/job_delete/, 'amqp log message';
+  $log_msg->(qr/job_delete/), 'amqp log message';
   _is_count(0);
 };
 
 subtest 'Handle missing data' => sub {
-  is $t->app->amqp->handle('suse.openqa.job.done', {id => 123}), undef, 'returns early with missing arguments';
+  is $t->app->amqp->handle('suse.openqa.job.done',    {id => 123}), undef, 'returns early with missing arguments';
+  is $t->app->amqp->handle('suse.openqa.job.cancel',  {}),          undef, 'returns early with missing id for cancel';
+  is $t->app->amqp->handle('suse.openqa.job.delete',  {}),          undef, 'returns early with missing id for delete';
+  is $t->app->amqp->handle('suse.openqa.job.restart', {}), undef, 'returns early with missing result for restart';
 };
 
 subtest 'Unknown type' => sub {

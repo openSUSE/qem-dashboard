@@ -24,6 +24,7 @@ sub new ($class, %options) {
 
 sub default_config ($self) {
   return {
+    log                     => {level => 'warn'},
     secrets                 => ['just_a_test'],
     tokens                  => ['test_token'],
     pg                      => $self->postgres_url,
@@ -271,7 +272,7 @@ sub minimal_fixtures ($self, $app) {
       withAggregate => true,
       settings      => {DISTRI => 'sle', VERSION => '12-SP6', BUILD => '20250317-1'}
     }
-  ) unless $self->options->{schema} eq 'js_ui_test';
+  ) unless $self->options->{schema} eq 'js_ui_test';    # uncoverable branch false
   my $settings_acceptable_for_id_2 = $settings->add_update_settings(
     \@incident_ids,
     {

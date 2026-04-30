@@ -13,7 +13,7 @@ has description => 'Watch message bus for job results';
 has usage       => sub { shift->extract_usage };
 has 'client';
 
-sub run ($self, @args) {    # uncoverable statement
+sub run ($self, @args) {
   Mojo::IOLoop->singleton->reactor->unsubscribe('error');
   $self->_connect(0);
   Mojo::IOLoop->start unless Mojo::IOLoop->is_running;

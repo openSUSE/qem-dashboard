@@ -5,9 +5,9 @@ package Dashboard::Controller::API::Jobs;
 use Mojo::Base 'Mojolicious::Controller', -signatures;
 
 sub add ($self) {
-  return if $self->stash('openapi.path') && !$self->openapi->valid_input;
+  $self = $self->openapi->valid_input or return;
+  my $job = $self->req->json;
 
-  my $job   = $self->req->json;
   my $is_id = $job->{incident_settings};
   my $us_id = $job->{update_settings};
   return $self->render(json => {error => "Job needs to reference incident settings or update settings"}, status => 400)
@@ -28,15 +28,15 @@ sub add ($self) {
 }
 
 sub incidents ($self) {
-  return if $self->stash('openapi.path') && !$self->openapi->valid_input;
+  $self = $self->openapi->valid_input or return;
   my $job = $self->jobs->get_incident_settings($self->param('incident_settings'));
   $self->render(json => $job);
 }
 
 sub modify ($self) {
-  return if $self->stash('openapi.path') && !$self->openapi->valid_input;
+  $self = $self->openapi->valid_input or return;
+  my $job_id = $self->param('job_id');
 
-  my $job_id   = $self->param('job_id');
   my $job_data = $self->req->json;
   $self->jobs->modify($job_id, $job_data);
   $self->render(json => {message => 'Ok'});
@@ -48,7 +48,7 @@ sub _incident ($incidents, $remark) {
 }
 
 sub show_remarks ($self) {
-  return if $self->stash('openapi.path') && !$self->openapi->valid_input;
+  $self = $self->openapi->valid_input or return;
   my $openqa_job_id   = $self->param('job_id');
   my $internal_job_id = $self->jobs->internal_job_id($openqa_job_id);
   return $self->render(json => {error => "openQA job ($openqa_job_id) does not exist"}, status => 404)
@@ -61,8 +61,7 @@ sub show_remarks ($self) {
 }
 
 sub update_remark ($self) {
-  return if $self->stash('openapi.path') && !$self->openapi->valid_input;
-
+  $self = $self->openapi->valid_input or return;
   my $incident_number = $self->param('incident_number');
   my $text            = $self->param('text');
 
@@ -70,6 +69,8 @@ sub update_remark ($self) {
     $incident_number //= $json->{incident_number};
     $text            //= $json->{text};
   }
+
+  return $self->render(json => {error => "Missing remark text"}, status => 400) unless defined $text;
 
   my $incident_id     = defined $incident_number ? $self->app->incidents->id_for_number($incident_number) : undef;
   my $openqa_job_id   = $self->param('job_id');
@@ -84,14 +85,14 @@ sub update_remark ($self) {
 }
 
 sub show ($self) {
-  return if $self->stash('openapi.path') && !$self->openapi->valid_input;
+  $self = $self->openapi->valid_input or return;
   return $self->render(json => {error => 'Job not found'}, status => 400)
     unless my $job = $self->jobs->get($self->param('job_id'));
   $self->render(json => $job);
 }
 
 sub updates ($self) {
-  return if $self->stash('openapi.path') && !$self->openapi->valid_input;
+  $self = $self->openapi->valid_input or return;
   my $job = $self->jobs->get_update_settings($self->param('update_settings'));
   $self->render(json => $job);
 }
