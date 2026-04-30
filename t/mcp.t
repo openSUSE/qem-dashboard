@@ -8,6 +8,7 @@ use lib "$FindBin::Bin/lib";
 
 use Test::More;
 use Test::Mojo;
+use Test::MockModule;
 use Test::Output 'stderr_like';
 use Dashboard::Test;
 use Mojo::JSON qw(false true decode_json);
@@ -23,7 +24,7 @@ my $session_id;
 subtest 'MCP Initialization' => sub {
   stderr_like {
     $t->post_ok(
-      '/app/mcp' => json => {
+      '/mcp' => json => {
         jsonrpc => "2.0",
         id      => 0,
         method  => "initialize",
@@ -43,7 +44,7 @@ subtest 'MCP Initialization' => sub {
 subtest 'MCP Discovery' => sub {
   stderr_like {
     $t->post_ok(
-      '/app/mcp' => {'Mcp-Session-Id' => $session_id} => json => {jsonrpc => "2.0", method => "tools/list", id => 1})
+      '/mcp' => {'Mcp-Session-Id' => $session_id} => json => {jsonrpc => "2.0", method => "tools/list", id => 1})
       ->status_is(200)
       ->or(sub { diag shift->tx->res->body })
       ->json_is('/result/tools/0/name', 'list_submissions')
@@ -62,20 +63,20 @@ subtest 'MCP Tool: list_submissions' => sub {
     project     => 'SUSE:Maintenance:12345',
     packages    => ['test-pkg'],
     channels    => ['Test'],
-    rr_number   => undef,
-    inReview    => true,
-    inReviewQAM => true,
-    approved    => false,
-    emu         => true,
-    isActive    => true,
-    embargoed   => false,
+    rr_number   => 6789,
+    inReview    => 1,
+    inReviewQAM => 1,
+    approved    => 0,
+    emu         => 1,
+    isActive    => 1,
+    embargoed   => 0,
     priority    => 100,
   };
   $t->app->incidents->sync([$mock_incident]);
 
   stderr_like {
     $t->post_ok(
-      '/app/mcp' => {'Mcp-Session-Id' => $session_id} => json => {
+      '/mcp' => {'Mcp-Session-Id' => $session_id} => json => {
         jsonrpc => "2.0",
         method  => "tools/call",
         params  => {name => 'list_submissions', arguments => {number => 12345}},
@@ -85,14 +86,55 @@ subtest 'MCP Tool: list_submissions' => sub {
   }
   qr/access_log/, 'access log caught';
   my $text = $t->tx->res->json('/result/content/0/text');
-  my $res  = decode_json($text);
-  is $res->[0]{number}, 12345, 'correct incident number';
+  like $text, qr/Incident 12345/, 'response contains incident number';
+
+  # Seed an incident without channels
+  my $mock_incident_no_channels = {
+    number      => 54321,
+    project     => 'SUSE:Maintenance:54321',
+    packages    => ['test-pkg-2'],
+    channels    => [],
+    rr_number   => 9876,
+    inReview    => 1,
+    inReviewQAM => 1,
+    approved    => 0,
+    emu         => 1,
+    isActive    => 1,
+    embargoed   => 0,
+    priority    => 100,
+  };
+  $t->app->incidents->sync([$mock_incident, $mock_incident_no_channels]);
+  stderr_like {
+    $t->post_ok(
+      '/mcp' => {'Mcp-Session-Id' => $session_id} => json => {
+        jsonrpc => "2.0",
+        method  => "tools/call",
+        params  => {name => 'list_submissions', arguments => {number => 54321}},
+        id      => 2
+      }
+    )->status_is(200);
+  }
+  qr/access_log/, 'access log caught';
+  like $t->tx->res->json('/result/content/0/text'), qr/N\/A/, 'N/A for missing channels';
+
+  # Test no incidents found
+  stderr_like {
+    $t->post_ok(
+      '/mcp' => {'Mcp-Session-Id' => $session_id} => json => {
+        jsonrpc => "2.0",
+        method  => "tools/call",
+        params  => {name => 'list_submissions', arguments => {number => 99999}},
+        id      => 2
+      }
+    )->status_is(200)->json_is('/result/content/0/text', 'No active incidents found.');
+  }
+  qr/access_log/, 'access log caught';
 };
 
 subtest 'MCP Tool: get_submission_details (found)' => sub {
   stderr_like {
     $t->post_ok(
-      '/app/mcp' => {'Mcp-Session-Id' => $session_id} => json => {
+      '/mcp' => {'Mcp-Session-Id' => $session_id} => json => {
         jsonrpc => "2.0",
         method  => "tools/call",
         params  => {name => 'get_submission_details', arguments => {number => 12345}},
@@ -102,42 +144,133 @@ subtest 'MCP Tool: get_submission_details (found)' => sub {
   }
   qr/access_log/, 'access log caught';
   my $text = $t->tx->res->json('/result/content/0/text');
-  my $res  = decode_json($text);
-  is $res->{incident}{number}, 12345, 'correct incident number in details';
+  like $text, qr/Incident 12345 Details/, 'response contains incident details';
+  like $text, qr/No openQA jobs found/,   'no jobs found message';
+
+  stderr_like {
+    $t->post_ok(
+      '/mcp' => {'Mcp-Session-Id' => $session_id} => json => {
+        jsonrpc => "2.0",
+        method  => "tools/call",
+        params  => {name => 'get_submission_details', arguments => {number => 54321}},
+        id      => 3
+      }
+    )->status_is(200);
+  }
+  qr/access_log/, 'access log caught';
+  like $t->tx->res->json('/result/content/0/text'), qr/\*\*Channels:\*\* N\/A/, 'N/A for missing channels in details';
+
+  # Seed data for jobs
+  my $inc_id = $t->app->incidents->id_for_number(12345);
+  $t->app->pg->db->query(
+    'INSERT INTO update_openqa_settings (product, arch, build, repohash, settings) VALUES (?, ?, ?, ?, ?) ON CONFLICT DO NOTHING',
+    'SLES', 'x86_64', '1234', 'hash2', '{}'
+  );
+  my $uid2 = $t->app->pg->db->query("SELECT id FROM update_openqa_settings WHERE build = '1234'")->hash->{id};
+  $t->app->pg->db->query('INSERT INTO incident_in_update (settings, incident) VALUES (?, ?) ON CONFLICT DO NOTHING',
+    $uid2, $inc_id);
+  $t->app->pg->db->query(
+    'INSERT INTO openqa_jobs (update_settings, status, distri, version, flavor, arch, build, job_group, group_id, job_id, name)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT DO NOTHING', $uid2, 'failed', 'sle', '15-SP3', 'Online',
+    'x86_64', '1234', 'Group', 1, 101, 'failed_job'
+  );
+
+  stderr_like {
+    $t->post_ok(
+      '/mcp' => {'Mcp-Session-Id' => $session_id} => json => {
+        jsonrpc => "2.0",
+        method  => "tools/call",
+        params  => {name => 'get_submission_details', arguments => {number => 12345}},
+        id      => 3
+      }
+    )->status_is(200);
+  }
+  qr/access_log/, 'access log caught';
+  like $t->tx->res->json('/result/content/0/text'), qr/failed_job/, 'job status in details';
 };
 
 subtest 'MCP Tool: get_submission_details (not found)' => sub {
   stderr_like {
     $t->post_ok(
-      '/app/mcp' => {'Mcp-Session-Id' => $session_id} => json => {
+      '/mcp' => {'Mcp-Session-Id' => $session_id} => json => {
         jsonrpc => "2.0",
         method  => "tools/call",
         params  => {name => 'get_submission_details', arguments => {number => 99999}},
         id      => 3
       }
-    )->status_is(200)->json_is('/result/content/0/text', '{"error":"Incident 99999 not found"}');
+    )->status_is(200)->json_is('/result/content/0/text', "```\nError: Incident 99999 not found\n```");
   }
   qr/access_log/, 'access log caught';
 };
 
 subtest 'MCP Tool: list_blocked' => sub {
+  my $mock = Test::MockModule->new('Dashboard::Model::Incidents');
+  $mock->redefine(blocked => sub { [] });
+
   stderr_like {
-    $t->post_ok('/app/mcp' => {'Mcp-Session-Id' => $session_id} => json =>
+    $t->post_ok('/mcp' => {'Mcp-Session-Id' => $session_id} => json =>
         {jsonrpc => "2.0", method => "tools/call", params => {name => 'list_blocked'}, id => 4})
       ->status_is(200)
-      ->json_is('/result/content/0/type', 'text');
+      ->json_is('/result/content/0/text', "```\nNo incidents currently blocked.\n```");
+  }
+  qr/access_log/, 'access log caught';
+
+  $mock->redefine(
+    blocked => sub {
+      [{incident => {number => 12345, project => 'SUSE:Maintenance:12345', blocked_reasons => ['reason1']}}];
+    }
+  );
+
+  stderr_like {
+    $t->post_ok('/mcp' => {'Mcp-Session-Id' => $session_id} => json =>
+        {jsonrpc => "2.0", method => "tools/call", params => {name => 'list_blocked'}, id => 4})->status_is(200);
+  }
+  qr/access_log/, 'access log caught';
+  like $t->tx->res->json('/result/content/0/text'), qr/reason1/, 'blocked incident with reason listed';
+
+  # Without reasons
+  $mock->redefine(
+    blocked => sub {
+      [{incident => {number => 54321, project => 'SUSE:Maintenance:54321',}}];
+    }
+  );
+  stderr_like {
+    $t->post_ok('/mcp' => {'Mcp-Session-Id' => $session_id} => json =>
+        {jsonrpc => "2.0", method => "tools/call", params => {name => 'list_blocked'}, id => 4})->status_is(200);
   }
   qr/access_log/, 'access log caught';
 };
 
 subtest 'MCP Tool: get_repo_status' => sub {
+  $t->app->pg->db->query('DELETE FROM openqa_jobs');
+  $t->app->pg->db->query('DELETE FROM update_openqa_settings');
   stderr_like {
-    $t->post_ok('/app/mcp' => {'Mcp-Session-Id' => $session_id} => json =>
+    $t->post_ok('/mcp' => {'Mcp-Session-Id' => $session_id} => json =>
         {jsonrpc => "2.0", method => "tools/call", params => {name => 'get_repo_status'}, id => 5})
       ->status_is(200)
-      ->json_is('/result/content/0/type', 'text');
+      ->json_is('/result/content/0/text', "```\nNo repository information available.\n```");
   }
   qr/access_log/, 'access log caught';
+
+  # Seed repo data
+  # Avoid duplicate key by checking if it exists or just using different data
+  $t->app->pg->db->query(
+    'INSERT INTO update_openqa_settings (product, arch, build, repohash, settings) VALUES (?, ?, ?, ?, ?) ON CONFLICT DO NOTHING',
+    'SLES', 'x86_64', '1234', 'hash', '{}'
+  );
+  my $uid = $t->app->pg->db->query("SELECT id FROM update_openqa_settings WHERE build = '1234'")->hash->{id};
+  $t->app->pg->db->query(
+    'INSERT INTO openqa_jobs (update_settings, status, distri, version, flavor, arch, build, job_group, group_id, job_id, name)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT DO NOTHING', $uid, 'passed', 'sle', '15-SP3', 'Online',
+    'x86_64', '1234', 'Group', 1, 100, 'test_job'
+  );
+
+  stderr_like {
+    $t->post_ok('/mcp' => {'Mcp-Session-Id' => $session_id} => json =>
+        {jsonrpc => "2.0", method => "tools/call", params => {name => 'get_repo_status'}, id => 5})->status_is(200);
+  }
+  qr/access_log/, 'access log caught';
+  like $t->tx->res->json('/result/content/0/text'), qr/Online-15-SP3-x86_64/, 'repo status listed';
 };
 
 done_testing();

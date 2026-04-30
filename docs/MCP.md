@@ -32,10 +32,10 @@ The following submissions are currently blocked by tests on qem-dashboard:
 
 ### HTTP/SSE (Remote)
 
-The MCP server is available at the `/app/mcp` endpoint. It uses the standard MCP HTTP/SSE transport.
+The MCP server is available at the `/mcp` endpoint. It uses the standard MCP HTTP/SSE transport.
 
 To use it with an AI agent, configure the agent to point to:
-`https://<dashboard-url>/app/mcp`
+`https://<dashboard-url>/mcp`
 
 Note: Authentication via Token might be required depending on the dashboard configuration.
 

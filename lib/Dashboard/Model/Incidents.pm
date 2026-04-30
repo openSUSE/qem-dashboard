@@ -41,7 +41,7 @@ sub find ($self, $options = {}) {
   my $incidents = $self->pg->db->query(
     'SELECT number, project, packages, rr_number, review, review_qam, approved, emu, active, embargoed, priority, ARRAY_AGG(c.name) as channels,
             scminfo, url, type
-     FROM incidents i INNER JOIN incident_channels ic ON ic.incident = i.id INNER JOIN channels c ON ic.channel = c.id
+     FROM incidents i LEFT JOIN incident_channels ic ON ic.incident = i.id LEFT JOIN channels c ON ic.channel = c.id
      WHERE number = COALESCE(?, number) AND active = TRUE
      GROUP BY number, project, packages, rr_number, review, review_qam, approved, emu, active, embargoed, priority, scminfo, url, type
      ORDER BY number', $options->{number}
