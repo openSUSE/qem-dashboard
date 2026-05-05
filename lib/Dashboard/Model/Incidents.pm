@@ -156,6 +156,12 @@ sub repos ($self) {
   return \%titles;
 }
 
+sub channels_for_incident ($self, $incident_id) {
+  return $self->pg->db->query(
+    'SELECT name FROM channels c JOIN incident_channels ic ON ic.channel = c.id WHERE ic.incident = ?', $incident_id)
+    ->arrays->map(sub { $_->[0] })->to_array;
+}
+
 sub sync ($self, $incidents, $types = []) {
   push @$types, '', 'smelt' unless @$types;
   my $db = $self->pg->db;

@@ -21,11 +21,16 @@ sub new ($class, %args) {
     code => sub ($tool, $args) {
       my @results;
       for my $incident (@{$self->incidents->find($args)}) {
-        my $chan_text
-          = $incident->{channels} && $incident->{channels}[0] ? join(', ', @{$incident->{channels}}) : 'N/A';
+        my @packages  = @{$incident->{packages} // []};
+        my @channels  = grep {defined} @{$incident->{channels} // []};
+        my $chan_text = @channels ? join(', ', @channels) : 'N/A';
         push @results,
-          sprintf("• **Incident %d** (%s)\n  * **Project:** %s\n  * **Packages:** %s",
-          $incident->{number}, $incident->{project}, join(', ', @{$incident->{packages}}), $chan_text);
+          sprintf(
+          "• **Incident %d**\n  * **Project:** %s\n  * **Packages:** %s\n  * **Channels:** %s",
+          $incident->{number}  // 0,
+          $incident->{project} // '',
+          join(', ', @packages), $chan_text
+          );
       }
       return @results ? "```\n" . (join("\n\n", @results)) . "\n```" : "No active incidents found.";
     }
@@ -46,13 +51,15 @@ sub new ($class, %args) {
       return "```\nError: Incident $args->{number} not found\n```" unless $incident;
 
       my @lines = (
-        sprintf("Incident %d Details", $incident->{number}),
-        "=" x 40, "", sprintf("**Project:** %s", $incident->{project}),
+        sprintf("Incident %d Details", $incident->{number} // 0),
+        "=" x 40, "", sprintf("**Project:** %s", $incident->{project} // ''),
       );
-      push @lines, sprintf("**Packages:** %s", join(', ', @{$incident->{packages}}));
-      my $chan_text = $incident->{channels} && $incident->{channels}[0] ? join(', ', @{$incident->{channels}}) : 'N/A';
+      my @packages = @{$incident->{packages} // []};
+      push @lines, sprintf("**Packages:** %s", join(', ', @packages));
+      my @channels  = @{$incidents->channels_for_incident($incident->{id}) // []};
+      my $chan_text = @channels ? join(', ', @channels) : 'N/A';
       push @lines, sprintf("**Channels:** %s", $chan_text);
-      push @lines, sprintf("**Priority:** %d", $incident->{priority});
+      push @lines, sprintf("**Priority:** %d", $incident->{priority} // 0);
       push @lines, ("", "openQA Summary:", "-" x 40);
 
       my $jobs = $incidents->openqa_summary_only_aggregates($incident);
@@ -112,6 +119,12 @@ sub new ($class, %args) {
 
   return $self;
 }
+
+=head2 server
+
+Returns the MCP server instance.
+
+=cut
 
 sub server ($self) { $self->{server} }
 

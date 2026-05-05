@@ -170,6 +170,35 @@ subtest 'MCP Tool: list_submissions' => sub {
     )->status_is(200)->json_is('/result/content/0/text', 'No active incidents found.');
   }
   $access_log->(), 'access log caught';
+
+  # Seed an incident with NULL project
+  my $mock_incident_no_project = {
+    number      => 777,
+    project     => undef,
+    packages    => ['pkg-no-project'],
+    channels    => ['Channel1'],
+    rr_number   => 777,
+    inReview    => 1,
+    inReviewQAM => 1,
+    approved    => 0,
+    emu         => 1,
+    isActive    => 1,
+    embargoed   => 0,
+    priority    => 100,
+  };
+  $t->app->incidents->update($mock_incident_no_project);
+  stderr_like {
+    $t->post_ok(
+      '/mcp' => {'Mcp-Session-Id' => $session_id} => json => {
+        jsonrpc => "2.0",
+        method  => "tools/call",
+        params  => {name => 'list_submissions', arguments => {number => 777}},
+        id      => 2
+      }
+    )->status_is(200);
+  }
+  $access_log->(), 'access log caught';
+  like $t->tx->res->json('/result/content/0/text'), qr/\*\*Project:\*\* \n/, 'Project is empty for NULL project';
 };
 
 subtest 'MCP Tool: get_submission_details (found)' => sub {
@@ -186,6 +215,7 @@ subtest 'MCP Tool: get_submission_details (found)' => sub {
   $access_log->(), 'access log caught';
   my $text = $t->tx->res->json('/result/content/0/text');
   like $text, qr/Incident 12345 Details/, 'response contains incident details';
+  like $text, qr/\*\*Channels:\*\* Test/, 'channels listed in details';
   like $text, qr/No openQA jobs found/,   'no jobs found message';
 
   stderr_like {
@@ -326,5 +356,29 @@ subtest 'MCP Tool: get_repo_status' => sub {
   $access_log->(), 'access log caught';
   like $t->tx->res->json('/result/content/0/text'), qr/Online-15-SP3-x86_64/, 'repo status listed';
 };
+
+subtest 'Coverage for missing keys' => sub {
+  my $mock = Test::MockModule->new('Dashboard::Model::Incidents');
+
+  # Return an incident missing some keys to hit // branches
+  $mock->redefine(find => sub { [{}] });    # Missing everything
+  $t->post_ok('/mcp' => {'Mcp-Session-Id' => $session_id} => json =>
+      {jsonrpc => "2.0", method => "tools/call", params => {name => 'list_submissions', arguments => {}}, id => 6})
+    ->status_is(200);
+  like $t->tx->res->json('/result/content/0/text'), qr/Incident 0/, 'handles missing keys';
+
+  $mock->redefine(incident_for_number   => sub { {id => 1} });    # Missing number, project, packages, etc.
+  $mock->redefine(channels_for_incident => sub {undef});          # Missing channels
+  $t->post_ok(
+    '/mcp' => {'Mcp-Session-Id' => $session_id} => json => {
+      jsonrpc => "2.0",
+      method  => "tools/call",
+      params  => {name => 'get_submission_details', arguments => {number => 1}},
+      id      => 7
+    }
+  )->status_is(200);
+  like $t->tx->res->json('/result/content/0/text'), qr/Incident 0 Details/, 'handles missing keys in details';
+};
+
 
 done_testing();
