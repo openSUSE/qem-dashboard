@@ -87,7 +87,7 @@ subtest 'openqaNotGroupGlob config override' => sub {
   stderr_like {
     $t->get_ok('/app-config')->status_is(200)->json_is('/openqaNotGroupGlob', '*Custom*');
   }
-  qr/access_log/, 'access log caught';
+  $access_log->(), 'access log caught';
 };
 
 subtest 'Custom config file' => sub {
