@@ -9,6 +9,13 @@ updates:
       semver-major-days: 30
       semver-minor-days: 7
       semver-patch-days: 3
+    groups:
+      dev-dependencies:
+        applies-to: version-updates
+        dependency-type: "development"
+        update-types:
+          - "minor"
+          - "patch"
     allow:
       # Allow both direct and indirect updates for all packages
       - dependency-type: "all"
