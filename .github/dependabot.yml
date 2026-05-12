@@ -4,6 +4,8 @@ updates:
     directory: '/'
     schedule:
       interval: 'daily'
+    cooldown:
+      semver-patch-days: 7
     allow:
       # Allow both direct and indirect updates for all packages
       - dependency-type: "all"
@@ -18,3 +20,5 @@ updates:
     directory: '/'
     schedule:
       interval: 'daily'
+    cooldown:
+      semver-patch-days: 7
