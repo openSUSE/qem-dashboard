@@ -50,7 +50,7 @@
     "@commitlint/cli": "^20.4.3",
     "@commitlint/config-conventional": "^20.5.0",
     "@eslint/js": "^10.0.1",
-    "@mojojs/core": "^1.26.12",
+    "@mojojs/core": "^1.26.14",
     "@mojolicious/server-starter": "^2.2.0",
     "@types/node": "^25.3.3",
     "@vue/test-utils": "^2.4.6",
