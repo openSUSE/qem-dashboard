@@ -48,7 +48,7 @@
   "devDependencies": {
     "@axe-core/playwright": "^4.11.1",
     "@commitlint/cli": "^20.4.3",
-    "@commitlint/config-conventional": "^20.5.0",
+    "@commitlint/config-conventional": "^21.0.0",
     "@eslint/js": "^10.0.1",
     "@mojojs/core": "^1.26.14",
     "@mojolicious/server-starter": "^2.2.0",
