@@ -7,18 +7,29 @@ updates:
     cooldown:
       semver-patch-days: 7
     allow:
-      # Allow both direct and indirect updates for all packages
       - dependency-type: "all"
-    open-pull-requests-limit: 15
+    open-pull-requests-limit: 5
     labels:
       - "waiting"
       - "dependencies"
     commit-message:
       prefix: "chore"
       include: scope
+    groups:
+      patch-dependencies:
+        patterns:
+          - "*"
+        update-types:
+          - "patch"
   - package-ecosystem: 'github-actions'
     directory: '/'
     schedule:
-      interval: 'daily'
+      interval: "weekly"
+      day: "monday"
     cooldown:
       semver-patch-days: 7
+    open-pull-requests-limit: 5
+    groups:
+      all-actions:
+        patterns:
+          - "*"
