@@ -43,7 +43,7 @@
     "swagger-ui-dist": "^5.32.5",
     "vite": "^8.0.12",
     "vue": "^3.5.28",
-    "vue-router": "^5.0.3"
+    "vue-router": "^5.0.7"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.1",
