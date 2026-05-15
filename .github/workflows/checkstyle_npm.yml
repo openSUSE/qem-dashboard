@@ -14,10 +14,12 @@ jobs:
         node-version: '22'
     - name: Install JS dependencies
       run: make install-deps-js
+    - name: Install gitlint
+      run: pip install gitlint
     - name: Run checkstyle
       run: |
         if [ "${{ github.event_name }}" == "pull_request" ]; then
-          make checkstyle-npm COMMIT_ARGS="--from ${{ github.event.pull_request.base.sha }} --to ${{ github.event.pull_request.head.sha }} --verbose"
+          make checkstyle-npm COMMIT_ARGS="--commits ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }} --verbose"
         else
-          make checkstyle-npm COMMIT_ARGS="--last --verbose"
+          make checkstyle-npm COMMIT_ARGS="--commits HEAD --verbose"
         fi

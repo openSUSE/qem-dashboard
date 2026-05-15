@@ -15,7 +15,7 @@
     "lint:js": "eslint \"assets/*.js\" \"assets/**/*.js\" \"assets/**/*.vue\" \"t/*.js\" --ignore-pattern assets/webpack.config.d",
     "prettier-help": "prettier --help",
     "lint:md": "prettier --check \"*.md\" \"docs/*.md\"",
-    "lint:commit": "commitlint",
+    "lint:commit": "gitlint",
     "lint:fix": "npm run tidy:js && npm run tidy:md",
     "tidy:js": "npm run lint:js -- --fix",
     "tidy:md": "prettier --write \"*.md\" \"docs/*.md\"",
@@ -47,8 +47,6 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.1",
-    "@commitlint/cli": "^20.4.3",
-    "@commitlint/config-conventional": "^20.5.0",
     "@eslint/js": "^10.0.1",
     "@mojojs/core": "^1.26.14",
     "@mojolicious/server-starter": "^2.2.0",
