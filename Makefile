@@ -107,7 +107,7 @@ check-audits-cpan: ## Run security audits for Perl dependencies
 	#   See https://github.com/ingydotnet/yaml-libyaml-pm/issues/120
 	# CPANSA-YAML-LibYAML-2012-1152, CPANSA-YAML-LibYAML-2014-9130, CPANSA-YAML-LibYAML-2016-01:
 	#   See https://github.com/ingydotnet/yaml-libyaml-pm/issues/45
-	# CPANSA-Compress-Raw-Zlib-2026-3381: CVE-2026-3381
+	# CPANSA-Compress-Raw-Zlib-2026-3381, CPANSA-perl-2026-4176: CVE-2026-3381
 	#   See https://www.cve.org/CVERecord?id=CVE-2026-27171
 	PERL5LIB=~/perl5/lib/perl5:$$PERL5LIB PATH=~/perl5/bin:$$PATH cpan-audit deps . \
 		--exclude CPANSA-Mojolicious-2024-58134 \
@@ -117,7 +117,8 @@ check-audits-cpan: ## Run security audits for Perl dependencies
 		--exclude CPANSA-YAML-LibYAML-2012-1152 \
 		--exclude CPANSA-YAML-LibYAML-2014-9130 \
 		--exclude CPANSA-YAML-LibYAML-2016-01 \
-		--exclude CPANSA-Compress-Raw-Zlib-2026-3381
+		--exclude CPANSA-Compress-Raw-Zlib-2026-3381 \
+		--exclude CPANSA-perl-2026-4176
 
 .PHONY: check-audits-npm
 check-audits-npm: ## Run security audits for JS dependencies
