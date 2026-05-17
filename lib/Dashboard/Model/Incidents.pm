@@ -40,10 +40,10 @@ sub build_nr ($self, $inc) {
 sub find ($self, $options = {}) {
   my $incidents = $self->pg->db->query(
     'SELECT number, project, packages, rr_number, review, review_qam, approved, emu, active, embargoed, priority, ARRAY_AGG(c.name) as channels,
-            scminfo, url, type
+            scminfo, url, type, rejection_reason
      FROM incidents i LEFT JOIN incident_channels ic ON ic.incident = i.id LEFT JOIN channels c ON ic.channel = c.id
      WHERE number = COALESCE(?, number) AND active = TRUE
-     GROUP BY number, project, packages, rr_number, review, review_qam, approved, emu, active, embargoed, priority, scminfo, url, type
+     GROUP BY number, project, packages, rr_number, review, review_qam, approved, emu, active, embargoed, priority, scminfo, url, type, rejection_reason
      ORDER BY number', $options->{number}
   )->hashes->to_array;
   $self->_map($_) for @$incidents;
@@ -309,6 +309,11 @@ sub _update_openqa_jobs ($self, $inc) {
   }
 
   return \%ret;
+}
+
+sub update_rejection_reason ($self, $number, $reason) {
+  my $db = $self->pg->db;
+  $db->query('UPDATE incidents SET rejection_reason = ? WHERE number = ?', $reason, $number);
 }
 
 sub _update ($self, $db, $incident) {

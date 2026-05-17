@@ -43,6 +43,14 @@ const sortedBuilds = computed(() => {
       <SubmissionDetailsIcons :incident="submissionDetailStore.submission" class="fs-4" />
     </div>
 
+    <div
+      class="alert alert-danger"
+      v-if="submissionDetailStore.submission?.rejection_reason && !submissionDetailStore.submission?.approved"
+      role="alert"
+    >
+      <strong>Approval Rejected:</strong> {{ submissionDetailStore.submission.rejection_reason }}
+    </div>
+
     <div class="external-links" v-if="submissionDetailStore.submission">
       <div class="packages">
         <h2>Packages</h2>

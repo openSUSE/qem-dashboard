@@ -70,6 +70,14 @@ t.test('Test dashboard ui', {skip, timeout: 60000}, async t => {
     await page.click('text=230066:perl-Mojolicious');
     t.match(await page.innerText('.packages ul'), /perl-Mojolicious/);
     t.match(await page.innerText('.incident-results p'), /1\s*passed\s*1\s*waiting/);
+
+    await page.goto(`${url}/reject_incident`);
+    await page.goto(`${url}/submission/16860`);
+    await page.waitForSelector('.alert-danger');
+    t.match(await page.innerText('.alert-danger'), /Approval Rejected: missing aggregates/);
+    t.ok(await page.isVisible('.fa-exclamation-circle.text-danger'));
+    const iconTitle = await page.getAttribute('.fa-exclamation-circle.text-danger', 'title');
+    t.equal(iconTitle, 'Rejected: missing aggregates');
   });
 
   await t.test('Sorting, highlighting and filtering on "Blocked" page', async t => {

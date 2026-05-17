@@ -123,3 +123,8 @@ ALTER TABLE incidents
   ADD COLUMN scminfo TEXT NOT NULL DEFAULT '',
   ADD COLUMN url TEXT NOT NULL DEFAULT '',
   ADD COLUMN type TEXT NOT NULL DEFAULT '';
+-- 10 up
+ALTER TABLE incidents ADD COLUMN rejection_reason TEXT;
+
+-- 10 down
+ALTER TABLE incidents DROP COLUMN rejection_reason;

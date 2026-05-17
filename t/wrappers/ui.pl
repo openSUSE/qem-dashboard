@@ -32,6 +32,13 @@ $r->get(
   }
 );
 
+$r->get(
+  '/reject_incident' => sub ($c) {
+    $c->incidents->update_rejection_reason(16860, 'missing aggregates');
+    $c->render(text => 'ok');
+  }
+);
+
 $dashboard_test->minimal_fixtures($app);
 
 $daemon->run;

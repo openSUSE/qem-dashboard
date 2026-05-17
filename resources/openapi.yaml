@@ -98,8 +98,29 @@ paths:
             schema:
               $ref: '#/components/schemas/incident'
       responses:
-        "200": *success_message_response
-        "400": *error_response
+        '200': *success_message_response
+        '400': *error_response
+  /incidents/{incident}/rejection_reason:
+    patch:
+      x-mojo-to: API::Incidents#update_rejection_reason
+      operationId: updateIncidentRejectionReason
+      description: Update the rejection reason for a specific incident
+      parameters:
+        - *incident_path_param
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                rejection_reason:
+                  type: string
+                  nullable: true
+      responses:
+        '200': *success_message_response
+        '400': *error_response
+        '404': *error_response
   /incident_settings:
     put:
       x-mojo-to: API::Settings#add_incident_settings
@@ -397,6 +418,9 @@ components:
           type: string
         type:
           type: string
+        rejection_reason:
+          type: string
+          nullable: true
       additionalProperties: true
     incident_settings:
       type: object

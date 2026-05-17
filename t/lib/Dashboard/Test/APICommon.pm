@@ -16,15 +16,16 @@ sub run_api_tests ($t, $prefix) {
     project  => 'SUSE:Maintenance:16860',
     packages =>
       ['salt', 'cobbler', 'spacecmd', 'mgr-daemon', 'spacewalk-abrt', 'yum-rhn-plugin', 'spacewalk-client-tools'],
-    channels    => ['Test'],
-    rr_number   => undef,
-    inReview    => true,
-    inReviewQAM => true,
-    approved    => false,
-    emu         => true,
-    isActive    => true,
-    embargoed   => false,
-    priority    => 123,
+    channels         => ['Test'],
+    rr_number        => undef,
+    inReview         => true,
+    inReviewQAM      => true,
+    approved         => false,
+    emu              => true,
+    isActive         => true,
+    embargoed        => false,
+    priority         => 123,
+    rejection_reason => undef,
   };
 
   my $stderr_test = sub ($code, $label) {
@@ -42,8 +43,8 @@ sub run_api_tests ($t, $prefix) {
   };
 
   subtest 'Migrations' => sub {
-    is $t->app->pg->migrations->latest, 9, 'latest version';
-    is $t->app->pg->migrations->active, 9, 'active version';
+    is $t->app->pg->migrations->latest, 10, 'latest version';
+    is $t->app->pg->migrations->active, 10, 'active version';
   };
 
   subtest 'Unknown endpoint' => sub {
@@ -143,6 +144,31 @@ sub run_api_tests ($t, $prefix) {
           ->status_is(200)
           ->json_is('/priority',  456)
           ->json_is('/embargoed', true);
+
+        # Update rejection reason
+        $t->patch_ok("$prefix/incidents/16860/rejection_reason" => $auth_headers => json =>
+            {rejection_reason => 'missing aggregates'})
+          ->status_is(200)
+          ->json_is('/message', 'Ok', 'update rejection_reason returns Ok');
+
+        $t->get_ok("$prefix/incidents/16860" => $auth_headers)
+          ->status_is(200)
+          ->json_is('/rejection_reason', 'missing aggregates');
+
+        $t->patch_ok("$prefix/incidents/16860/rejection_reason" => $auth_headers => json => {rejection_reason => undef})
+          ->status_is(200);
+
+        $t->get_ok("$prefix/incidents/16860" => $auth_headers)->status_is(200)->json_is('/rejection_reason', undef);
+
+        # Invalid input: rejection_reason must be a string or null
+        $t->patch_ok(
+          "$prefix/incidents/16860/rejection_reason" => $auth_headers => json => {rejection_reason => {foo => 'bar'}})
+          ->status_is(400)
+          ->json_is('/error', 'Validation failed');
+
+        $t->patch_ok("$prefix/incidents/99999/rejection_reason" => $auth_headers => json => {rejection_reason => 'foo'})
+          ->status_is(404)
+          ->json_is('/error', 'Incident not found');
 
         # Test new fields from qem-bot
         my $qem_bot_incident = {

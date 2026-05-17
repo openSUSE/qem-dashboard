@@ -251,7 +251,7 @@ sub _register_routes ($self, $config) {
         my @errors = map {
           blessed($_)
             && $_->can('path')
-            ? {message => $_->message, path => $_->path . ""}
+            ? {message => $_->message, path => ($_->path // "") . ""}
             : {message => "$_", path => ""}
         } @{$data->{errors}};
         return Mojo::JSON::encode_json({error => "Validation failed", errors => \@errors});

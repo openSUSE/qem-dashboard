@@ -31,6 +31,13 @@ const priorityBadgeClass = computed(() => {
       role="img"
     ></i>
     <i
+      v-if="!incident.approved && incident.rejection_reason"
+      class="fas fa-exclamation-circle text-danger"
+      :title="'Rejected: ' + incident.rejection_reason"
+      :aria-label="'Rejected: ' + incident.rejection_reason"
+      role="img"
+    ></i>
+    <i
       class="fas"
       :class="incident.isActive ? 'fa-bolt text-warning' : 'fa-bolt text-secondary opacity-50'"
       :title="incident.isActive ? 'Active' : 'Inactive'"
