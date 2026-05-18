@@ -27,7 +27,7 @@ updates:
       interval: "weekly"
       day: "monday"
     cooldown:
-      semver-patch-days: 7
+      default-days: 7
     open-pull-requests-limit: 5
     groups:
       all-actions:
