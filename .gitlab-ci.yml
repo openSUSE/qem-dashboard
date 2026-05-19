@@ -6,7 +6,7 @@ stages:
   - mirror
 
 default:
-  image: registry.opensuse.org/home/okurz/container/ca/containers/tumbleweed:curl-jq-ssh-git
+  image: registry.opensuse.org/home/okurz/container/ca/containers/tumbleweed:curl-jq-ssh-git-retry
 
 mirror-from-github:
   stage: mirror
@@ -25,7 +25,7 @@ mirror-from-github:
     - LOCAL_CHECKOUT=$(git rev-parse HEAD)
     - >- 
       [[ $LOCAL_CHECKOUT == "$GIT_COMMIT_SHA" ]] && exit 0
-    - git fetch --unshallow origin
+    - retry -r 10 -e git fetch --unshallow origin
     - git remote add filtered ${CI_SERVER_PROTOCOL}://gitlab-ci-token:${CI_PUSH_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git
     - git branch filtered_branch
     - git push -f filtered filtered_branch:main
