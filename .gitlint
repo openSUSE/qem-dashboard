@@ -9,5 +9,5 @@ regex=^https?:\/\/\S+$
 
 [ignore-by-title]
 # Dependabot creates non-conventional commits we need to accept
-regex=^chore\(deps\): Bump
+regex=^(chore|build)\(deps(-dev)?\):|^Bump [^ ]+ from
 ignore=all
