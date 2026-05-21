@@ -19,7 +19,7 @@ jobs:
     - name: Run checkstyle
       run: |
         if [ "${{ github.event_name }}" == "pull_request" ]; then
-          make checkstyle-npm COMMIT_ARGS="--commits ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }} --verbose"
+          make checkstyle-npm COMMIT_ARGS="--commits origin/${{ github.base_ref }}..HEAD --verbose"
         else
           make checkstyle-npm COMMIT_ARGS="--commits HEAD --verbose"
         fi

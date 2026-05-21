@@ -4,8 +4,8 @@ HARNESS_PERL_SWITCHES ?= -MDevel::Cover=-ignore,^blib/,-ignore,^templates/,-igno
 COVERAGE_OPTS ?= PERL5OPT='$(HARNESS_PERL_SWITCHES)'
 TEST_WRAPPER_COVERAGE ?= 1
 ASSET_SOURCES := $(shell find assets -type f) package-lock.json vite.config.js vitest.config.js
-BASE_BRANCH := $(shell BASES=$$(for i in origin/main main master; do git rev-parse --verify $$i 2>/dev/null; done ||:); git merge-base --independent $$BASES | head -n 1)
-COMMIT_ARGS ?= --commits $(if $(BASE_BRANCH),$(BASE_BRANCH)..HEAD,HEAD)
+BASE_BRANCH := $(shell BASES=$$(for i in upstream/main upstream/master origin/main origin/master main master; do git rev-parse --verify $$i 2>/dev/null; done ||:); git merge-base --independent $$BASES | head -n 1)
+COMMIT_ARGS ?= --commits $(if $(BASE_BRANCH),$(BASE_BRANCH)..HEAD,HEAD) --verbose
 PROVE ?= tools/prove_wrapper
 
 .DEFAULT_GOAL := help
