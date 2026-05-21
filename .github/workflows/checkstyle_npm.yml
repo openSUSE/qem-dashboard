@@ -21,5 +21,10 @@ jobs:
         if [ "${{ github.event_name }}" == "pull_request" ]; then
           make checkstyle-npm COMMIT_ARGS="--commits origin/${{ github.base_ref }}..HEAD --verbose"
         else
-          make checkstyle-npm COMMIT_ARGS="--commits HEAD --verbose"
+          BEFORE="${{ github.event.before }}"
+          if [ "$BEFORE" == "0000000000000000000000000000000000000000" ]; then
+            make checkstyle-npm COMMIT_ARGS="--verbose"
+          else
+            make checkstyle-npm COMMIT_ARGS="--commits $BEFORE..${{ github.event.after }} --verbose"
+          fi
         fi
