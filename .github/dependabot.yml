@@ -16,6 +16,12 @@ updates:
       prefix: "chore"
       include: scope
     groups:
+      dev-dependencies:
+        applies-to: version-updates
+        dependency-type: "development"
+        update-types:
+          - "minor"
+          - "patch"
       patch-dependencies:
         patterns:
           - "*"
