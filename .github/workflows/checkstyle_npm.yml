@@ -24,7 +24,7 @@ jobs:
         else
           BEFORE="${{ github.event.before }}"
           AFTER="${{ github.event.after }}"
-          if [ "$BEFORE" == "0000000000000000000000000000000000000000" ] || ! git rev-parse --verify "$BEFORE" >/dev/null 2>&1; then
+          if [ "$BEFORE" == "0000000000000000000000000000000000000000" ] || ! git cat-file -e "$BEFORE" >/dev/null 2>&1; then
             make checkstyle-npm COMMIT_ARGS="--verbose"
           else
             make checkstyle-npm COMMIT_ARGS="--commits $BEFORE..$AFTER --verbose"
