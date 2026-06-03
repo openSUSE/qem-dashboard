@@ -8,7 +8,6 @@ on:
   pull_request:
 jobs:
   checkstyle-perl:
-    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
     runs-on: ubuntu-latest
     container:
       image: perl:5.42
