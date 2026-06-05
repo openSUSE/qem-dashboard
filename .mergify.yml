@@ -13,11 +13,9 @@ pull_request_rules:
         - -label~=^acceptance-tests-needed|not-ready
         - "#check-failure=0"
         - "#check-pending=0"
-        - linear-history
       - and:
         - "#approved-reviews-by>=2"
         - "#changes-requested-reviews-by=0"
-        # https://doc.mergify.io/examples.html#require-all-requested-reviews-to-be-approved
         - "#review-requested=0"
     actions: &merge
       merge:
@@ -26,18 +24,13 @@ pull_request_rules:
     conditions:
       - and: *base_checks
       - and:
-        # mergify config checks needs at least two rules in "and" so we repeat
-        # one from the base checks
-        - base=main
+        - linear-history
         - "label=merge-fast"
     actions: *merge
   - name: automatic merge for dependabot updates
     conditions:
       - and: *base_checks
       - and:
-        # mergify config checks needs at least two rules in "and" so we repeat
-        # one from the base checks
-        - base=main
         - author=dependabot[bot]
         - "label=waited"
     actions:
@@ -61,9 +54,9 @@ pull_request_rules:
       - and:
           - updated-at<4 days ago
           - author=dependabot[bot]
-  - name: continuously rebase pull requests when it's labeled with `rebase` or `waited`
+  - name: keep dependabot pull requests updated
     conditions:
-      - label~=rebase|waited
+      - author=dependabot[bot]
+      - "#commits-behind>=1"
     actions:
-      rebase:
-        bot_account: suse-qe-tools-mergify
+      update: {}
