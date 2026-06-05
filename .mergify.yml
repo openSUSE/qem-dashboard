@@ -44,12 +44,6 @@ pull_request_rules:
       queue:
       merge:
         method: squash
-  - name: ask to resolve conflict
-    conditions:
-      - conflict
-    actions:
-      comment:
-        message: This pull request is now in conflicts. Could you fix it? 🙏
   - name: Wait for some time before validating merge
     actions:
       label:
