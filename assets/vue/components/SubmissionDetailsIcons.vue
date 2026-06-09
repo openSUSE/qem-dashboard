@@ -22,7 +22,7 @@ const priorityBadgeClass = computed(() => {
 </script>
 
 <template>
-  <div class="submission-details-icons d-inline-flex gap-2">
+  <div class="submission-details-icons d-inline-flex flex-wrap gap-2">
     <i
       class="fas"
       :class="incident.approved ? 'fa-stamp text-success' : 'fa-stamp text-secondary opacity-50'"
