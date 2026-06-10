@@ -24,6 +24,7 @@ const priorityBadgeClass = computed(() => {
 <template>
   <div class="submission-details-icons d-inline-flex flex-wrap gap-2">
     <i
+      v-if="!incident.rejection_reason"
       class="fas"
       :class="incident.approved ? 'fa-stamp text-success' : 'fa-stamp text-secondary opacity-50'"
       :title="incident.approved ? 'Approved' : 'Not Approved'"
@@ -31,7 +32,7 @@ const priorityBadgeClass = computed(() => {
       role="img"
     ></i>
     <i
-      v-if="!incident.approved && incident.rejection_reason"
+      v-else
       class="fas fa-exclamation-circle text-danger"
       :title="'Rejected: ' + incident.rejection_reason"
       :aria-label="'Rejected: ' + incident.rejection_reason"
