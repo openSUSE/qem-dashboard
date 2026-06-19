@@ -39,25 +39,13 @@ pull_request_rules:
         # one from the base checks
         - base=main
         - author=dependabot[bot]
-        - "label=waited"
     actions:
       queue:
       merge:
         method: squash
-  - name: Wait for some time before validating merge
-    actions:
-      label:
-        add:
-          - waited
-        remove:
-          - waiting
+  - name: continuously rebase pull requests when it's labeled with `rebase`
     conditions:
-      - and:
-          - updated-at<4 days ago
-          - author=dependabot[bot]
-  - name: continuously rebase pull requests when it's labeled with `rebase` or `waited`
-    conditions:
-      - label~=rebase|waited
+      - label=rebase
     actions:
       rebase:
         bot_account: suse-qe-tools-mergify
