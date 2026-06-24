@@ -54,7 +54,7 @@
     "@eslint/js": "^10.0.1",
     "@mojojs/core": "^1.26.14",
     "@mojolicious/server-starter": "^2.2.0",
-    "@types/node": "^25.9.1",
+    "@types/node": "^26.0.0",
     "@vue/test-utils": "^2.4.11",
     "eslint": "10.5.0",
     "eslint-config-prettier": "^10.1.8",
