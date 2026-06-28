@@ -14,13 +14,23 @@
     </div>
 
     <footer class='footer'>
-      <div class='container'>
-        <div id='footer-legal' class="text-center">
+      <div class='container d-flex align-items-center px-3 h-100'>
+        <span class='me-auto small text-muted'>
+          Version:
+          % if (git_hash() ne 'unknown') {
+            <a href="https://github.com/openSUSE/qem-dashboard/commit/<%= git_hash %>"><%= git_hash %></a>
+          % } else {
+            unknown
+          % }
+          % if (git_date() ne 'unknown') {
+            (<%= git_date %>)
+          % }
+        </span>
+        <span class='small text-muted'>
           QEM Dashboard is maintained on
-          <a href="https://github.com/openSUSE/qem-dashboard">
-            GitHub.
-          </a>&copy; <a href="https://suse.com">SUSE</a>.
-        </div>
+          <a href="https://github.com/openSUSE/qem-dashboard">GitHub.</a>
+          &copy; <a href="https://suse.com">SUSE</a>.
+        </span>
       </div>
     </footer>
   </body>
