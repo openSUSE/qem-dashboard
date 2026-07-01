@@ -40,8 +40,9 @@ sub startup ($self) {
 
   $self->secrets($config->{secrets});
 
-  chomp(my $git_hash = qx{git rev-parse --short HEAD 2>/dev/null}           || 'unknown');
-  chomp(my $git_date = qx{git log -1 --format=%cd --date=short 2>/dev/null} || 'unknown');
+  my $dir = $self->home;
+  chomp(my $git_hash = qx{git -C $dir rev-parse --short HEAD 2>/dev/null}           || 'unknown');
+  chomp(my $git_date = qx{git -C $dir log -1 --format=%cd --date=short 2>/dev/null} || 'unknown');
   $self->{git_hash} = $git_hash;
   $self->{git_date} = $git_date;
 
