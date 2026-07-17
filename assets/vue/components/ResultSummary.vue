@@ -50,9 +50,20 @@ const link = computed(() => {
 </script>
 
 <template>
-  <a v-if="currentConfig" :href="link" class="btn" :class="currentConfig.btnClass" target="_blank">
-    <i class="fas me-1" :class="currentConfig.iconClass" aria-hidden="true"></i>
-    {{ result.name }} <span class="badge bg-light text-dark">{{ counts }}</span>
+  <a
+    v-if="currentConfig"
+    :href="link"
+    class="btn d-inline-flex flex-column align-items-center"
+    :class="currentConfig.btnClass"
+    target="_blank"
+  >
+    <span>
+      <i class="fas me-1" :class="currentConfig.iconClass" aria-hidden="true"></i>
+      {{ result.name }} <span class="badge bg-light text-dark">{{ counts }}</span>
+    </span>
+    <small class="opacity-75 subtitle" :class="{invisible: !$slots.subtitle}">
+      <slot name="subtitle">&nbsp;</slot>
+    </small>
     <span class="visually-hidden">{{ currentConfig.label }}</span>
   </a>
   <a v-else>

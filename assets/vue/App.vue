@@ -180,6 +180,11 @@ body {
   list-style-type: none;
   padding-bottom: 0.2em;
   padding-right: 0.2em;
+  vertical-align: top;
+}
+.summary-list li small {
+  font-size: 0.7em;
+  line-height: 1.2;
 }
 .table tbody {
   border-top: 0 !important;

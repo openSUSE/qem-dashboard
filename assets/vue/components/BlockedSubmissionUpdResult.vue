@@ -18,7 +18,9 @@ const title = computed(() => {
 
 <template>
   <li :group-id="groupId" data-bs-toggle="tooltip" data-bs-placement="left" :title="title">
-    <ResultSummary :result="result" />
+    <ResultSummary :result="result">
+      <template #subtitle>{{ title }}</template>
+    </ResultSummary>
   </li>
 </template>
 
