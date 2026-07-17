@@ -21,6 +21,7 @@
 
 <script setup>
 import {ref, computed} from 'vue';
+import {getPrimaryPackage} from '../helpers/packages.js';
 
 defineOptions({
   name: 'SubmissionLink'
@@ -33,7 +34,7 @@ const props = defineProps({
 
 const copied = ref(false);
 
-const packageName = computed(() => props.incident.packages[0]);
+const packageName = computed(() => getPrimaryPackage(props.incident.packages));
 
 const copyToClipboard = async () => {
   try {
