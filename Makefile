@@ -123,6 +123,23 @@ check-audits-cpan: ## Run security audits for Perl dependencies
 	# CPANSA-Archive-Tar-2026-42496, CPANSA-Archive-Tar-2026-9538, CPANSA-Archive-Tar-2026-42497:
 	#   CVE-2026-42496, CVE-2026-9538, CVE-2026-42497 (transitive / not extracting untrusted archives)
 	#   See https://github.com/jib/archive-tar-new/commit/17c873492a05eddc0de18c1485e0b2cccd5a9158.patch
+	# CPANSA-Mojolicious-2026-15747, CPANSA-Mojolicious-2026-14803:
+	#   CVE-2026-15747, CVE-2026-14803 (Mojo::JSON fallback not used / BREACH mitigated)
+	#   See https://github.com/mojolicious/mojo/commit/01921fbbbbeca2d1397e082d4a647f9b84c24e27.patch
+	#   See https://github.com/mojolicious/mojo/commit/cc38b0554275c4d84f6b8b49bcbbc1bec2068fe1.patch
+	# CPANSA-Socket-2026-12087:
+	#   CVE-2026-12087 (out-of-bounds heap read / not used)
+	#   See https://github.com/Perl/perl5/commit/de19a0b0ad1900fef976c5c1400bd8f11ec6c6cb.patch
+	# CPANSA-Storable-2026-57433:
+	#   CVE-2026-57433 (signed integer overflow wrap / not deserializing untrusted data with Storable)
+	#   See https://github.com/Perl/perl5/commit/e4f681784bcdeaa91ff02a2fa4cdcae5c46779d7.patch
+	# CPANSA-HTTP-Tiny-2026-7017:
+	#   CVE-2026-7017 (credential forwarding on redirect / not following untrusted redirects)
+	#   See https://github.com/Perl-Toolchain-Gang/HTTP-Tiny/commit/84984ef3930ddd4afcf5eb83b40d3cee200739c3.patch
+	# CPANSA-perl-2026-13221, CPANSA-perl-2026-57432:
+	#   CVE-2026-13221, CVE-2026-57432 (regex alternation trie overflow, pack template overflow / not applicable)
+	#   See https://github.com/Perl/perl5/commit/03f74bbbd3a68350d926ee93d56ee4808c28c4c7.patch
+	#   See https://github.com/Perl/perl5/commit/40754edc72dd3e513d758153c0e2f0215897740e.patch
 	PERL5LIB=~/perl5/lib/perl5:$$PERL5LIB PATH=~/perl5/bin:$$PATH cpan-audit deps . \
 		--exclude CPANSA-Mojolicious-2024-58134 \
 		--exclude CPANSA-Mojolicious-2024-58135 \
@@ -143,7 +160,14 @@ check-audits-cpan: ## Run security audits for Perl dependencies
 		--exclude CPANSA-Cpanel-JSON-XS-2026-9334 \
 		--exclude CPANSA-Archive-Tar-2026-42496 \
 		--exclude CPANSA-Archive-Tar-2026-9538 \
-		--exclude CPANSA-Archive-Tar-2026-42497
+		--exclude CPANSA-Archive-Tar-2026-42497 \
+		--exclude CPANSA-Mojolicious-2026-15747 \
+		--exclude CPANSA-Mojolicious-2026-14803 \
+		--exclude CPANSA-Socket-2026-12087 \
+		--exclude CPANSA-Storable-2026-57433 \
+		--exclude CPANSA-HTTP-Tiny-2026-7017 \
+		--exclude CPANSA-perl-2026-13221 \
+		--exclude CPANSA-perl-2026-57432
 
 .PHONY: check-audits-npm
 check-audits-npm: ## Run security audits for JS dependencies
