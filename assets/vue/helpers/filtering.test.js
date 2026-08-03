@@ -1,5 +1,5 @@
 import {describe, it, expect} from 'vitest';
-import {makeGroupNamesFilters, checkResult, checkResults} from './filtering';
+import {makeGroupNamesFilters, checkResult, checkResults, getResultState, checkState, hasAnyState} from './filtering';
 
 describe('filtering helper', () => {
   describe('makeGroupNamesFilters', () => {
@@ -45,6 +45,49 @@ describe('filtering helper', () => {
         res2: {name: 'baz'}
       };
       expect(checkResults(results, filters)).toBe(false);
+    });
+  });
+
+  describe('getResultState', () => {
+    it('returns "failed" when there are genuine failures', () => {
+      expect(getResultState({failed: 1, passed: 2})).toBe('failed');
+    });
+
+    it('returns "failed" even when some jobs are also accepted (partial acceptance stays blocking)', () => {
+      expect(getResultState({failed: 1, accepted: 1, passed: 1})).toBe('failed');
+    });
+
+    it('returns "stopped" over "waiting"/"accepted" when there is no genuine failure', () => {
+      expect(getResultState({stopped: 1, waiting: 1, accepted: 1, passed: 1})).toBe('stopped');
+    });
+
+    it('returns "waiting" over "accepted" when there is no genuine failure or stopped job', () => {
+      expect(getResultState({waiting: 1, accepted: 1, passed: 1})).toBe('waiting');
+    });
+
+    it('returns "accepted" when all failures for this incident are covered by acceptable_for remarks', () => {
+      expect(getResultState({accepted: 1, passed: 1})).toBe('accepted');
+    });
+
+    it('returns "passed" when every job genuinely passed', () => {
+      expect(getResultState({passed: 3})).toBe('passed');
+    });
+
+    it('returns "other" for an empty result', () => {
+      expect(getResultState({})).toBe('other');
+    });
+  });
+
+  describe('checkState / hasAnyState', () => {
+    it('checkState matches the computed state against the selected states', () => {
+      expect(checkState({accepted: 1, passed: 1}, ['accepted'])).toBe(true);
+      expect(checkState({accepted: 1, passed: 1}, ['failed'])).toBe(false);
+    });
+
+    it('hasAnyState returns true if any result matches the selected states', () => {
+      const results = {res1: {passed: 1}, res2: {accepted: 1, passed: 1}};
+      expect(hasAnyState(results, ['accepted'])).toBe(true);
+      expect(hasAnyState(results, ['failed'])).toBe(false);
     });
   });
 });

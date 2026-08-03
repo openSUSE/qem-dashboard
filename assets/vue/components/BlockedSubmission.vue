@@ -36,6 +36,7 @@ const updateResultsGrouped = computed(() => {
         failed: 0,
         stopped: 0,
         waiting: 0,
+        accepted: 0,
         linkinfo: {...value.linkinfo, flavor: []}
       };
     }
@@ -46,6 +47,7 @@ const updateResultsGrouped = computed(() => {
     res.stopped += value.stopped || 0;
     res.waiting += value.waiting || 0;
     res.failed += value.failed || 0;
+    res.accepted += value.accepted || 0;
     return acc;
   }, {});
 

@@ -1,5 +1,5 @@
-export const VISIBLE_STATES = ['failed', 'passed', 'stopped', 'waiting'];
-export const DEFAULT_STATES = ['failed', 'stopped', 'waiting'];
+export const VISIBLE_STATES = ['failed', 'accepted', 'passed', 'stopped', 'waiting'];
+export const DEFAULT_STATES = ['failed', 'accepted', 'stopped', 'waiting'];
 
 export function makeGroupNamesFilters(groupNames) {
   if (!groupNames) return [];
@@ -24,11 +24,15 @@ export function getResultState(result) {
   const passed = result.passed || 0;
   const waiting = result.waiting || 0;
   const failed = result.failed || 0;
-  const total = stopped + failed + waiting + passed;
+  const accepted = result.accepted || 0;
+  const total = stopped + failed + waiting + passed + accepted;
 
+  // "failed" wins even when some failures are accepted (still blocking) - ResultSummary shows the accepted
+  // count as a badge on top of the failed state rather than as a separate filterable state.
   if (failed > 0) return 'failed';
   if (stopped > 0) return 'stopped';
   if (waiting > 0) return 'waiting';
+  if (accepted > 0) return 'accepted';
   if (passed === total && total > 0) return 'passed';
   return 'other';
 }

@@ -154,6 +154,7 @@ t.test('Test dashboard ui', {skip, timeout: 60000}, async t => {
     t.equal(await list.count(), 3, 'All submissions are visible by default');
 
     t.ok(await page.getByLabel('failed').isChecked());
+    t.ok(await page.getByLabel('accepted').isChecked());
     t.ok(await page.getByLabel('stopped').isChecked());
     t.ok(await page.getByLabel('waiting').isChecked());
     t.notOk(await page.getByLabel('passed').isChecked());
@@ -164,10 +165,10 @@ t.test('Test dashboard ui', {skip, timeout: 60000}, async t => {
     await page.getByLabel('failed').uncheck();
     t.notOk(await page.isVisible('text=SAP/HA Maintenance 1/5'));
     t.notOk(await page.isVisible('text=SLE 12 SP5 1/1'));
-    t.match(await page.url(), /states=stopped%2Cwaiting/);
+    t.match(await page.url(), /states=accepted%2Cstopped%2Cwaiting/);
 
     await page.getByLabel('passed').check();
-    t.match(await page.url(), /states=stopped%2Cwaiting%2Cpassed/);
+    t.match(await page.url(), /states=accepted%2Cstopped%2Cwaiting%2Cpassed/);
 
     await page.getByLabel('failed').check();
     await page.getByLabel('passed').uncheck();
