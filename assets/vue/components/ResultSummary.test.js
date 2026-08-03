@@ -27,6 +27,15 @@ describe('ResultSummary.vue', () => {
     expect(wrapper.text()).toContain('1/2');
   });
 
+  it('uses a distinct icon for "accepted" rather than just a different color of the "passed" icon', () => {
+    const acceptedWrapper = mount(ResultSummary, {props: {result: {name: 'Group', accepted: 1, linkinfo}}});
+    const passedWrapper = mount(ResultSummary, {props: {result: {name: 'Group', passed: 1, linkinfo}}});
+
+    expect(acceptedWrapper.find('.fa-user-check').exists()).toBe(true);
+    expect(acceptedWrapper.find('.fa-check-circle').exists()).toBe(false);
+    expect(passedWrapper.find('.fa-check-circle').exists()).toBe(true);
+  });
+
   it('keeps the box red but adds a badge when only some failures are accepted', () => {
     const wrapper = mount(ResultSummary, {
       props: {result: {name: 'Group', failed: 1, accepted: 1, passed: 1, linkinfo}}

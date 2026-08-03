@@ -15,8 +15,9 @@ const stateConfig = {
   failed: {btnClass: 'btn-danger', iconClass: 'fa-times-circle', label: 'failed jobs'},
   stopped: {btnClass: 'btn-secondary', iconClass: 'fa-stop-circle', label: 'stopped jobs'},
   waiting: {btnClass: 'btn-primary', iconClass: 'fa-clock', label: 'waiting jobs'},
-  // Jobs marked "@review:acceptable_for" this incident: not a genuine pass, but not blocking either.
-  accepted: {btnClass: 'btn-warning', iconClass: 'fa-check-circle', label: 'accepted jobs'},
+  // Jobs marked "@review:acceptable_for" this incident: not a genuine pass, but not blocking either. Uses a
+  // distinct icon (not just fa-check-circle in a different color) so it's still distinguishable from "passed".
+  accepted: {btnClass: 'btn-warning', iconClass: 'fa-user-check', label: 'accepted jobs'},
   passed: {btnClass: 'btn-success', iconClass: 'fa-check-circle', label: 'passed jobs'}
 };
 
