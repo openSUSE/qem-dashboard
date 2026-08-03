@@ -213,6 +213,27 @@ subtest 'Dashboard::Model::Incidents' => sub {
     ok $incs->_incident_openqa_jobs($inc), 'works with multiple jobs in same group';
   };
 
+  subtest 'acceptable_for remarks are reported as "accepted", not "passed"' => sub {
+    my $incs = $t->app->incidents;
+
+    # Fixture: group 55 has one job failed+remarked "acceptable_for" for 16860 and one job genuinely passed
+    my $inc_16860     = $incs->incident_for_number(16860);
+    my $res_16860     = $incs->_incident_openqa_jobs($inc_16860);
+    my $upd_res_16860 = $incs->_update_openqa_jobs($inc_16860);
+    is $res_16860->{55}{accepted}, 1,     'remarked job counts as accepted for incident 16860';
+    is $res_16860->{55}{passed},   1,     'genuinely passing job still counts as passed';
+    is $res_16860->{55}{failed},   undef, 'remarked job is no longer counted as failed';
+    is $upd_res_16860->{'55 Server-DVD-Incidents 12-SP6'}{accepted}, 1,
+      'update jobs see the same remarked job as accepted';
+
+    # The remark is scoped to 16860 only, so 29722 (sharing the same job) must still see the genuine failure
+    my $inc_29722 = $incs->incident_for_number(29722);
+    my $res_29722 = $incs->_update_openqa_jobs($inc_29722);
+    is $res_29722->{'55 Server-DVD-Incidents 12-SP6'}{failed}, 1, 'incident 29722 still sees the real failure';
+    is $res_29722->{'55 Server-DVD-Incidents 12-SP6'}{accepted}, undef,
+      'incident 29722 has no remark so nothing is accepted';
+  };
+
   subtest 'repos extra branch coverage' => sub {
     my $incs     = $t->app->incidents;
     my $settings = $t->app->settings;

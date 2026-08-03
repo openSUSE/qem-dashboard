@@ -201,7 +201,8 @@ subtest 'Blocked by Tests' => sub {
               "55" => {
                 "name"     => 'Server-DVD-Incidents 12-SP6',
                 "linkinfo" => {"build" => "20250317-1", "distri" => "sle", "groupid" => 55},
-                "passed"   => 2
+                "passed"   => 1,
+                "accepted" => 1
               },
               "282" => {
                 "linkinfo" => {"build" => ":16860:perl-Mojolicious", "distri" => "sle", "groupid" => 282},
@@ -239,8 +240,9 @@ subtest 'Blocked by Tests' => sub {
                   "groupid" => 55,
                   "version" => "12-SP6"
                 },
-                "name"   => "Server-DVD-Incidents 12-SP6",
-                "passed" => 2
+                "name"     => "Server-DVD-Incidents 12-SP6",
+                "passed"   => 1,
+                "accepted" => 1
               }
             }
           },

@@ -6,6 +6,17 @@ use Mojo::Base -base, -signatures;
 
 has [qw(log pg)];
 
+# Jobs remarked "acceptable_for" a given incident are reported as this synthetic status instead of their real
+# openqa_jobs.status so /blocked can render them distinctly (orange) rather than as a genuine pass or failure.
+# The ELSE branch is cast to text because openqa_jobs.status is the qa_status enum, which has no 'accepted' member.
+use constant _ACCEPTABLE_FOR_STATUS_CASE_SQL => q{
+  CASE
+      WHEN (SELECT COUNT(jr.id) FROM job_remarks jr WHERE jr.openqa_job_id = oj.id AND jr.incident_id = ? AND jr.text = 'acceptable_for' LIMIT 1) > 0
+      THEN 'accepted'
+      ELSE oj.status::text
+  END AS incident_status
+};
+
 sub blocked ($self) {
   my $incidents = $self->pg->db->query(
     "SELECT * FROM incidents
@@ -197,11 +208,7 @@ sub _incident_openqa_jobs ($self, $inc) {
     "WITH openqa_status_for_incident AS (
      SELECT
          oj.id AS openqa_job_id,
-         CASE
-             WHEN (SELECT COUNT(jr.id) FROM job_remarks jr WHERE jr.openqa_job_id = oj.id AND jr.incident_id = ? AND jr.text = 'acceptable_for' LIMIT 1) > 0
-             THEN 'passed'
-             ELSE oj.status
-         END AS incident_status
+         " . _ACCEPTABLE_FOR_STATUS_CASE_SQL . "
      FROM openqa_jobs oj
      )
      SELECT
@@ -251,11 +258,7 @@ sub _update_openqa_jobs ($self, $inc) {
     "WITH openqa_status_for_incident AS (
      SELECT
          oj.id AS openqa_job_id,
-         CASE
-             WHEN (SELECT COUNT(jr.id) FROM job_remarks jr WHERE jr.openqa_job_id = oj.id AND jr.incident_id = ? AND jr.text = 'acceptable_for' LIMIT 1) > 0
-             THEN 'passed'
-             ELSE oj.status
-         END AS incident_status
+         " . _ACCEPTABLE_FOR_STATUS_CASE_SQL . "
      FROM openqa_jobs oj
      )
      SELECT
