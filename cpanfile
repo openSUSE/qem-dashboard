@@ -7,7 +7,7 @@ requires 'Devel::Cover';
 requires 'JSON::Validator';
 requires 'YAML::XS';
 requires 'IO::Socket::SSL', '>= 2.009';
-requires 'MCP';
+requires 'MCP', '< 0.15';
 
 on 'test' => sub {
     requires 'CPAN::Audit';
