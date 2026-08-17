@@ -1,6 +1,7 @@
 <script setup>
 import {computed} from 'vue';
 import {useConfigStore} from '@/stores/config';
+import {firstPackage, getGitSmeltUrl} from '../utils/smelt';
 
 const props = defineProps({
   incident: {type: Object, required: true}
@@ -8,34 +9,41 @@ const props = defineProps({
 
 const configStore = useConfigStore();
 
-const packageName = computed(() =>
-  props.incident.packages && props.incident.packages.length > 0 ? props.incident.packages[0] : ''
+const packageName = computed(() => firstPackage(props.incident));
+
+const sourceUrl = computed(() =>
+  props.incident.type === 'git' || !props.incident.rr_number
+    ? props.incident.url
+    : `${configStore.obsUrl}/request/show/${props.incident.rr_number}`
 );
 
-const sourceUrl = computed(() => {
-  if (props.incident.type === 'git' || !props.incident.rr_number) {
-    return props.incident.url;
-  }
-  return `${configStore.obsUrl}/request/show/${props.incident.rr_number}`;
-});
+const linkText = computed(() =>
+  props.incident.type === 'git'
+    ? `PR #${props.incident.number}`
+    : props.incident.rr_number
+      ? `${props.incident.rr_number}:${packageName.value}`
+      : packageName.value || 'Source'
+);
 
-const linkText = computed(() => {
-  if (props.incident.rr_number) {
-    return `${props.incident.rr_number}:${packageName.value}`;
-  }
-  return packageName.value || 'Source';
-});
+const sourceIcon = computed(() => (props.incident.type === 'git' ? 'fas fa-code-branch' : 'fas fa-box-open'));
 
-const sourceIcon = computed(() => {
-  return props.incident.type === 'git' ? 'fas fa-code-branch' : 'fas fa-box-open';
-});
+const gitSmeltUrl = computed(() => getGitSmeltUrl(props.incident, configStore.smeltUrl));
 </script>
 
 <template>
-  <div class="submission-link">
+  <div class="submission-link d-flex align-items-center gap-2">
     <a :href="sourceUrl" target="_blank" class="rr-link">
       <i :class="sourceIcon"></i>
       {{ linkText }}
+    </a>
+    <a
+      v-if="gitSmeltUrl"
+      :href="gitSmeltUrl"
+      target="_blank"
+      class="badge bg-secondary text-decoration-none"
+      title="Link to SMELT (SLFO-Beta)"
+    >
+      SMELT
     </a>
   </div>
 </template>

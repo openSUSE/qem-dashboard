@@ -9,12 +9,18 @@ import StatusBadge from './StatusBadge.vue';
 import RequestLink from './RequestLink.vue';
 import SmeltLink from './SmeltLink.vue';
 import SubmissionDetailsIcons from './SubmissionDetailsIcons.vue';
+import {getGitSmeltUrl} from '../utils/smelt';
 
 const route = useRoute();
 const submissionDetailStore = useSubmissionDetailStore();
 const configStore = useConfigStore();
 
 usePolling(() => submissionDetailStore.fetchSubmission(route.params.id));
+
+const hasSmeltLink = computed(() => {
+  const sub = submissionDetailStore.submission;
+  return Boolean(sub && (['ibs', 'smelt'].includes(sub.type || 'ibs') || getGitSmeltUrl(sub, configStore.smeltUrl)));
+});
 
 const results = computed(() => {
   if (!submissionDetailStore.summary) return [];
@@ -60,7 +66,7 @@ const sortedBuilds = computed(() => {
           </li>
         </ul>
       </div>
-      <div class="smelt-link" v-if="['ibs', 'smelt'].includes(submissionDetailStore.submission.type || 'ibs')">
+      <div class="smelt-link" v-if="hasSmeltLink">
         <h2>Link to Smelt</h2>
         <p>
           <SmeltLink :incident="submissionDetailStore.submission" />
