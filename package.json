@@ -44,9 +44,9 @@
     "bootstrap": "^5.3.8",
     "date-fns": "^4.1.0",
     "pinia": "^3.0.4",
-    "swagger-ui-dist": "^5.32.11",
+    "swagger-ui-dist": "^5.32.14",
     "vite": "^8.0.14",
-    "vue": "^3.5.40",
+    "vue": "^3.5.41",
     "vue-router": "^5.0.7"
   },
   "devDependencies": {
