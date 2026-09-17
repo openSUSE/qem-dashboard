@@ -46,7 +46,7 @@
     "pinia": "^4.0.3",
     "swagger-ui-dist": "^5.32.11",
     "vite": "^8.0.14",
-    "vue": "^3.5.40",
+    "vue": "^3.5.42",
     "vue-router": "^5.2.0"
   },
   "devDependencies": {
