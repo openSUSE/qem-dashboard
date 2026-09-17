@@ -140,6 +140,10 @@ check-audits-cpan: ## Run security audits for Perl dependencies
 	#   CVE-2026-13221, CVE-2026-57432 (regex alternation trie overflow, pack template overflow / not applicable)
 	#   See https://github.com/Perl/perl5/commit/03f74bbbd3a68350d926ee93d56ee4808c28c4c7.patch
 	#   See https://github.com/Perl/perl5/commit/40754edc72dd3e513d758153c0e2f0215897740e.patch
+	# CPANSA-perl-2026-15534:
+	#   CVE-2026-15534 (regex superlinear cache OOB read/write / not matching attacker-controlled ~286MB subjects)
+	#   See https://github.com/Perl/perl5/commit/54cf3d44cbbedd17d774e9a37921963e8fd5d0cb.patch
+	#   See https://github.com/Perl/perl5/commit/568e6fd238867bb9e99fa3f47cba3169009239e0.patch
 	PERL5LIB=~/perl5/lib/perl5:$$PERL5LIB PATH=~/perl5/bin:$$PATH cpan-audit deps . \
 		--exclude CPANSA-Mojolicious-2024-58134 \
 		--exclude CPANSA-Mojolicious-2024-58135 \
@@ -167,7 +171,8 @@ check-audits-cpan: ## Run security audits for Perl dependencies
 		--exclude CPANSA-Storable-2026-57433 \
 		--exclude CPANSA-HTTP-Tiny-2026-7017 \
 		--exclude CPANSA-perl-2026-13221 \
-		--exclude CPANSA-perl-2026-57432
+		--exclude CPANSA-perl-2026-57432 \
+		--exclude CPANSA-perl-2026-15534
 
 .PHONY: check-audits-npm
 check-audits-npm: ## Run security audits for JS dependencies
