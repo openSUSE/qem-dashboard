@@ -7,6 +7,9 @@ merge_queue:
 queue_rules:
   - name: default
     batch_size: 1
+    update_method: rebase
+    update_bot_account: suse-qe-tools-mergify
+    merge_method: squash
 
 pull_request_rules:
   - name: automatic merge
@@ -44,8 +47,6 @@ pull_request_rules:
         - author=dependabot[bot]
     actions:
       queue:
-      merge:
-        method: squash
   - name: continuously rebase pull requests when it's labeled with `rebase`
     conditions:
       - label=rebase
