@@ -144,6 +144,9 @@ check-audits-cpan: ## Run security audits for Perl dependencies
 	#   CVE-2026-15534 (regex superlinear cache OOB read/write / not matching attacker-controlled ~286MB subjects)
 	#   See https://github.com/Perl/perl5/commit/54cf3d44cbbedd17d774e9a37921963e8fd5d0cb.patch
 	#   See https://github.com/Perl/perl5/commit/568e6fd238867bb9e99fa3f47cba3169009239e0.patch
+	# CPANSA-podlators-2026-82560:
+	#   CVE-2026-82560 (Pod::Text CPU/memory exhaustion formatting attacker-supplied POD / not formatting untrusted POD)
+	#   See https://github.com/rra/podlators/commit/70510174f69eb54aa6d617bde4e1402cd9b7c61f.patch
 	PERL5LIB=~/perl5/lib/perl5:$$PERL5LIB PATH=~/perl5/bin:$$PATH cpan-audit deps . \
 		--exclude CPANSA-Mojolicious-2024-58134 \
 		--exclude CPANSA-Mojolicious-2024-58135 \
@@ -172,7 +175,8 @@ check-audits-cpan: ## Run security audits for Perl dependencies
 		--exclude CPANSA-HTTP-Tiny-2026-7017 \
 		--exclude CPANSA-perl-2026-13221 \
 		--exclude CPANSA-perl-2026-57432 \
-		--exclude CPANSA-perl-2026-15534
+		--exclude CPANSA-perl-2026-15534 \
+		--exclude CPANSA-podlators-2026-82560
 
 .PHONY: check-audits-npm
 check-audits-npm: ## Run security audits for JS dependencies
