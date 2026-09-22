@@ -17,7 +17,7 @@ pull_request_rules:
       - and: &base_checks
         - base=main
         - -label~=^acceptance-tests-needed|not-ready
-        - "#check-failure=0"
+        - '-check-failure ~= ^(?!(Rule:|Mergify|Summary))'
         - "#check-pending=0"
         - linear-history
       - and:
