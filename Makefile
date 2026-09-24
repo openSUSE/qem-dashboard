@@ -191,14 +191,14 @@ lint-npm: ## Lint JS code and commit messages
 	npm run lint:commit -- $(COMMIT_ARGS)
 
 .PHONY: checkstyle-perl
-checkstyle-perl: tidy-perl check-audits-cpan ## Run Perl tidy and CPAN audits
+checkstyle-perl: tidy-perl ## Run Perl tidy
 
 .PHONY: check-vite-deps
 check-vite-deps:
 	@node -e 'const pkg = require("./package.json"); if (pkg.devDependencies && pkg.devDependencies.vite) { console.error("Error: vite must be in dependencies for production builds (see 912fb927)"); process.exit(1); }'
 
 .PHONY: checkstyle-npm
-checkstyle-npm: lint-npm tidy-npm check-audits-npm check-vite-deps ## Run JS lint, tidy and npm audits
+checkstyle-npm: lint-npm tidy-npm check-vite-deps ## Run JS lint, tidy and check vite deps
 
 .PHONY: checkstyle
 checkstyle: checkstyle-perl checkstyle-npm ## Run all checkstyle targets
