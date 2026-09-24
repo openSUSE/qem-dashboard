@@ -24,8 +24,13 @@ sub list ($self) {
 
 sub show ($self) {
   $self = $self->openapi->valid_input or return;
-  return $self->render(json => {error => 'Incident not found'}, status => 404)
-    unless my $incident = _fix_booleans($self->incidents->find({number => $self->param('incident')}))->[0];
+  my $number   = $self->param('incident');
+  my $incident = $self->incidents->incident_for_number($number);
+  return $self->render(json => {error => 'Incident not found'}, status => 404) unless $incident;
+
+  $incident->{channels} = $self->incidents->channels_for_incident($incident->{id});
+  delete $incident->{id};
+  ($incident) = @{_fix_booleans([$incident])};
   $self->render(json => $incident);
 }
 
