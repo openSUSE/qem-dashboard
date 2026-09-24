@@ -12,13 +12,13 @@ jobs:
     container:
       image: perl:5.42
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
       - name: Fix git permissions
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
       - name: perl -V
         run: perl -V
       - name: Install dependencies
-        run: cpanm -n Perl::Tidy CPAN::Audit
+        run: cpanm -n Perl::Tidy
       - name: perltidy --version
         run: perltidy --version
       - name: Run checkstyle

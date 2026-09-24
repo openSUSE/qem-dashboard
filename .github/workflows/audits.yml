@@ -1,0 +1,46 @@
+name: security audits
+on:
+  push:
+    branches:
+      - 'main'
+    paths:
+      - 'cpanfile'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'Makefile'
+      - '.github/workflows/audits.yml'
+  pull_request:
+    paths:
+      - 'cpanfile'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'Makefile'
+      - '.github/workflows/audits.yml'
+  schedule:
+    - cron: '0 3 * * *' # Every day at 3 AM UTC
+
+jobs:
+  audit-perl:
+    runs-on: ubuntu-latest
+    container:
+      image: perl:5.42
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+      - name: Fix git permissions
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+      - name: Install dependencies
+        run: cpanm -n CPAN::Audit
+      - name: Run CPAN audit
+        run: make check-audits-cpan
+
+  audit-npm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+      - name: Install JS dependencies
+        run: make install-deps-js
+      - name: Run NPM audit
+        run: make check-audits-npm
