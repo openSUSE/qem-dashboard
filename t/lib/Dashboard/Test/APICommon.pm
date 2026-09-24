@@ -145,6 +145,21 @@ sub run_api_tests ($t, $prefix) {
           ->json_is('/priority',  456)
           ->json_is('/embargoed', true);
 
+        my $inactive_mock = {%$mock_incident, isActive => false, priority => 456, embargoed => true};
+        $t->patch_ok("$prefix/incidents/16860" => $auth_headers => json => $inactive_mock)
+          ->status_is(200, 'making an incident inactive returns 200 OK');
+
+        $t->get_ok("$prefix/incidents" => $auth_headers)
+          ->status_is(200)
+          ->json_is('', [], 'inactive incidents are excluded from the active list');
+
+        $t->get_ok("$prefix/incidents/16860" => $auth_headers)
+          ->status_is(200)
+          ->json_is('/isActive', false, 'directly querying an inactive incident returns it with isActive false');
+
+        $t->patch_ok("$prefix/incidents/16860" => $auth_headers => json => $updated_mock)
+          ->status_is(200, 'restoring the incident to active returns 200 OK');
+
         # Update rejection reason
         $t->patch_ok("$prefix/incidents/16860/rejection_reason" => $auth_headers => json =>
             {rejection_reason => 'missing aggregates'})
