@@ -41,7 +41,6 @@
     "@fortawesome/fontawesome-free": "^7.3.1",
     "@vitejs/plugin-vue": "^6.0.9",
     "bootstrap": "^5.3.8",
-    "date-fns": "^4.1.0",
     "pinia": "^4.0.3",
     "swagger-ui-dist": "^5.33.0",
     "vite": "^8.3.1",
