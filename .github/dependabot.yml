@@ -3,40 +3,32 @@ updates:
   - package-ecosystem: 'npm'
     directory: '/'
     schedule:
-      interval: "weekly"
-      day: "monday"
+      interval: 'weekly'
+      day: 'monday'
     cooldown:
       semver-patch-days: 7
     allow:
-      - dependency-type: "all"
+      - dependency-type: 'all'
     open-pull-requests-limit: 5
     labels:
-      - "waiting"
-      - "dependencies"
+      - 'waiting'
+      - 'dependencies'
     commit-message:
-      prefix: "chore"
+      prefix: 'chore'
       include: scope
     groups:
-      dev-dependencies:
-        applies-to: version-updates
-        dependency-type: "development"
-        update-types:
-          - "minor"
-          - "patch"
-      patch-dependencies:
+      all-npm-dependencies:
         patterns:
-          - "*"
-        update-types:
-          - "patch"
+          - '*'
   - package-ecosystem: 'github-actions'
     directory: '/'
     schedule:
-      interval: "weekly"
-      day: "monday"
+      interval: 'weekly'
+      day: 'monday'
     cooldown:
       default-days: 7
     open-pull-requests-limit: 5
     groups:
       all-actions:
         patterns:
-          - "*"
+          - '*'
