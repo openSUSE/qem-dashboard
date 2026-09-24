@@ -1,8 +1,8 @@
 <script setup>
 import {ref, computed, onMounted, onUnmounted} from 'vue';
 import {useRoute} from 'vue-router';
-import {formatDistanceToNow} from 'date-fns';
 import {useBlockedStore} from '@/stores/blocked';
+import {formatDistanceToNow} from '@/vue/utils/date';
 
 const route = useRoute();
 const blockedStore = useBlockedStore();
