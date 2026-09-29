@@ -123,8 +123,8 @@ check-audits-cpan: ## Run security audits for Perl dependencies
 	# CPANSA-Archive-Tar-2026-42496, CPANSA-Archive-Tar-2026-9538, CPANSA-Archive-Tar-2026-42497:
 	#   CVE-2026-42496, CVE-2026-9538, CVE-2026-42497 (transitive / not extracting untrusted archives)
 	#   See https://github.com/jib/archive-tar-new/commit/17c873492a05eddc0de18c1485e0b2cccd5a9158.patch
-	# CPANSA-Mojolicious-2026-15747, CPANSA-Mojolicious-2026-14803:
-	#   CVE-2026-15747, CVE-2026-14803 (Mojo::JSON fallback not used / BREACH mitigated)
+	# CPANSA-Mojolicious-2026-15747, CPANSA-Mojolicious-2026-14803, CPANSA-Mojolicious-2026-68914, CPANSA-Mojolicious-2026-77568:
+	#   CVE-2026-15747, CVE-2026-14803, CVE-2026-68914, CVE-2026-77568 (Mojo::JSON fallback not used / BREACH mitigated)
 	#   See https://github.com/mojolicious/mojo/commit/01921fbbbbeca2d1397e082d4a647f9b84c24e27.patch
 	#   See https://github.com/mojolicious/mojo/commit/cc38b0554275c4d84f6b8b49bcbbc1bec2068fe1.patch
 	# CPANSA-Socket-2026-12087:
@@ -170,6 +170,8 @@ check-audits-cpan: ## Run security audits for Perl dependencies
 		--exclude CPANSA-Archive-Tar-2026-42497 \
 		--exclude CPANSA-Mojolicious-2026-15747 \
 		--exclude CPANSA-Mojolicious-2026-14803 \
+		--exclude CPANSA-Mojolicious-2026-68914 \
+		--exclude CPANSA-Mojolicious-2026-77568 \
 		--exclude CPANSA-Socket-2026-12087 \
 		--exclude CPANSA-Storable-2026-57433 \
 		--exclude CPANSA-HTTP-Tiny-2026-7017 \
