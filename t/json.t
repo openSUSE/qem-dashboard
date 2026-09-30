@@ -342,8 +342,20 @@ subtest 'Test Repos' => sub {
         ->json_is(
         '/repos/Server-DVD-Incidents-12-SP5-x86_64/incidents' => [
 
-          {"id" => 1, "number" => 16860, "packages" => ['perl-Mojolicious']},
-          {"id" => 2, "number" => 16861, "packages" => ['perl-Minion', 'perl-Mojo-Pg']}
+          {
+            "id"       => 1,
+            "number"   => 16860,
+            "project"  => "SUSE:Maintenance:16860",
+            "type"     => "",
+            "packages" => ['perl-Mojolicious']
+          },
+          {
+            "id"       => 2,
+            "number"   => 16861,
+            "project"  => "SUSE:Maintenance:16861",
+            "type"     => "",
+            "packages" => ['perl-Minion', 'perl-Mojo-Pg']
+          }
         ]
         )->json_is(
         '/repos/Server-DVD-Incidents-12-SP5-x86_64/summaries' => [
@@ -505,6 +517,10 @@ subtest 'Incident Details' => sub {
         )
         ->json_is('/details/incident_summary' => {waiting => 1, failed => 2, passed => 2})
         ->json_is('/details/build_nr'         => '20250317-1');
+
+      $t->get_ok('/app/api/incident/99999' => {Accept => 'application/json'})
+        ->status_is(404)
+        ->json_is('/error', 'Incident not found');
     },
     'access log caught'
   );

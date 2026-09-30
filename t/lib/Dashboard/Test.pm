@@ -43,8 +43,20 @@ sub minimal_fixtures ($self, $app) {
   my $path      = Mojo::File::curfile->sibling('..', '..', 'fixtures', 'incidents.json');
   $incidents->sync(Mojo::JSON::decode_json($path->slurp));
 
+  # Incidents are unique by (number, project, type); these are the projects used by the fixtures
+  my %incident_project = (
+    16860 => 'SUSE:Maintenance:16860',
+    16861 => 'SUSE:Maintenance:16861',
+    16862 => 'SUSE:Maintenance:16862',
+    29722 => 'SUSE:Maintenance:29722 ',
+    30000 => 'SUSE:Maintenance:30000',
+  );
+  my $incident_id_for = sub ($number) {
+    return $incidents->ids_for({number => $number, project => $incident_project{$number}})->[0];
+  };
+
   my $settings        = $app->settings;
-  my $incident_id     = $incidents->id_for_number(16860);
+  my $incident_id     = $incident_id_for->(16860);
   my $settings_one_id = $settings->add_incident_settings(
     $incident_id,
     {
@@ -79,7 +91,7 @@ sub minimal_fixtures ($self, $app) {
     }
   );
   my $settings_four_id = $settings->add_incident_settings(
-    $incidents->id_for_number(16861),
+    $incident_id_for->(16861),
     {
       incident      => 16861,
       version       => '12-SP7',
@@ -90,7 +102,7 @@ sub minimal_fixtures ($self, $app) {
     }
   );
   my $settings_five_id = $settings->add_incident_settings(
-    $incidents->id_for_number(16862),
+    $incident_id_for->(16862),
     {
       incident      => 16862,
       version       => '13-SP7',
@@ -185,7 +197,7 @@ sub minimal_fixtures ($self, $app) {
 
   # Successful build
   my $settings_success_id = $settings->add_update_settings(
-    [map { $incidents->id_for_number($_) } 16860, 16861],
+    [map { $incident_id_for->($_) } 16860, 16861],
     {
       incidents => [16860, 16861],
       product   => 'SLES-12-SP5',
@@ -215,7 +227,7 @@ sub minimal_fixtures ($self, $app) {
 
   # Failing build
   my $settings_failing_id = $settings->add_update_settings(
-    [map { $incidents->id_for_number($_) } 16860, 16861],
+    [map { $incident_id_for->($_) } 16860, 16861],
     {
       incidents => [16860, 16861],
       product   => 'SLES-12-SP5',
@@ -261,7 +273,7 @@ sub minimal_fixtures ($self, $app) {
 
   # Add failing build that is acceptable for a certain incident
   my @incident_numbers             = (16860, 29722);
-  my @incident_ids                 = map { $incidents->id_for_number($_) } @incident_numbers;
+  my @incident_ids                 = map { $incident_id_for->($_) } @incident_numbers;
   my $settings_acceptable_for_id_1 = $settings->add_incident_settings(
     $incident_ids[0],
     {
@@ -321,7 +333,7 @@ sub minimal_fixtures ($self, $app) {
 
   # Waiting build
   my $settings_waiting_id = $settings->add_update_settings(
-    [map { $incidents->id_for_number($_) } 16860, 16861],
+    [map { $incident_id_for->($_) } 16860, 16861],
     {
       incidents => [16860, 16861],
       product   => 'SLES-12-SP5',
@@ -351,7 +363,7 @@ sub minimal_fixtures ($self, $app) {
 
   # Aggregate with failed and passed jobs
   my $settings_multi_one_id = $settings->add_update_settings(
-    [$incidents->id_for_number(29722)],
+    [$incident_id_for->(29722)],
     {
       incident => 29722,
       product  => 'SAP-15-SP4',
@@ -417,7 +429,7 @@ sub minimal_fixtures ($self, $app) {
     }
   );
   my $settings_multi_two_id = $settings->add_update_settings(
-    [$incidents->id_for_number(29722)],
+    [$incident_id_for->(29722)],
     {
       incident => 29722,
       product  => 'HA15SP4',

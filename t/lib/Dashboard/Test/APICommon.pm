@@ -43,8 +43,8 @@ sub run_api_tests ($t, $prefix) {
   };
 
   subtest 'Migrations' => sub {
-    is $t->app->pg->migrations->latest, 10, 'latest version';
-    is $t->app->pg->migrations->active, 10, 'active version';
+    is $t->app->pg->migrations->latest, 11, 'latest version';
+    is $t->app->pg->migrations->active, 11, 'active version';
   };
 
   subtest 'Unknown endpoint' => sub {
@@ -61,11 +61,11 @@ sub run_api_tests ($t, $prefix) {
   subtest 'No incidents yet' => sub {
     $stderr_test->(
       sub {
-        $t->get_ok("$prefix/incidents"   => $auth_headers)->status_is(200)->json_is('', [], 'empty list');
-        $t->get_ok("$prefix/incidents/1" => $auth_headers)
+        $t->get_ok("$prefix/incidents" => $auth_headers)->status_is(200)->json_is('', [], 'empty list');
+        $t->get_ok("$prefix/incidents/1?project=SUSE:Maintenance:1" => $auth_headers)
           ->status_is(404)
           ->json_is('/error', 'Incident not found', 'error for incident 1');
-        $t->get_ok("$prefix/incidents/16860" => $auth_headers)
+        $t->get_ok("$prefix/incidents/16860?project=SUSE:Maintenance:16860" => $auth_headers)
           ->status_is(404)
           ->json_is('/error', 'Incident not found', 'error for incident 16860');
         $t->get_ok("$prefix/incidents/abc" => $auth_headers)->status_is(400)->json_is('/error', 'Validation failed');
@@ -131,8 +131,10 @@ sub run_api_tests ($t, $prefix) {
           ->json_is('/message', 'Ok', 'patch incidents returns Ok');
 
         my $expected = {%$mock_incident, type => '', url => '', scminfo => ''};
-        $t->get_ok("$prefix/incidents"       => $auth_headers)->status_is(200)->json_is('', [$expected]);
-        $t->get_ok("$prefix/incidents/16860" => $auth_headers)->status_is(200)->json_is('', $expected);
+        $t->get_ok("$prefix/incidents" => $auth_headers)->status_is(200)->json_is('', [$expected]);
+        $t->get_ok("$prefix/incidents/16860?project=SUSE:Maintenance:16860" => $auth_headers)
+          ->status_is(200)
+          ->json_is('', $expected);
 
         # Update
         my $updated_mock = {%$mock_incident, priority => 456, embargoed => true};
@@ -140,7 +142,7 @@ sub run_api_tests ($t, $prefix) {
         diag $t->tx->res->body unless $t->tx->res->code == 200;    # uncoverable branch true
         $t->status_is(200)->json_is('/message', 'Ok', 'update incident 16860 returns Ok');
 
-        $t->get_ok("$prefix/incidents/16860" => $auth_headers)
+        $t->get_ok("$prefix/incidents/16860?project=SUSE:Maintenance:16860" => $auth_headers)
           ->status_is(200)
           ->json_is('/priority',  456)
           ->json_is('/embargoed', true);
@@ -153,7 +155,7 @@ sub run_api_tests ($t, $prefix) {
           ->status_is(200)
           ->json_is('', [], 'inactive incidents are excluded from the active list');
 
-        $t->get_ok("$prefix/incidents/16860" => $auth_headers)
+        $t->get_ok("$prefix/incidents/16860?project=SUSE:Maintenance:16860" => $auth_headers)
           ->status_is(200)
           ->json_is('/isActive', false, 'directly querying an inactive incident returns it with isActive false');
 
@@ -161,29 +163,32 @@ sub run_api_tests ($t, $prefix) {
           ->status_is(200, 'restoring the incident to active returns 200 OK');
 
         # Update rejection reason
-        $t->patch_ok("$prefix/incidents/16860/rejection_reason" => $auth_headers => json =>
+        $t->patch_ok(
+          "$prefix/incidents/16860/rejection_reason?project=SUSE:Maintenance:16860" => $auth_headers => json =>
             {rejection_reason => 'missing aggregates'})
           ->status_is(200)
           ->json_is('/message', 'Ok', 'update rejection_reason returns Ok');
 
-        $t->get_ok("$prefix/incidents/16860" => $auth_headers)
+        $t->get_ok("$prefix/incidents/16860?project=SUSE:Maintenance:16860" => $auth_headers)
           ->status_is(200)
           ->json_is('/rejection_reason', 'missing aggregates');
 
-        $t->patch_ok("$prefix/incidents/16860/rejection_reason" => $auth_headers => json => {rejection_reason => undef})
-          ->status_is(200);
+        $t->patch_ok(
+          "$prefix/incidents/16860/rejection_reason?project=SUSE:Maintenance:16860" => $auth_headers => json =>
+            {rejection_reason => undef})->status_is(200);
 
-        $t->get_ok("$prefix/incidents/16860" => $auth_headers)->status_is(200)->json_is('/rejection_reason', undef);
+        $t->get_ok("$prefix/incidents/16860?project=SUSE:Maintenance:16860" => $auth_headers)
+          ->status_is(200)
+          ->json_is('/rejection_reason', undef);
 
         # Invalid input: rejection_reason must be a string or null
         $t->patch_ok(
-          "$prefix/incidents/16860/rejection_reason" => $auth_headers => json => {rejection_reason => {foo => 'bar'}})
-          ->status_is(400)
-          ->json_is('/error', 'Validation failed');
+          "$prefix/incidents/16860/rejection_reason?project=SUSE:Maintenance:16860" => $auth_headers => json =>
+            {rejection_reason => {foo => 'bar'}})->status_is(400)->json_is('/error', 'Validation failed');
 
-        $t->patch_ok("$prefix/incidents/99999/rejection_reason" => $auth_headers => json => {rejection_reason => 'foo'})
-          ->status_is(404)
-          ->json_is('/error', 'Incident not found');
+        $t->patch_ok(
+          "$prefix/incidents/99999/rejection_reason?project=SUSE:Maintenance:99999" => $auth_headers => json =>
+            {rejection_reason => 'foo'})->status_is(404)->json_is('/error', 'Incident not found');
 
         # Test new fields from qem-bot
         my $qem_bot_incident = {
@@ -197,6 +202,15 @@ sub run_api_tests ($t, $prefix) {
         $t->patch_ok("$prefix/incidents" => $auth_headers => json => [$qem_bot_incident])
           ->status_is(200)
           ->json_is('/message', 'Ok', 'patch qem-bot incident returns Ok');
+
+        # Ambiguous incident (same number and project, different types)
+        my $ambig_1 = {%$mock_incident, number => 16862, project => 'SUSE:Maintenance:16862', type => 'git'};
+        my $ambig_2 = {%$mock_incident, number => 16862, project => 'SUSE:Maintenance:16862', type => 'obs'};
+        $t->patch_ok("$prefix/incidents" => $auth_headers => json => [$ambig_1, $ambig_2])->status_is(200);
+        $t->get_ok("$prefix/incidents/16862?project=SUSE:Maintenance:16862" => $auth_headers)
+          ->status_is(400)
+          ->json_is('/error', 'Incident (16862) is ambiguous in project (SUSE:Maintenance:16862), type is required');
+        $t->get_ok("$prefix/incidents/16862?project=SUSE:Maintenance:16862&type=git" => $auth_headers)->status_is(200);
       },
       'access log caught'
     );
@@ -210,6 +224,7 @@ sub run_api_tests ($t, $prefix) {
         $t->put_ok(
           "$prefix/incident_settings" => $auth_headers => json => {
             incident      => 16860,
+            project       => 'SUSE:Maintenance:16860',
             version       => '12-SP5',
             flavor        => 'Server-DVD-HA-Incidents-Install',
             arch          => 'x86_64',
@@ -219,7 +234,7 @@ sub run_api_tests ($t, $prefix) {
         )->status_is(200)->json_is('/message', 'Ok', 'put incident_settings returns Ok')->json_is('/id', 1);
 
         # Test missing branch in Settings.pm (incident not found)
-        $t->get_ok("$prefix/incident_settings/99999" => $auth_headers)
+        $t->get_ok("$prefix/incident_settings/99999?project=SUSE:Maintenance:99999" => $auth_headers)
           ->status_is(400)
           ->json_is('/error', 'Incident not found', 'error for non-existent incident settings');
 
@@ -232,7 +247,7 @@ sub run_api_tests ($t, $prefix) {
         # Add update settings
         $t->put_ok(
           "$prefix/update_settings" => $auth_headers => json => {
-            incidents => [16860],
+            incidents => [{number => 16860, project => 'SUSE:Maintenance:16860'}],
             product   => 'SLES-15-GA',
             arch      => 'x86_64',
             build     => '20201107-1',
@@ -299,7 +314,7 @@ sub run_api_tests ($t, $prefix) {
         $t->get_ok("$prefix/jobs/incident/abc" => $auth_headers)->status_is(400);
 
         # Verify Get update settings
-        $t->get_ok("$prefix/update_settings/16860" => $auth_headers)
+        $t->get_ok("$prefix/update_settings/16860?project=SUSE:Maintenance:16860" => $auth_headers)
           ->status_is(200)
           ->json_is('/0/product', 'SLES-15-GA');
 
@@ -310,7 +325,7 @@ sub run_api_tests ($t, $prefix) {
         $t->get_ok("$prefix/jobs/update/abc" => $auth_headers)->status_is(400);
 
         # Verify Get update settings for non-existent incident
-        $t->get_ok("$prefix/update_settings/99999" => $auth_headers)
+        $t->get_ok("$prefix/update_settings/99999?project=SUSE:Maintenance:99999" => $auth_headers)
           ->status_is(400)
           ->json_is('/error', 'Incident not found');
 
@@ -349,18 +364,16 @@ sub run_api_tests ($t, $prefix) {
   };
 
   subtest 'Remarks' => sub {
-    $t->patch_ok(
-      "$prefix/jobs/4953193/remarks" => $auth_headers => form => {incident_number => '16860', text => 'acceptable_for'})
-      ->status_is(200);
+    $t->patch_ok("$prefix/jobs/4953193/remarks" => $auth_headers => form =>
+        {incident_number => '16860', project => 'SUSE:Maintenance:16860', text => 'acceptable_for'})->status_is(200);
 
     $t->get_ok("$prefix/jobs/4953193/remarks" => $auth_headers)
       ->status_is(200)
       ->json_is('/remarks/0/text', 'acceptable_for');
 
     # Test update_remark with JSON body
-    $t->patch_ok(
-      "$prefix/jobs/4953193/remarks" => $auth_headers => json => {incident_number => '16860', text => 'json_remark'})
-      ->status_is(200);
+    $t->patch_ok("$prefix/jobs/4953193/remarks" => $auth_headers => json =>
+        {incident_number => '16860', project => 'SUSE:Maintenance:16860', text => 'json_remark'})->status_is(200);
 
     $t->get_ok("$prefix/jobs/4953193/remarks" => $auth_headers)->status_is(200);
     my $remarks = $t->tx->res->json->{remarks};
@@ -388,9 +401,10 @@ sub run_api_tests ($t, $prefix) {
       ->json_is('/error', 'openQA job (8888888) does not exist');
 
     # Missing branch: non-existent incident
-    $t->patch_ok("$prefix/jobs/4953193/remarks?incident_number=99999&text=foo" => $auth_headers)
+    $t->patch_ok(
+      "$prefix/jobs/4953193/remarks?incident_number=99999&project=SUSE:Maintenance:99999&text=foo" => $auth_headers)
       ->status_is(404)
-      ->json_is('/error', 'Incident (99999) does not exist');
+      ->json_is('/error', 'Incident (99999) does not exist in project (SUSE:Maintenance:99999)');
 
     # Validation failure: invalid incident_number in JSON
     $t->patch_ok("$prefix/jobs/4953193/remarks" => $auth_headers => json => {incident_number => 'abc', text => 'foo'})
@@ -400,9 +414,33 @@ sub run_api_tests ($t, $prefix) {
     $t->patch_ok("$prefix/jobs/4953193/remarks" => $auth_headers => json => {incident_number => '16860'})
       ->status_is(400);
 
+    # Validation failure: incident_number provided without project
+    $t->patch_ok("$prefix/jobs/4953193/remarks" => $auth_headers => json => {incident_number => '16860', text => 'foo'})
+      ->status_is(400)
+      ->json_is('/error', 'Missing project for incident (16860)');
+    $t->patch_ok("$prefix/jobs/4953193/remarks" => $auth_headers => json =>
+        {incident_number => '16860', project => '', text => 'foo'})
+      ->status_is(400)
+      ->json_is('/error', 'Missing project for incident (16860)');
+
+    # Coverage for Jobs.pm line 48: remark with non-existent incident_id
+    my $db          = $t->app->pg->db;
+    my $internal_id = $t->app->jobs->internal_job_id(4953193);
+    $db->query("SET session_replication_role = 'replica'");
+    $db->query('INSERT INTO job_remarks (id, openqa_job_id, incident_id, text) VALUES (?, ?, ?, ?)',
+      99999, $internal_id, 99999, 'orphan_remark');
+    $db->query("SET session_replication_role = 'origin'");
+    $t->get_ok("$prefix/jobs/4953193/remarks" => $auth_headers)->status_is(200);
+    my $remarks_with_orphan = $t->tx->res->json->{remarks};
+    my ($orphan) = grep { $_->{text} eq 'orphan_remark' } @$remarks_with_orphan;
+    ok($orphan, 'orphan remark retrieved');
+    is($orphan->{incident}, undef, 'orphan remark has undef incident');
+    $db->query('DELETE FROM job_remarks WHERE id = 99999');
+
     # Coverage for Jobs.pm line 69-70: incident_number/text from query string override JSON
-    $t->patch_ok("$prefix/jobs/4953193/remarks?incident_number=16860&text=query_remark" => $auth_headers => json =>
-        {incident_number => '99999', text => 'json_remark'})->status_is(200);
+    $t->patch_ok(
+      "$prefix/jobs/4953193/remarks?incident_number=16860&project=SUSE:Maintenance:16860&text=query_remark" =>
+        $auth_headers => json => {incident_number => '99999', text => 'json_remark'})->status_is(200);
 
     # Validation failure: missing text in form (triggers line 73 in Jobs.pm)
     $t->patch_ok("$prefix/jobs/4953193/remarks" => $auth_headers => form => {incident_number => '16860'})
@@ -423,22 +461,50 @@ sub run_api_tests ($t, $prefix) {
       sub {
 
         # add_incident_settings: incident not found
-        $t->put_ok("$prefix/incident_settings" => $auth_headers => json =>
-            {incident => 99999, version => 'v', flavor => 'f', arch => 'a', withAggregate => true, settings => {}})
+        $t->put_ok(
+          "$prefix/incident_settings" => $auth_headers => json => {
+            incident      => 99999,
+            project       => 'SUSE:Maintenance:99999',
+            version       => 'v',
+            flavor        => 'f',
+            arch          => 'a',
+            withAggregate => true,
+            settings      => {}
+          }
+          )
           ->status_is(400)
           ->json_is('/error', 'Incident not found', 'error for adding incident_settings with non-existent incident');
 
         # add_update_settings: one of incidents not found
-        $t->put_ok("$prefix/update_settings" => $auth_headers => json =>
-            {incidents => [16860, 99999], product => 'p', arch => 'a', build => 'b', repohash => 'h', settings => {}})
+        $t->put_ok(
+          "$prefix/update_settings" => $auth_headers => json => {
+            incidents => [
+              {number => 16860, project => 'SUSE:Maintenance:16860'},
+              {number => 99999, project => 'SUSE:Maintenance:99999'}
+            ],
+            product  => 'p',
+            arch     => 'a',
+            build    => 'b',
+            repohash => 'h',
+            settings => {}
+          }
+          )
           ->status_is(400)
           ->json_is('/error', 'Incident not found', 'error for adding update_settings with non-existent incident');
 
         # _fix_booleans: withAggregate is false
-        $t->put_ok("$prefix/incident_settings" => $auth_headers => json =>
-            {incident => 16860, version => 'v2', flavor => 'f2', arch => 'a2', withAggregate => false, settings => {}})
-          ->status_is(200);
-        $t->get_ok("$prefix/incident_settings/16860" => $auth_headers)
+        $t->put_ok(
+          "$prefix/incident_settings" => $auth_headers => json => {
+            incident      => 16860,
+            project       => 'SUSE:Maintenance:16860',
+            version       => 'v2',
+            flavor        => 'f2',
+            arch          => 'a2',
+            withAggregate => false,
+            settings      => {}
+          }
+        )->status_is(200);
+        $t->get_ok("$prefix/incident_settings/16860?project=SUSE:Maintenance:16860" => $auth_headers)
           ->status_is(200)
           ->json_is('/0/withAggregate', false, 'withAggregate is correctly returned as false');
       },

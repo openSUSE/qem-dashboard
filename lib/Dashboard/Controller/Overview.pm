@@ -13,10 +13,12 @@ sub list ($self) {
 }
 
 sub incident ($self) {
-  my $number = $self->param('incident');
+  my $key = {number => $self->param('incident'), project => $self->param('project'), type => $self->param('type')};
 
   my $incidents = $self->incidents;
-  my $incident  = $incidents->incident_for_number($number);
+  my $incident  = $incidents->incident_for($key);
+  return $self->render(json => {error => 'Incident not found'}, status => 404) unless $incident;
+
   $self->_render_api_response(
     {
       details => {

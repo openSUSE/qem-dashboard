@@ -38,15 +38,17 @@ subtest 'Dashboard::Model::Incidents' => sub {
     priority    => 123,
   };
 
-  subtest 'id_for_number and number_for_id' => sub {
-    is $incidents->id_for_number(16860), 1,     'correct id for 16860';
-    is $incidents->number_for_id(1),     16860, 'correct number for id 1';
-    is $incidents->id_for_number(99999), undef, 'undef for non-existent number';
-    is $incidents->number_for_id(99999), undef, 'undef for non-existent id';
+  subtest 'ids_for and key_for_id' => sub {
+    is $incidents->ids_for({number => 16860, project => 'SUSE:Maintenance:16860'})->[0], 1, 'correct id for 16860';
+    is_deeply $incidents->key_for_id(1), {number => 16860, project => 'SUSE:Maintenance:16860', type => ''},
+      'correct key for id 1';
+    is_deeply $incidents->ids_for({number => 99999, project => 'SUSE:Maintenance:99999'}), [],
+      'empty for non-existent number';
+    is $incidents->key_for_id(99999), undef, 'undef for non-existent id';
   };
 
   subtest 'name' => sub {
-    my $inc = $incidents->incident_for_number(16860);
+    my $inc = $incidents->incident_for({number => 16860, project => 'SUSE:Maintenance:16860'});
     is $incidents->name($inc),              '16860:perl-Mojolicious', 'correct name for 16860';
     is $incidents->name({number => 99999}), '99999:unknown',          'correct name for unknown incident';
   };
@@ -62,13 +64,13 @@ subtest 'Dashboard::Model::Incidents' => sub {
 
     $incs->sync(
       [
-        {number => 1001, project => 'P1001', packages => ['pkg1'], isActive => 1},
-        {number => 1002, project => 'P1002', packages => ['pkg2'], isActive => 1}
+        {number => 1001, project => 'P1001', packages => ['pkg1'], channels => ['Test'], isActive => 1},
+        {number => 1002, project => 'P1002', packages => ['pkg2'], channels => ['Test'], isActive => 1}
       ]
     );
 
-    my $inc1001_id = $incs->id_for_number(1001);
-    my $inc1002_id = $incs->id_for_number(1002);
+    my $inc1001_id = $incs->ids_for({number => 1001, project => 'P1001'})->[0];
+    my $inc1002_id = $incs->ids_for({number => 1002, project => 'P1002'})->[0];
 
     # Both incidents in the same update
     my $update_settings_id = $settings->add_update_settings(
@@ -143,21 +145,22 @@ subtest 'Dashboard::Model::Incidents' => sub {
     is $res1002->{"100 f v"}{passed}, 1,     'Incident 1002 sees generic job';
 
     # rr_number change
-    $incs->update({%$mock_incident, number => 1001, rr_number => 100});
-    is $incs->incident_for_number(1001)->{rr_number}, 100, 'rr_number updated';
-    $incs->update({%$mock_incident, number => 1001, rr_number => 200});
-    is $incs->incident_for_number(1001)->{rr_number}, 200, 'rr_number changed again';
+    $incs->update({%$mock_incident, number => 1001, project => 'P1001', rr_number => 100});
+    is $incs->incident_for({number => 1001, project => 'P1001'})->{rr_number}, 100, 'rr_number updated';
+    $incs->update({%$mock_incident, number => 1001, project => 'P1001', rr_number => 200});
+    is $incs->incident_for({number => 1001, project => 'P1001'})->{rr_number}, 200, 'rr_number changed again';
 
     # Map undef
     is $incs->_map(undef), undef, '_map returns undef for undef input';
 
     # Sync without types
     $incs->sync([$mock_incident]);
-    ok $incs->incident_for_number(16860), 'sync works without types';
+    ok $incs->incident_for({number => 16860, project => 'SUSE:Maintenance:16860'}), 'sync works without types';
 
     # Sync WITH types
     $incs->sync([{%$mock_incident, type => 'ibs'}], ['ibs', 'obs']);
-    is $incs->incident_for_number(16860)->{type}, 'ibs', 'sync works with types';
+    is $incs->incident_for({number => 16860, project => 'SUSE:Maintenance:16860'})->{type}, 'ibs',
+      'sync works with types';
 
     # Channel removal
     $incs->update({%$mock_incident, number => 16860, channels => ['Test', 'NewChannel']});
@@ -181,18 +184,20 @@ subtest 'Dashboard::Model::Incidents' => sub {
     # rr_number NOT changed
     $incs->update({%$mock_incident, number => 16860, rr_number => 100});
     $incs->update({%$mock_incident, number => 16860, rr_number => 100});
-    is $incs->incident_for_number(16860)->{rr_number}, 100, 'rr_number unchanged';
+    is $incs->incident_for({number => 16860, project => 'SUSE:Maintenance:16860', type => ''})->{rr_number}, 100,
+      'rr_number unchanged';
 
     # rr_number undef
     $incs->update({%$mock_incident, number => 16860, rr_number => undef});
-    is $incs->incident_for_number(16860)->{rr_number}, undef, 'rr_number undef works';
+    is $incs->incident_for({number => 16860, project => 'SUSE:Maintenance:16860', type => ''})->{rr_number}, undef,
+      'rr_number undef works';
   };
 
   subtest '_incident_openqa_jobs branch coverage' => sub {
     my $incs     = $t->app->incidents;
     my $settings = $t->app->settings;
     my $jobs     = $t->app->jobs;
-    my $inc      = $incs->incident_for_number(16860);
+    my $inc      = $incs->incident_for({number => 16860, project => 'SUSE:Maintenance:16860'});
 
     # Add another job with same group_id (282)
     $jobs->add(
@@ -217,7 +222,7 @@ subtest 'Dashboard::Model::Incidents' => sub {
     my $incs = $t->app->incidents;
 
     # Fixture: group 55 has one job failed+remarked "acceptable_for" for 16860 and one job genuinely passed
-    my $inc_16860     = $incs->incident_for_number(16860);
+    my $inc_16860     = $incs->incident_for({number => 16860, project => 'SUSE:Maintenance:16860'});
     my $res_16860     = $incs->_incident_openqa_jobs($inc_16860);
     my $upd_res_16860 = $incs->_update_openqa_jobs($inc_16860);
     is $res_16860->{55}{accepted}, 1,     'remarked job counts as accepted for incident 16860';
@@ -227,7 +232,7 @@ subtest 'Dashboard::Model::Incidents' => sub {
       'update jobs see the same remarked job as accepted';
 
     # The remark is scoped to 16860 only, so 29722 (sharing the same job) must still see the genuine failure
-    my $inc_29722 = $incs->incident_for_number(29722);
+    my $inc_29722 = $incs->incident_for({number => 29722, project => 'SUSE:Maintenance:29722 '});
     my $res_29722 = $incs->_update_openqa_jobs($inc_29722);
     is $res_29722->{'55 Server-DVD-Incidents 12-SP6'}{failed}, 1, 'incident 29722 still sees the real failure';
     is $res_29722->{'55 Server-DVD-Incidents 12-SP6'}{accepted}, undef,
@@ -262,7 +267,7 @@ subtest 'Dashboard::Model::Incidents' => sub {
   subtest 'openqa_summary_only_aggregates branch coverage' => sub {
     my $incs     = $t->app->incidents;
     my $settings = $t->app->settings;
-    my $inc      = $incs->incident_for_number(16860);
+    my $inc      = $incs->incident_for({number => 16860, project => 'SUSE:Maintenance:16860'});
 
     # Add another update for 16860 with an existing build number (20201107-1)
     $settings->add_update_settings([$inc->{id}],
