@@ -83,9 +83,9 @@ sub find ($self, $options = {}) {
     'SELECT number, project, packages, rr_number, review, review_qam, approved, emu, active, embargoed, priority, ARRAY_AGG(c.name) as channels,
             scminfo, url, type, rejection_reason
      FROM incidents i LEFT JOIN incident_channels ic ON ic.incident = i.id LEFT JOIN channels c ON ic.channel = c.id
-     WHERE number = COALESCE(?, number) AND active = TRUE
+     WHERE number = COALESCE(?, number) AND project = COALESCE(?, project) AND type = COALESCE(?, type) AND active = TRUE
      GROUP BY number, project, packages, rr_number, review, review_qam, approved, emu, active, embargoed, priority, scminfo, url, type, rejection_reason
-     ORDER BY number', $options->{number}
+     ORDER BY number, project, type', @{$options}{qw(number project type)}
   )->hashes->to_array;
   $self->_map($_) for @$incidents;
 
@@ -124,20 +124,20 @@ sub openqa_summary_only_incident ($self, $inc) {
   return {map { $_->{status} => $_->{count} } $res->each};
 }
 
-sub incident_for_number ($self, $number) {
-  my $incident = $self->pg->db->query('select * from incidents where number = ? limit 1', $number)->hash;
+# An incident is addressed by its full (number, project, type) key, so at most one row matches
+sub incident_for ($self, $key) {
+  my $incident = $self->pg->db->query('SELECT * FROM incidents WHERE number = ? AND project = ? AND type = ? LIMIT 1',
+    @{$key}{qw(number project type)})->hash;
   return $self->_map($incident);
 }
 
-sub number_for_id ($self, $id) {
-  return undef unless my $array = $self->pg->db->query('select number from incidents where id = ? limit 1', $id)->array;
-  return $array->[0];
+sub key_for_id ($self, $id) {
+  return $self->pg->db->query('SELECT number, project, type FROM incidents WHERE id = ?', $id)->hash;
 }
 
-sub id_for_number ($self, $number) {
-  return undef
-    unless my $array = $self->pg->db->query('select id from incidents where number = ? limit 1', $number)->array;
-  return $array->[0];
+sub ids_for ($self, $key) {
+  return $self->pg->db->query('SELECT id FROM incidents WHERE number = ? AND project = ? AND type = ?',
+    @{$key}{qw(number project type)})->arrays->flatten->to_array;
 }
 
 sub name ($self, $inc) {
@@ -166,8 +166,9 @@ sub repos ($self) {
 
       # only calculate for the latest build
       $incidents ||= my $incs = $db->query(
-        'SELECT i.number, i.id, i.packages FROM incidents i JOIN incident_in_update iu ON iu.incident = i.id
-           WHERE settings = ? ORDER BY i.number', $id->{id}
+        'SELECT i.number, i.project, i.type, i.id, i.packages FROM incidents i
+           JOIN incident_in_update iu ON iu.incident = i.id
+           WHERE settings = ? ORDER BY i.number, i.project, i.type', $id->{id}
       )->hashes->to_array;
 
       my %summary;
@@ -204,15 +205,27 @@ sub channels_for_incident ($self, $incident_id) {
 }
 
 sub sync ($self, $incidents, $types = []) {
-  $self->clear_blocked_cache;
-  push @$types, '', 'smelt' unless @$types;
+  push @$types, 'smelt' unless @$types;
   my $db = $self->pg->db;
+
+  # Everything in scope is deactivated first and every incident in the batch is then written with its own isActive,
+  # so incidents that dropped out of the batch end up inactive. Git incidents are only in scope for the projects
+  # present in the batch, so syncing one repository leaves the PRs of other repositories alone.
+  my @types = grep { $_ ne 'git' } @$types;
+  my %git_projects;
+  if (grep { $_ eq 'git' } @$types) {
+    $git_projects{$_->{project}} = 1 for grep { $_->{type} eq 'git' } @$incidents;
+  }
+
   my $tx = $db->begin;
-
-  $db->update(incidents => {active => 0}, {type => {'=' => $types}});
+  $db->query(
+    q{UPDATE incidents SET active = FALSE
+       WHERE active = TRUE AND (type = ANY(?) OR (type = 'git' AND project = ANY(?)))}, \@types, [keys %git_projects]
+  );
   for my $incident (@$incidents) { $self->_update($db, $incident) }
-
   $tx->commit;
+
+  $self->clear_blocked_cache;
 }
 
 sub update ($self, $incident) {
@@ -361,24 +374,22 @@ sub _update_openqa_jobs ($self, $inc) {
   return $is_batch ? \%ret : ($ret{$inc->{id}} // {});
 }
 
-sub update_rejection_reason ($self, $number, $reason) {
+sub update_rejection_reason ($self, $id, $reason) {
   $self->clear_blocked_cache;
-  my $db = $self->pg->db;
-  $db->query('UPDATE incidents SET rejection_reason = ? WHERE number = ?', $reason, $number);
+  $self->pg->db->query('UPDATE incidents SET rejection_reason = ? WHERE id = ?', $reason, $id);
 }
 
 sub _update ($self, $db, $incident) {
-  $db->query('INSERT INTO incidents (number, project) VALUES (?, ?) ON CONFLICT DO NOTHING',
-    $incident->{number}, $incident->{project});
-  my $row = $db->query('SELECT id, rr_number FROM incidents WHERE number = ? LIMIT 1', $incident->{number})->hash;
+  my @key = ($incident->{number}, $incident->{project}, $incident->{type});
+  $db->query('INSERT INTO incidents (number, project, type) VALUES (?, ?, ?) ON CONFLICT DO NOTHING', @key);
+  my $row = $db->query('SELECT id, rr_number FROM incidents WHERE number = ? AND project = ? AND type = ?', @key)->hash;
   my ($id, $rr_number) = ($row->{id}, $row->{rr_number} // 0);
 
   $db->query(
     'UPDATE incidents SET packages = ?, rr_number = ?, review = ?, review_qam = ?, approved = ?, emu = ?, active = ?,
-       embargoed = ?, priority = ?, scminfo = ?, url = ?, type = ? WHERE id = ?', $incident->{packages},
-    $incident->{rr_number}, $incident->{inReview}, $incident->{inReviewQAM}, $incident->{approved}, $incident->{emu},
-    $incident->{isActive}, $incident->{embargoed}, $incident->{priority}, $incident->{scminfo} // '',
-    $incident->{url} // '', $incident->{type} // '', $id
+       embargoed = ?, priority = ?, scminfo = ?, url = ? WHERE id = ?', $incident->{packages}, $incident->{rr_number},
+    $incident->{inReview},  $incident->{inReviewQAM}, $incident->{approved}, $incident->{emu}, $incident->{isActive},
+    $incident->{embargoed}, $incident->{priority},    $incident->{scminfo} // '', $incident->{url} // '', $id
   );
 
   # Remove old jobs after release request number changed (because incidents might be reused)
@@ -386,6 +397,7 @@ sub _update ($self, $db, $incident) {
     $self->_log(
       info => {
         incident => $incident->{number},
+        project  => $incident->{project},
         old_rr   => $rr_number,
         new_rr   => $incident->{rr_number},
         type     => 'incident_rr_change',

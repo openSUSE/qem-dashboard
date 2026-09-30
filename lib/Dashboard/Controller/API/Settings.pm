@@ -9,8 +9,8 @@ use Mojo::JSON qw(true false);
 sub add_incident_settings ($self) {
   $self = $self->openapi->valid_input or return;
   my $settings = $self->req->json;
-  return $self->render(json => {error => 'Incident not found'}, status => 400)
-    unless my $incident_id = $self->incidents->id_for_number($settings->{incident});
+  my $key      = {number => $settings->{incident}, project => $settings->{project}, type => $settings->{type}};
+  return unless defined(my $incident_id = $self->incident_id($key));
 
   my $id = $self->settings->add_incident_settings($incident_id, $settings);
   $self->render(json => {message => 'Ok', id => $id});
@@ -20,10 +20,8 @@ sub add_update_settings ($self) {
   $self = $self->openapi->valid_input or return;
   my $settings = $self->req->json;
   my @incident_ids;
-  my $incidents = $self->incidents;
   for my $incident (@{$settings->{incidents}}) {
-    return $self->render(json => {error => 'Incident not found'}, status => 400)
-      unless my $incident_id = $incidents->id_for_number($incident);
+    return unless defined(my $incident_id = $self->incident_id($incident));
     push @incident_ids, $incident_id;
   }
 
@@ -33,15 +31,13 @@ sub add_update_settings ($self) {
 
 sub get_incident_settings ($self) {
   $self = $self->openapi->valid_input or return;
-  return $self->render(json => {error => 'Incident not found'}, status => 400)
-    unless my $incident_id = $self->incidents->id_for_number($self->param('incident'));
+  return unless defined(my $incident_id = $self->incident_id($self->_incident_key));
   $self->render(json => _fix_booleans($self->settings->get_incident_settings($incident_id)));
 }
 
 sub get_update_settings ($self) {
   $self = $self->openapi->valid_input or return;
-  return $self->render(json => {error => 'Incident not found'}, status => 400)
-    unless my $incident_id = $self->incidents->id_for_number($self->param('incident'));
+  return unless defined(my $incident_id = $self->incident_id($self->_incident_key));
   $self->render(json => $self->settings->get_update_settings($incident_id));
 }
 
@@ -59,6 +55,10 @@ sub _fix_booleans ($settings) {
     $setting->{withAggregate} = $setting->{withAggregate} ? true : false;
   }
   return $settings;
+}
+
+sub _incident_key ($self) {
+  return {number => $self->param('incident'), project => $self->param('project'), type => $self->param('type')};
 }
 
 1;

@@ -26,6 +26,7 @@ subtest 'Dashboard::Model::Incidents' => sub {
   my $mock_incident = {
     number      => 16860,
     project     => 'SUSE:Maintenance:16860',
+    type        => 'smelt',
     packages    => ['pkg1'],
     channels    => ['Test'],
     rr_number   => undef,
@@ -38,15 +39,18 @@ subtest 'Dashboard::Model::Incidents' => sub {
     priority    => 123,
   };
 
-  subtest 'id_for_number and number_for_id' => sub {
-    is $incidents->id_for_number(16860), 1,     'correct id for 16860';
-    is $incidents->number_for_id(1),     16860, 'correct number for id 1';
-    is $incidents->id_for_number(99999), undef, 'undef for non-existent number';
-    is $incidents->number_for_id(99999), undef, 'undef for non-existent id';
+  subtest 'ids_for and key_for_id' => sub {
+    is $incidents->ids_for({number => 16860, project => 'SUSE:Maintenance:16860', type => 'smelt'})->[0], 1,
+      'correct id for 16860';
+    is_deeply $incidents->key_for_id(1), {number => 16860, project => 'SUSE:Maintenance:16860', type => 'smelt'},
+      'correct key for id 1';
+    is_deeply $incidents->ids_for({number => 99999, project => 'SUSE:Maintenance:99999', type => 'smelt'}), [],
+      'empty for non-existent number';
+    is $incidents->key_for_id(99999), undef, 'undef for non-existent id';
   };
 
   subtest 'name' => sub {
-    my $inc = $incidents->incident_for_number(16860);
+    my $inc = $incidents->incident_for({number => 16860, project => 'SUSE:Maintenance:16860', type => 'smelt'});
     is $incidents->name($inc),              '16860:perl-Mojolicious', 'correct name for 16860';
     is $incidents->name({number => 99999}), '99999:unknown',          'correct name for unknown incident';
   };
@@ -62,13 +66,27 @@ subtest 'Dashboard::Model::Incidents' => sub {
 
     $incs->sync(
       [
-        {number => 1001, project => 'P1001', packages => ['pkg1'], isActive => 1},
-        {number => 1002, project => 'P1002', packages => ['pkg2'], isActive => 1}
+        {
+          number   => 1001,
+          project  => 'P1001',
+          type     => 'smelt',
+          packages => ['pkg1'],
+          channels => ['Test'],
+          isActive => 1
+        },
+        {
+          number   => 1002,
+          project  => 'P1002',
+          type     => 'smelt',
+          packages => ['pkg2'],
+          channels => ['Test'],
+          isActive => 1
+        }
       ]
     );
 
-    my $inc1001_id = $incs->id_for_number(1001);
-    my $inc1002_id = $incs->id_for_number(1002);
+    my $inc1001_id = $incs->ids_for({number => 1001, project => 'P1001', type => 'smelt'})->[0];
+    my $inc1002_id = $incs->ids_for({number => 1002, project => 'P1002', type => 'smelt'})->[0];
 
     # Both incidents in the same update
     my $update_settings_id = $settings->add_update_settings(
@@ -143,21 +161,24 @@ subtest 'Dashboard::Model::Incidents' => sub {
     is $res1002->{"100 f v"}{passed}, 1,     'Incident 1002 sees generic job';
 
     # rr_number change
-    $incs->update({%$mock_incident, number => 1001, rr_number => 100});
-    is $incs->incident_for_number(1001)->{rr_number}, 100, 'rr_number updated';
-    $incs->update({%$mock_incident, number => 1001, rr_number => 200});
-    is $incs->incident_for_number(1001)->{rr_number}, 200, 'rr_number changed again';
+    $incs->update({%$mock_incident, number => 1001, project => 'P1001', rr_number => 100});
+    is $incs->incident_for({number => 1001, project => 'P1001', type => 'smelt'})->{rr_number}, 100,
+      'rr_number updated';
+    $incs->update({%$mock_incident, number => 1001, project => 'P1001', rr_number => 200});
+    is $incs->incident_for({number => 1001, project => 'P1001', type => 'smelt'})->{rr_number}, 200,
+      'rr_number changed again';
 
     # Map undef
     is $incs->_map(undef), undef, '_map returns undef for undef input';
 
     # Sync without types
     $incs->sync([$mock_incident]);
-    ok $incs->incident_for_number(16860), 'sync works without types';
+    ok $incs->incident_for({number => 16860, project => 'SUSE:Maintenance:16860', type => 'smelt'}),
+      'sync works without types';
 
     # Sync WITH types
-    $incs->sync([{%$mock_incident, type => 'ibs'}], ['ibs', 'obs']);
-    is $incs->incident_for_number(16860)->{type}, 'ibs', 'sync works with types';
+    $incs->sync([{%$mock_incident, number => 1001, project => 'P1001', type => 'ibs'}], ['ibs', 'obs']);
+    is $incs->incident_for({number => 1001, project => 'P1001', type => 'ibs'})->{type}, 'ibs', 'sync works with types';
 
     # Channel removal
     $incs->update({%$mock_incident, number => 16860, channels => ['Test', 'NewChannel']});
@@ -166,11 +187,10 @@ subtest 'Dashboard::Model::Incidents' => sub {
     is scalar(@{$incs->find({number => 16860})->[0]{channels}}), 1, 'channel removed';
 
     # Missing optional fields
-    $incs->update({%$mock_incident, number => 16860, scminfo => undef, url => undef, type => undef});
+    $incs->update({%$mock_incident, number => 16860, scminfo => undef, url => undef});
     my $inc = $incs->find({number => 16860})->[0];
     is $inc->{scminfo}, '', 'scminfo default';
     is $inc->{url},     '', 'url default';
-    is $inc->{type},    '', 'type default';
 
     # Providing optional fields
     $incs->update({%$mock_incident, number => 16860, scminfo => 'git://foo', url => 'https://bar'});
@@ -181,21 +201,28 @@ subtest 'Dashboard::Model::Incidents' => sub {
     # rr_number NOT changed
     $incs->update({%$mock_incident, number => 16860, rr_number => 100});
     $incs->update({%$mock_incident, number => 16860, rr_number => 100});
-    is $incs->incident_for_number(16860)->{rr_number}, 100, 'rr_number unchanged';
+    is $incs->incident_for({number => 16860, project => 'SUSE:Maintenance:16860', type => 'smelt'})->{rr_number}, 100,
+      'rr_number unchanged';
 
     # rr_number undef
     $incs->update({%$mock_incident, number => 16860, rr_number => undef});
-    is $incs->incident_for_number(16860)->{rr_number}, undef, 'rr_number undef works';
+    is $incs->incident_for({number => 16860, project => 'SUSE:Maintenance:16860', type => 'smelt'})->{rr_number},
+      undef, 'rr_number undef works';
 
-    $incs->update_rejection_reason(16860, 'Needs investigation');
-    is $incs->incident_for_number(16860)->{rejection_reason}, 'Needs investigation', 'rejection reason was updated';
+    $incs->update_rejection_reason(
+      $incs->incident_for({number => 16860, project => 'SUSE:Maintenance:16860', type => 'smelt'})->{id},
+      'Needs investigation');
+    is $incs->incident_for({number => 16860, project => 'SUSE:Maintenance:16860', type => 'smelt'})->{rejection_reason},
+      'Needs investigation', 'rejection reason was updated';
+    is $incs->incident_for({number => 16860, project => 'SUSE:Maintenance:16860', type => 'smelt'})->{rr_number},
+      undef, 'rr_number undef works';
   };
 
   subtest '_incident_openqa_jobs branch coverage' => sub {
     my $incs     = $t->app->incidents;
     my $settings = $t->app->settings;
     my $jobs     = $t->app->jobs;
-    my $inc      = $incs->incident_for_number(16860);
+    my $inc      = $incs->incident_for({number => 16860, project => 'SUSE:Maintenance:16860', type => 'smelt'});
 
     # Add another job with same group_id (282)
     $jobs->add(
@@ -220,7 +247,7 @@ subtest 'Dashboard::Model::Incidents' => sub {
     my $incs = $t->app->incidents;
 
     # Fixture: group 55 has one job failed+remarked "acceptable_for" for 16860 and one job genuinely passed
-    my $inc_16860     = $incs->incident_for_number(16860);
+    my $inc_16860     = $incs->incident_for({number => 16860, project => 'SUSE:Maintenance:16860', type => 'smelt'});
     my $res_16860     = $incs->_incident_openqa_jobs($inc_16860);
     my $upd_res_16860 = $incs->_update_openqa_jobs($inc_16860);
     is $res_16860->{55}{accepted}, 1,     'remarked job counts as accepted for incident 16860';
@@ -230,7 +257,7 @@ subtest 'Dashboard::Model::Incidents' => sub {
       'update jobs see the same remarked job as accepted';
 
     # The remark is scoped to 16860 only, so 29722 (sharing the same job) must still see the genuine failure
-    my $inc_29722 = $incs->incident_for_number(29722);
+    my $inc_29722 = $incs->incident_for({number => 29722, project => 'SUSE:Maintenance:29722 ', type => 'smelt'});
     my $res_29722 = $incs->_update_openqa_jobs($inc_29722);
     is $res_29722->{'55 Server-DVD-Incidents 12-SP6'}{failed}, 1, 'incident 29722 still sees the real failure';
     is $res_29722->{'55 Server-DVD-Incidents 12-SP6'}{accepted}, undef,
@@ -265,7 +292,7 @@ subtest 'Dashboard::Model::Incidents' => sub {
   subtest 'openqa_summary_only_aggregates branch coverage' => sub {
     my $incs     = $t->app->incidents;
     my $settings = $t->app->settings;
-    my $inc      = $incs->incident_for_number(16860);
+    my $inc      = $incs->incident_for({number => 16860, project => 'SUSE:Maintenance:16860', type => 'smelt'});
 
     # Add another update for 16860 with an existing build number (20201107-1)
     $settings->add_update_settings([$inc->{id}],
@@ -287,7 +314,7 @@ subtest 'Dashboard::Model::Incidents' => sub {
 
   subtest 'channels_for_incident' => sub {
     my $incs = $t->app->incidents;
-    my $inc  = $incs->incident_for_number(16860);
+    my $inc  = $incs->incident_for({number => 16860, project => 'SUSE:Maintenance:16860', type => 'smelt'});
     is scalar(@{$incs->channels_for_incident($inc->{id})}), 1, 'returns channels for existing incident';
   };
 
@@ -303,7 +330,7 @@ subtest 'Dashboard::Model::Incidents' => sub {
       'single update with no jobs returns empty hash';
 
     my $jobs = $t->app->jobs;
-    my $inc  = $incs->incident_for_number(16860);
+    my $inc  = $incs->incident_for({number => 16860, project => 'SUSE:Maintenance:16860', type => 'smelt'});
     $jobs->add(
       {
         incident_settings => 1,
@@ -340,17 +367,21 @@ subtest 'Dashboard::Model::Incidents' => sub {
     is $incs->{_blocked_cache}, undef, 'clear_blocked_cache removes cached response';
 
     $incs->blocked;
-    $incs->update({number => 16860, project => 'SUSE:Maintenance:16860', packages => ['pkg1']});
+    $incs->update({number => 16860, project => 'SUSE:Maintenance:16860', type => 'smelt', packages => ['pkg1']});
     is $incs->{_blocked_cache}, undef, 'update invalidates blocked cache';
 
     $incs->blocked;
-    $incs->sync([{number => 16860, project => 'SUSE:Maintenance:16860', packages => ['pkg1'], isActive => 1}]);
+    $incs->sync(
+      [{number => 16860, project => 'SUSE:Maintenance:16860', type => 'smelt', packages => ['pkg1'], isActive => 1}]);
     is $incs->{_blocked_cache}, undef, 'sync invalidates blocked cache';
 
     $incs->blocked;
-    $incs->update_rejection_reason(16860, 'Needs investigation');
+    $incs->update_rejection_reason(
+      $incs->incident_for({number => 16860, project => 'SUSE:Maintenance:16860', type => 'smelt'})->{id},
+      'Needs investigation');
     is $incs->{_blocked_cache}, undef, 'update_rejection_reason invalidates blocked cache';
-    is $incs->incident_for_number(16860)->{rejection_reason}, 'Needs investigation', 'rejection reason was updated';
+    is $incs->incident_for({number => 16860, project => 'SUSE:Maintenance:16860', type => 'smelt'})->{rejection_reason},
+      'Needs investigation', 'rejection reason was updated';
 
     $incs->clear_blocked_cache;
     $incs->blocked_cache_ttl(0);

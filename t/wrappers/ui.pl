@@ -34,7 +34,9 @@ $r->get(
 
 $r->get(
   '/reject_incident' => sub ($c) {
-    $c->incidents->update_rejection_reason(16860, 'missing aggregates');
+    $c->incidents->update_rejection_reason(
+      $c->incidents->ids_for({number => 16860, project => 'SUSE:Maintenance:16860'})->[0],
+      'missing aggregates');
     $c->render(text => 'ok');
   }
 );

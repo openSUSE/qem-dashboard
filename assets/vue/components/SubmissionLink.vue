@@ -2,7 +2,7 @@
   <div class="d-flex align-items-center">
     <router-link
       class="submission-link me-1"
-      :to="{name: 'submission', params: {id: incident.number}}"
+      :to="{name: 'submission', params: {id: incident.number}, query: submissionQuery}"
       :title="highPriority ? 'Submission with priority > 650: Focus on review and consider manual approval' : ''"
     >
       {{ incident.number }}:{{ packageName }}
@@ -34,6 +34,11 @@ const props = defineProps({
 const copied = ref(false);
 
 const packageName = computed(() => props.incident.packages[0]);
+
+const submissionQuery = computed(() => ({
+  project: props.incident.project,
+  type: props.incident.type
+}));
 
 const copyToClipboard = async () => {
   try {

@@ -222,8 +222,8 @@ subtest 'Blocked status' => sub {
 
   # Insert an incident that should appear in /blocked
   $t->app->pg->db->query(
-    'INSERT INTO incidents (number, project, packages, active, approved, review_qam, rr_number, review)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?)', 12345, 'SUSE:Maintenance:12345', ['pkg1'], 1, 0, 1, 100, 1
+    'INSERT INTO incidents (number, project, type, packages, active, approved, review_qam, rr_number, review)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', 12345, 'SUSE:Maintenance:12345', 'smelt', ['pkg1'], 1, 0, 1, 100, 1
   );
 
   stderr_like {

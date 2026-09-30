@@ -45,7 +45,10 @@ const smelt = computed(() => configStore.smeltUrl);
       </tr>
     </thead>
     <tbody>
-      <tr v-for="submission in testingSubmissions" :key="submission.number">
+      <tr
+        v-for="submission in testingSubmissions"
+        :key="`${submission.number}:${submission.project}:${submission.type}`"
+      >
         <td><SubmissionLink :incident="submission" /></td>
         <td>
           <a :href="'/blocked#' + submission.number">
@@ -53,11 +56,17 @@ const smelt = computed(() => configStore.smeltUrl);
           </a>
         </td>
       </tr>
-      <tr v-for="submission in stagedSubmissions" :key="submission.number">
+      <tr
+        v-for="submission in stagedSubmissions"
+        :key="`${submission.number}:${submission.project}:${submission.type}`"
+      >
         <td><SubmissionLink :incident="submission" /></td>
         <td><span class="badge bg-secondary">staged</span></td>
       </tr>
-      <tr v-for="submission in approvedSubmissions" :key="submission.number">
+      <tr
+        v-for="submission in approvedSubmissions"
+        :key="`${submission.number}:${submission.project}:${submission.type}`"
+      >
         <td><SubmissionLink :incident="submission" /></td>
         <td><span class="badge bg-success">approved</span></td>
       </tr>

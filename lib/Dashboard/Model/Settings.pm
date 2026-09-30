@@ -45,18 +45,19 @@ sub add_update_settings ($self, $incident_ids, $settings) {
 
 sub find_update_settings ($self, $options) {
   return $self->pg->db->query(
-    'SELECT ios.id as id, ARRAY_AGG(number) AS incidents, product, arch, build, repohash, ios.settings
+    "SELECT ios.id as id, JSON_AGG(JSON_BUILD_OBJECT('number', i.number, 'project', i.project, 'type', i.type)) AS incidents,
+            product, arch, build, repohash, ios.settings
      FROM update_openqa_settings ios INNER JOIN incident_in_update iiu ON iiu.settings = ios.id
        INNER JOIN incidents i ON i.id = iiu.incident
      WHERE product = ? AND arch = ?
      GROUP BY product, arch, build, repohash, ios.settings, ios.id
-     ORDER BY ios.id DESC LIMIT ?', $options->{product}, $options->{arch}, $options->{limit} || 50
+     ORDER BY ios.id DESC LIMIT ?", $options->{product}, $options->{arch}, $options->{limit} || 50
   )->expand->hashes->to_array;
 }
 
 sub get_incident_settings ($self, $incident_id) {
   return $self->pg->db->query(
-    'SELECT ios.id as id, number AS incident, version, flavor, arch, with_aggregate, settings
+    'SELECT ios.id as id, i.number AS incident, i.project, i.type, version, flavor, arch, with_aggregate, settings
      FROM incident_openqa_settings ios JOIN incidents i ON ios.incident = i.id
      WHERE i.id = ?
      ORDER BY ios.id DESC', $incident_id
@@ -65,12 +66,13 @@ sub get_incident_settings ($self, $incident_id) {
 
 sub get_update_settings ($self, $incident_id) {
   return $self->pg->db->query(
-    'SELECT ios.id as id, ARRAY_AGG(number) AS incidents, product, arch, build, repohash, ios.settings
+    "SELECT ios.id as id, JSON_AGG(JSON_BUILD_OBJECT('number', i.number, 'project', i.project, 'type', i.type)) AS incidents,
+            product, arch, build, repohash, ios.settings
      FROM update_openqa_settings ios INNER JOIN incident_in_update iiu ON iiu.settings = ios.id
        INNER JOIN incidents i ON i.id = iiu.incident
      WHERE i.id = ?
      GROUP BY product, arch, build, repohash, ios.settings, ios.id
-     ORDER BY ios.id DESC', $incident_id
+     ORDER BY ios.id DESC", $incident_id
   )->expand->hashes->to_array;
 }
 
