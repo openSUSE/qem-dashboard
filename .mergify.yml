@@ -1,16 +1,4 @@
 ---
-merge_queue:
-  max_parallel_checks: 1
-  status_comments: none
-  queue_controls_comment: false
-
-queue_rules:
-  - name: default
-    batch_size: 1
-    update_method: rebase
-    update_bot_account: suse-qe-tools-mergify
-    merge_method: squash
-
 pull_request_rules:
   - name: automatic merge
     conditions:
@@ -18,7 +6,10 @@ pull_request_rules:
         - base=main
         - -label~=^acceptance-tests-needed|not-ready
         - '-check-failure ~= ^(?!(Rule:|Mergify|Summary))'
-        - "#check-pending=0"
+        - '-check-pending ~= ^(?!(Rule:|Mergify|Summary))'
+        - check-success=only-test
+        - check-success=checkstyle-perl
+        - check-success=checkstyle-npm
         - linear-history
       - and:
         - "#approved-reviews-by>=2"
@@ -45,11 +36,18 @@ pull_request_rules:
         # one from the base checks
         - base=main
         - author=dependabot[bot]
-    actions:
-      queue:
+    actions: *merge
+  # dependabot only rebases on conflicts, not when merely behind main
+  - name: rebase green dependabot updates behind main
+    conditions:
+      - and: *base_checks
+      - and:
+        - author=dependabot[bot]
+        - "#commits-behind>0"
+    actions: &rebase
+      rebase:
+        bot_account: suse-qe-tools-mergify
   - name: continuously rebase pull requests when it's labeled with `rebase`
     conditions:
       - label=rebase
-    actions:
-      rebase:
-        bot_account: suse-qe-tools-mergify
+    actions: *rebase
