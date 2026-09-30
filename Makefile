@@ -104,38 +104,17 @@ check-audits-cpan: ## Run security audits for Perl dependencies
 	#   See https://github.com/mojolicious/mojo/pull/2200
 	# CPANSA-File-Temp-2011-4116: CVE-2011-4116
 	#   See https://github.com/Perl-Toolchain-Gang/File-Temp/issues/14
-	# CPANSA-YAML-LibYAML-2025-001: CVE-2025-40908 (path traversal)
-	#   See https://github.com/ingydotnet/yaml-libyaml-pm/issues/120
-	# CPANSA-YAML-LibYAML-2012-1152, CPANSA-YAML-LibYAML-2014-9130, CPANSA-YAML-LibYAML-2016-01:
-	#   See https://github.com/ingydotnet/yaml-libyaml-pm/issues/45
-	# CPANSA-Compress-Raw-Zlib-2026-3381, CPANSA-perl-2026-4176: CVE-2026-3381
-	#   See https://www.cve.org/CVERecord?id=CVE-2026-27171
-	# CPANSA-HTTP-Tiny-2026-7010: CVE-2026-7010 (CRLF injection)
-	#   See https://github.com/Perl-Toolchain-Gang/HTTP-Tiny/commit/d73c7651e82ace02693842df55928b6c3ae7c38d.patch
 	# CPANSA-perl-2026-8376: CVE-2026-8376 heap buffer overflow on 32-bit builds (not applicable)
 	#   See https://github.com/Perl/perl5/commit/5e7f119eb2bb1181be908701f22bf7068e722f1c.patch
-	# CPANSA-IO-Compress-2025-15649, CPANSA-IO-Compress-2026-48959, CPANSA-IO-Compress-2026-48961, CPANSA-IO-Compress-2026-48962:
-	#   CVE-2025-15649, CVE-2026-48959, CVE-2026-48961, CVE-2026-48962 (not exploitable/not used)
-	#   See https://github.com/pmqs/IO-Compress/commit/fd28c1d2374eee9811f6d0c5bddc0957abdf1da8.patch
-	# CPANSA-Cpanel-JSON-XS-2026-9516, CPANSA-Cpanel-JSON-XS-2026-9334:
-	#   CVE-2026-9516, CVE-2026-9334 (not exploitable)
-	#   See https://github.com/rurban/Cpanel-JSON-XS/commit/dfe1b41a36caba51dc12a2917fe50285d1ffaa7b.patch
 	# CPANSA-Archive-Tar-2026-42496, CPANSA-Archive-Tar-2026-9538, CPANSA-Archive-Tar-2026-42497:
 	#   CVE-2026-42496, CVE-2026-9538, CVE-2026-42497 (transitive / not extracting untrusted archives)
 	#   See https://github.com/jib/archive-tar-new/commit/17c873492a05eddc0de18c1485e0b2cccd5a9158.patch
-	# CPANSA-Mojolicious-2026-15747, CPANSA-Mojolicious-2026-14803, CPANSA-Mojolicious-2026-68914, CPANSA-Mojolicious-2026-77568:
-	#   CVE-2026-15747, CVE-2026-14803, CVE-2026-68914, CVE-2026-77568 (Mojo::JSON fallback not used / BREACH mitigated)
-	#   See https://github.com/mojolicious/mojo/commit/01921fbbbbeca2d1397e082d4a647f9b84c24e27.patch
-	#   See https://github.com/mojolicious/mojo/commit/cc38b0554275c4d84f6b8b49bcbbc1bec2068fe1.patch
 	# CPANSA-Socket-2026-12087:
 	#   CVE-2026-12087 (out-of-bounds heap read / not used)
 	#   See https://github.com/Perl/perl5/commit/de19a0b0ad1900fef976c5c1400bd8f11ec6c6cb.patch
 	# CPANSA-Storable-2026-57433:
 	#   CVE-2026-57433 (signed integer overflow wrap / not deserializing untrusted data with Storable)
 	#   See https://github.com/Perl/perl5/commit/e4f681784bcdeaa91ff02a2fa4cdcae5c46779d7.patch
-	# CPANSA-HTTP-Tiny-2026-7017:
-	#   CVE-2026-7017 (credential forwarding on redirect / not following untrusted redirects)
-	#   See https://github.com/Perl-Toolchain-Gang/HTTP-Tiny/commit/84984ef3930ddd4afcf5eb83b40d3cee200739c3.patch
 	# CPANSA-perl-2026-13221, CPANSA-perl-2026-57432:
 	#   CVE-2026-13221, CVE-2026-57432 (regex alternation trie overflow, pack template overflow / not applicable)
 	#   See https://github.com/Perl/perl5/commit/03f74bbbd3a68350d926ee93d56ee4808c28c4c7.patch
@@ -151,30 +130,13 @@ check-audits-cpan: ## Run security audits for Perl dependencies
 		--exclude CPANSA-Mojolicious-2024-58134 \
 		--exclude CPANSA-Mojolicious-2024-58135 \
 		--exclude CPANSA-File-Temp-2011-4116 \
-		--exclude CPANSA-YAML-LibYAML-2025-001 \
-		--exclude CPANSA-YAML-LibYAML-2012-1152 \
-		--exclude CPANSA-YAML-LibYAML-2014-9130 \
-		--exclude CPANSA-YAML-LibYAML-2016-01 \
-		--exclude CPANSA-Compress-Raw-Zlib-2026-3381 \
 		--exclude CPANSA-perl-2026-4176 \
-		--exclude CPANSA-HTTP-Tiny-2026-7010 \
 		--exclude CPANSA-perl-2026-8376 \
-		--exclude CPANSA-IO-Compress-2025-15649 \
-		--exclude CPANSA-IO-Compress-2026-48959 \
-		--exclude CPANSA-IO-Compress-2026-48961 \
-		--exclude CPANSA-IO-Compress-2026-48962 \
-		--exclude CPANSA-Cpanel-JSON-XS-2026-9516 \
-		--exclude CPANSA-Cpanel-JSON-XS-2026-9334 \
 		--exclude CPANSA-Archive-Tar-2026-42496 \
 		--exclude CPANSA-Archive-Tar-2026-9538 \
 		--exclude CPANSA-Archive-Tar-2026-42497 \
-		--exclude CPANSA-Mojolicious-2026-15747 \
-		--exclude CPANSA-Mojolicious-2026-14803 \
-		--exclude CPANSA-Mojolicious-2026-68914 \
-		--exclude CPANSA-Mojolicious-2026-77568 \
 		--exclude CPANSA-Socket-2026-12087 \
 		--exclude CPANSA-Storable-2026-57433 \
-		--exclude CPANSA-HTTP-Tiny-2026-7017 \
 		--exclude CPANSA-perl-2026-13221 \
 		--exclude CPANSA-perl-2026-57432 \
 		--exclude CPANSA-perl-2026-15534 \
