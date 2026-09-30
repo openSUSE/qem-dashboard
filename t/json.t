@@ -71,7 +71,7 @@ subtest 'List incidents' => sub {
             "rr_number"        => 230066,
             "scminfo"          => "",
             "url"              => "",
-            "type"             => "",
+            "type"             => "smelt",
             "rejection_reason" => undef,
           },
           {
@@ -89,7 +89,7 @@ subtest 'List incidents' => sub {
             "rr_number"        => undef,
             "scminfo"          => "",
             "url"              => "",
-            "type"             => "",
+            "type"             => "smelt",
             "rejection_reason" => undef,
           },
           {
@@ -107,7 +107,7 @@ subtest 'List incidents' => sub {
             "rr_number"        => undef,
             "scminfo"          => "",
             "url"              => "",
-            "type"             => "",
+            "type"             => "smelt",
             "rejection_reason" => undef,
           },
           {
@@ -141,7 +141,7 @@ subtest 'List incidents' => sub {
             "rr_number"        => 302772,
             "scminfo"          => "",
             "url"              => "",
-            "type"             => "",
+            "type"             => "smelt",
             "rejection_reason" => undef,
           },
           {
@@ -194,7 +194,7 @@ subtest 'Blocked by Tests' => sub {
               "rr_number"        => 230066,
               "scminfo"          => "",
               "url"              => "",
-              "type"             => "",
+              "type"             => "smelt",
               "rejection_reason" => undef,
             },
             "incident_results" => {
@@ -262,7 +262,7 @@ subtest 'Blocked by Tests' => sub {
               "rr_number"        => 302772,
               "scminfo"          => "",
               "url"              => "",
-              "type"             => "",
+              "type"             => "smelt",
               "rejection_reason" => undef,
             },
             "incident_results" => {},
@@ -342,8 +342,20 @@ subtest 'Test Repos' => sub {
         ->json_is(
         '/repos/Server-DVD-Incidents-12-SP5-x86_64/incidents' => [
 
-          {"id" => 1, "number" => 16860, "packages" => ['perl-Mojolicious']},
-          {"id" => 2, "number" => 16861, "packages" => ['perl-Minion', 'perl-Mojo-Pg']}
+          {
+            "id"       => 1,
+            "number"   => 16860,
+            "project"  => "SUSE:Maintenance:16860",
+            "type"     => "smelt",
+            "packages" => ['perl-Mojolicious']
+          },
+          {
+            "id"       => 2,
+            "number"   => 16861,
+            "project"  => "SUSE:Maintenance:16861",
+            "type"     => "smelt",
+            "packages" => ['perl-Minion', 'perl-Mojo-Pg']
+          }
         ]
         )->json_is(
         '/repos/Server-DVD-Incidents-12-SP5-x86_64/summaries' => [
@@ -394,7 +406,7 @@ subtest 'Test Repos' => sub {
 subtest 'Incident Details' => sub {
   $stderr_test->(
     sub {
-      $t->get_ok('/app/api/incident/16860' => {Accept => 'application/json'})
+      $t->get_ok('/app/api/incident/16860?project=SUSE:Maintenance:16860&type=smelt' => {Accept => 'application/json'})
         ->status_is(200)
         ->json_has('/last_updated')
         ->status_is(200)
@@ -415,7 +427,7 @@ subtest 'Incident Details' => sub {
           "rr_number"        => 230066,
           "scminfo"          => "",
           "url"              => "",
-          "type"             => "",
+          "type"             => "smelt",
           "rejection_reason" => undef,
         }
         )
@@ -505,6 +517,14 @@ subtest 'Incident Details' => sub {
         )
         ->json_is('/details/incident_summary' => {waiting => 1, failed => 2, passed => 2})
         ->json_is('/details/build_nr'         => '20250317-1');
+
+      $t->get_ok('/app/api/incident/99999?project=SUSE:Maintenance:99999&type=smelt' => {Accept => 'application/json'})
+        ->status_is(404)
+        ->json_is('/error', 'Incident not found');
+
+      $t->get_ok('/app/api/incident/16860' => {Accept => 'application/json'})
+        ->status_is(400)
+        ->json_is('/error', 'Missing project and type');
     },
     'access log caught'
   );

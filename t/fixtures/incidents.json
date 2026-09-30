@@ -2,6 +2,7 @@
   {
     "number": 16860,
     "project": "SUSE:Maintenance:16860",
+    "type": "smelt",
     "packages": ["perl-Mojolicious"],
     "channels": ["Test"],
     "rr_number": 230066,
@@ -16,6 +17,7 @@
   {
     "number": 16861,
     "project": "SUSE:Maintenance:16861",
+    "type": "smelt",
     "packages": ["perl-Minion", "perl-Mojo-Pg"],
     "channels": ["Test"],
     "rr_number": null,
@@ -30,6 +32,7 @@
   {
     "number": 16862,
     "project": "SUSE:Maintenance:16862",
+    "type": "smelt",
     "packages": ["curl"],
     "channels": ["Test"],
     "rr_number": null,
@@ -44,6 +47,7 @@
   {
     "number": 29722,
     "project": "SUSE:Maintenance:29722 ",
+    "type": "smelt",
     "packages": ["multipath-tools"],
     "channels": [
       "SUSE:Updates:openSUSE-SLE:15.4",

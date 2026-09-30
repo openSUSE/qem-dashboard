@@ -27,7 +27,7 @@ my $auth_headers = {Authorization => 'Token test_token', Accept => 'application/
 #  $dashboard_test->cleanup_fixtures($t->app);
 #
 #  subtest 'One aggregate job is still recent and cannot be cleaned up' => sub {
-#    $t->get_ok('/app/api/incident/16861')->status_is(200)->json_is('/details/incident/number', 16861)
+#    $t->get_ok('/app/api/incident/16861?project=SUSE:Maintenance:16861&type=smelt')->status_is(200)->json_is('/details/incident/number', 16861)
 #      ->json_is('/details/incident/packages', ['perl-Minion', 'perl-Mojo-Pg'])->json_has('/details/jobs/20201107-1')
 #      ->json_has('/details/jobs/20201107-2')->json_has('/details/jobs/20201108-1')
 #      ->json_is('/details/incident_summary', {passed => 1});
@@ -49,7 +49,7 @@ my $auth_headers = {Authorization => 'Token test_token', Accept => 'application/
 #      ]
 #    )->status_is(200)->json_is({message => 'Ok'});
 #
-#    $t->get_ok('/app/api/incident/16861')->status_is(200)->json_is('/details/incident/number', 16861)
+#    $t->get_ok('/app/api/incident/16861?project=SUSE:Maintenance:16861&type=smelt')->status_is(200)->json_is('/details/incident/number', 16861)
 #      ->json_is('/details/incident/packages', ['perl-Minion', 'perl-Mojo-Pg'])->json_has('/details/jobs/20201107-1')
 #      ->json_has('/details/jobs/20201107-2')->json_hasnt('/details/jobs/20201108-1')
 #      ->json_is('/details/incident_summary', {passed => 1});
@@ -75,7 +75,7 @@ my $auth_headers = {Authorization => 'Token test_token', Accept => 'application/
 #      ]
 #    )->status_is(200)->json_is({message => 'Ok'});
 #
-#    $t->get_ok('/app/api/incident/16861')->status_is(200)->json_is('/details/incident/number', 16861)
+#    $t->get_ok('/app/api/incident/16861?project=SUSE:Maintenance:16861&type=smelt')->status_is(200)->json_is('/details/incident/number', 16861)
 #     ->json_is('/details/incident/packages', ['perl-Minion', 'perl-Mojo-Pg'])->json_has('/details/jobs/20201107-1')
 #      ->json_hasnt('/details/jobs/20201107-2')->json_hasnt('/details/jobs/20201108-1')
 #      ->json_is('/details/incident_summary', {passed => 1});
@@ -109,6 +109,7 @@ subtest 'Clean up jobs after rr_number change (during sync)' => sub {
         {
           number      => 16861,
           project     => 'SUSE:Maintenance:16861',
+          type        => 'smelt',
           packages    => ['perl-Minion', 'perl-Mojo-Pg'],
           channels    => ['Test'],
           rr_number   => 230067,
@@ -123,7 +124,7 @@ subtest 'Clean up jobs after rr_number change (during sync)' => sub {
       ]
     )->status_is(200)->json_is({message => 'Ok'});
 
-    $t->get_ok('/app/api/incident/16860')
+    $t->get_ok('/app/api/incident/16860?project=SUSE:Maintenance:16860&type=smelt')
       ->status_is(200)
       ->json_is('/details/incident/number',   16860)
       ->json_is('/details/incident/packages', ['perl-Mojolicious'])
@@ -131,7 +132,7 @@ subtest 'Clean up jobs after rr_number change (during sync)' => sub {
       ->json_has('/details/jobs/20201107-2')
       ->json_has('/details/jobs/20201108-1')
       ->json_is('/details/incident_summary', {passed => 2, failed => 2, waiting => 1});
-    $t->get_ok('/app/api/incident/16861')
+    $t->get_ok('/app/api/incident/16861?project=SUSE:Maintenance:16861&type=smelt')
       ->status_is(200)
       ->json_is('/details/incident/number',   16861)
       ->json_is('/details/incident/packages', ['perl-Minion', 'perl-Mojo-Pg'])
@@ -139,7 +140,7 @@ subtest 'Clean up jobs after rr_number change (during sync)' => sub {
       ->json_has('/details/jobs/20201107-2')
       ->json_has('/details/jobs/20201108-1')
       ->json_is('/details/incident_summary', {passed => 1});
-    $t->get_ok('/app/api/incident/16862')
+    $t->get_ok('/app/api/incident/16862?project=SUSE:Maintenance:16862&type=smelt')
       ->status_is(200)
       ->json_is('/details/incident/number',   16862)
       ->json_is('/details/incident/packages', ['curl'])
@@ -150,6 +151,7 @@ subtest 'Clean up jobs after rr_number change (during sync)' => sub {
         {
           number      => 16861,
           project     => 'SUSE:Maintenance:16861',
+          type        => 'smelt',
           packages    => ['perl-Minion', 'perl-Mojo-Pg'],
           channels    => ['Test'],
           rr_number   => 230068,
@@ -164,7 +166,7 @@ subtest 'Clean up jobs after rr_number change (during sync)' => sub {
       ]
     )->status_is(200)->json_is({message => 'Ok'});
 
-    $t->get_ok('/app/api/incident/16860')
+    $t->get_ok('/app/api/incident/16860?project=SUSE:Maintenance:16860&type=smelt')
       ->status_is(200)
       ->json_is('/details/incident/number',   16860)
       ->json_is('/details/incident/packages', ['perl-Mojolicious'])
@@ -172,7 +174,7 @@ subtest 'Clean up jobs after rr_number change (during sync)' => sub {
       ->json_has('/details/jobs/20201107-2')
       ->json_has('/details/jobs/20201108-1')
       ->json_is('/details/incident_summary', {passed => 2, failed => 2, waiting => 1});
-    $t->get_ok('/app/api/incident/16861')
+    $t->get_ok('/app/api/incident/16861?project=SUSE:Maintenance:16861&type=smelt')
       ->status_is(200)
       ->json_is('/details/incident/number',   16861)
       ->json_is('/details/incident/packages', ['perl-Minion', 'perl-Mojo-Pg'])
@@ -180,7 +182,7 @@ subtest 'Clean up jobs after rr_number change (during sync)' => sub {
       ->json_hasnt('/details/jobs/20201107-2')
       ->json_hasnt('/details/jobs/20201108-1')
       ->json_is('/details/incident_summary', {});
-    $t->get_ok('/app/api/incident/16862')
+    $t->get_ok('/app/api/incident/16862?project=SUSE:Maintenance:16862&type=smelt')
       ->status_is(200)
       ->json_is('/details/incident/number',   16862)
       ->json_is('/details/incident/packages', ['curl'])

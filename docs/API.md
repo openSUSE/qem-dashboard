@@ -81,6 +81,12 @@ Content-Encoding: gzip
 
 ### Incidents
 
+An incident is uniquely identified by the combination of its `number`, `project` and `type`. The same number may be
+used by several incidents as long as they belong to different projects or types (e.g. a git PR number reused across
+repositories). Every incident must have a non-empty `project` and `type`.
+
+Endpoints addressing a single incident by number therefore require both the `project` and the `type`.
+
 `GET /api/incidents`
 
 All active incidents in JSON format.
@@ -122,11 +128,13 @@ Content-Type: application/json
 
 `GET /api/incidents/<incident_number>`
 
-Get a specific active incident in JSON format.
+Get a specific incident in JSON format, including inactive or historical ones.
 
 **Request parameters:**
 
-None
+- `project` (required): The project of the incident.
+
+- `type` (required): The type of the incident.
 
 **Request body:**
 
@@ -158,11 +166,16 @@ Content-Type: application/json
 
 `PATCH /api/incidents`
 
-Update incident data from IBS/SMELT. Old incidents that are no longer included will be considered inactive.
+Update incident data from IBS/SMELT.
+
+The body is the complete set of incidents for the covered types: incidents of those types that are missing from it
+are deactivated, and every incident in the body is stored with its own `isActive`. Incidents are matched on their
+`number`, `project` and `type`. For `git` the scope is narrowed to the projects present in the body, so `git` incidents
+of other projects are left untouched.
 
 **Request parameters:**
 
-None
+- `type` (repeatable, optional): the incident types this batch covers. Defaults to `smelt`.
 
 **Request body:**
 
@@ -243,7 +256,9 @@ Get incident openQA settings.
 
 **Request parameters:**
 
-None
+- `project` (required): The project of the incident.
+
+- `type` (required): The type of the incident.
 
 **Request body:**
 
@@ -256,6 +271,8 @@ None
   {
     "id": 7,
     "incident": 16860,
+    "project": "SUSE:Maintenance:16860",
+    "type": "smelt",
     "version": "12-SP2",
     "flavor": "Server-DVD-HA-Incidents-Install",
     "arch": "x86_64",
@@ -285,6 +302,8 @@ None
 ```
 {
   "incident": 16860,
+  "project": "SUSE:Maintenance:16860",
+  "type": "smelt",
   "version": "12-SP2",
   "flavor": "Server-DVD-HA-Incidents-Install",
   "arch": "x86_64",
@@ -317,7 +336,9 @@ Get update openQA settings.
 
 **Request parameters:**
 
-None
+- `project` (required): The project of the incident.
+
+- `type` (required): The type of the incident.
 
 **Request body:**
 
@@ -329,7 +350,7 @@ None
 [
   {
     "id": 23,
-    "incidents": [16861],
+    "incidents": [{"number": 16861, "project": "SUSE:Maintenance:16861", "type": "smelt"}],
     "product": "SLES-15-GA",
     "arch": "x86_64",
     "build": "20201107-1",
@@ -374,7 +395,7 @@ None
 [
   {
     "id": 1,
-    "incidents": [16861],
+    "incidents": [{"number": 16861, "project": "SUSE:Maintenance:16861", "type": "smelt"}],
     "product": "SLES-15-GA",
     "arch": "x86_64",
     "build": "20201107-1",
@@ -393,7 +414,8 @@ None
 
 `PUT /api/update_settings`
 
-Add update openQA settings. Returns the internal dashboard id required for the creation of jobs.
+Add update openQA settings. Returns the internal dashboard id required for the creation of jobs. Each entry of
+`incidents` requires `number`, `project` and `type`.
 
 **Request parameters:**
 
@@ -403,7 +425,7 @@ None
 
 ```
 {
-  "incidents": [16861],
+  "incidents": [{"number": 16861, "project": "SUSE:Maintenance:16861", "type": "smelt"}],
   "product": "SLES-15-GA",
   "arch": "x86_64",
   "build": "20201107-1",
@@ -625,11 +647,15 @@ None
   "remarks": [
     {
       "text": "foo",
-      "incident": 1234
+      "incident": 1234,
+      "project": "SUSE:Maintenance:1234",
+      "type": "smelt"
     },
     {
       "text": "bar",
-      "incident": 5678
+      "incident": 5678,
+      "project": "products/SLFO",
+      "type": "git"
     }
     ...
   ]
@@ -648,11 +674,15 @@ Only one remark can exist per incident.
 
 - `incident_number` (optional): The incident number if the remark is incident-specific.
 
+- `project` (required with `incident_number`): The project of the incident.
+
+- `type` (required with `incident_number`): The type of the incident.
+
 - `text` (optional): The remark text, defaults to an empty text.
 
 **Request body:**
 
-None
+The same fields may alternatively be sent as a JSON object; request parameters take precedence.
 
 **Response:**
 
