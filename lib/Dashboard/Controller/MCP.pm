@@ -16,8 +16,14 @@ sub new ($class, %args) {
   $server->tool(
     name         => 'list_submissions',
     description  => 'List active incidents/submissions.',
-    input_schema =>
-      {type => 'object', properties => {number => {type => 'integer', description => 'Filter by incident number'}}},
+    input_schema => {
+      type       => 'object',
+      properties => {
+        number  => {type => 'integer', description => 'Filter by incident number'},
+        project => {type => 'string',  description => 'Filter by project'},
+        type    => {type => 'string',  description => 'Filter by incident type'}
+      }
+    },
     code => sub ($tool, $args) {
       my @results;
       for my $incident (@{$self->incidents->find($args)}) {
@@ -26,9 +32,10 @@ sub new ($class, %args) {
         my $chan_text = @channels ? join(', ', @channels) : 'N/A';
         push @results,
           sprintf(
-          "• **Incident %d**\n  * **Project:** %s\n  * **Packages:** %s\n  * **Channels:** %s",
+          "• **Incident %d**\n  * **Project:** %s\n  * **Type:** %s\n  * **Packages:** %s\n  * **Channels:** %s",
           $incident->{number}  // 0,
           $incident->{project} // '',
+          $incident->{type}    // '',
           join(', ', @packages), $chan_text
           );
       }
@@ -41,18 +48,28 @@ sub new ($class, %args) {
     description  => 'Get details for a specific submission including openQA results.',
     input_schema => {
       type       => 'object',
-      properties => {number => {type => 'integer', description => 'Incident number'}},
-      required   => ['number']
+      properties => {
+        number  => {type => 'integer', description => 'Incident number'},
+        project => {type => 'string',  description => 'Project of the incident'},
+        type    => {type => 'string',  description => 'Incident type, only needed if the number is ambiguous'}
+      },
+      required => ['number', 'project']
     },
     code => sub ($tool, $args) {
       my $incidents = $self->incidents;
-      my $incident  = $incidents->incident_for_number($args->{number});
+      my $key       = {number => $args->{number}, project => $args->{project}, type => $args->{type}};
+      my $ids       = $incidents->ids_for($key);
 
-      return "```\nError: Incident $args->{number} not found\n```" unless $incident;
+      return "```\nError: Incident $args->{number} not found in project $args->{project}\n```" unless @$ids;
+      return "```\nError: Incident $args->{number} is ambiguous in project $args->{project}, type is required\n```"
+        if @$ids > 1;
+      my $incident = $incidents->incident_for($key);
 
       my @lines = (
         sprintf("Incident %d Details", $incident->{number} // 0),
-        "=" x 40, "", sprintf("**Project:** %s", $incident->{project} // ''),
+        "=" x 40, "",
+        sprintf("**Project:** %s", $incident->{project} // ''),
+        sprintf("**Type:** %s",    $incident->{type}    // ''),
       );
       my @packages = @{$incident->{packages} // []};
       push @lines, sprintf("**Packages:** %s", join(', ', @packages));
@@ -89,7 +106,9 @@ sub new ($class, %args) {
       my @lines = ("Blocked Incidents:", "=" x 40);
       for my $entry (@$blocked) {
         my $incident = $entry->{incident};
-        push @lines, sprintf("• **Incident %d** (%s)", $incident->{number}, $incident->{project});
+        push @lines,
+          sprintf("• **Incident %d** (%s)",
+          $incident->{number}, join(' ', grep {length} @{$incident}{qw(project type)}));
         if (my $reasons = $incident->{blocked_reasons}) {
           for my $reason (@$reasons) {
             push @lines, sprintf("  - %s", $reason);

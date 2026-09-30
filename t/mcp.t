@@ -170,35 +170,6 @@ subtest 'MCP Tool: list_submissions' => sub {
     )->status_is(200)->json_is('/result/content/0/text', 'No active incidents found.');
   }
   $access_log->(), 'access log caught';
-
-  # Seed an incident with NULL project
-  my $mock_incident_no_project = {
-    number      => 777,
-    project     => undef,
-    packages    => ['pkg-no-project'],
-    channels    => ['Channel1'],
-    rr_number   => 777,
-    inReview    => 1,
-    inReviewQAM => 1,
-    approved    => 0,
-    emu         => 1,
-    isActive    => 1,
-    embargoed   => 0,
-    priority    => 100,
-  };
-  $t->app->incidents->update($mock_incident_no_project);
-  stderr_like {
-    $t->post_ok(
-      '/mcp' => {'Mcp-Session-Id' => $session_id} => json => {
-        jsonrpc => "2.0",
-        method  => "tools/call",
-        params  => {name => 'list_submissions', arguments => {number => 777}},
-        id      => 2
-      }
-    )->status_is(200);
-  }
-  $access_log->(), 'access log caught';
-  like $t->tx->res->json('/result/content/0/text'), qr/\*\*Project:\*\* \n/, 'Project is empty for NULL project';
 };
 
 subtest 'MCP Tool: get_submission_details (found)' => sub {
@@ -207,8 +178,9 @@ subtest 'MCP Tool: get_submission_details (found)' => sub {
       '/mcp' => {'Mcp-Session-Id' => $session_id} => json => {
         jsonrpc => "2.0",
         method  => "tools/call",
-        params  => {name => 'get_submission_details', arguments => {number => 12345}},
-        id      => 3
+        params  =>
+          {name => 'get_submission_details', arguments => {number => 12345, project => 'SUSE:Maintenance:12345'}},
+        id => 3
       }
     )->status_is(200);
   }
@@ -223,8 +195,9 @@ subtest 'MCP Tool: get_submission_details (found)' => sub {
       '/mcp' => {'Mcp-Session-Id' => $session_id} => json => {
         jsonrpc => "2.0",
         method  => "tools/call",
-        params  => {name => 'get_submission_details', arguments => {number => 54321}},
-        id      => 3
+        params  =>
+          {name => 'get_submission_details', arguments => {number => 54321, project => 'SUSE:Maintenance:54321'}},
+        id => 3
       }
     )->status_is(200);
   }
@@ -236,7 +209,7 @@ subtest 'MCP Tool: get_submission_details (found)' => sub {
       '/mcp' => {'Mcp-Session-Id' => $session_id} => json => {
         jsonrpc => "2.0",
         method  => "tools/call",
-        params  => {name => 'get_submission_details', arguments => {number => 666}},
+        params  => {name => 'get_submission_details', arguments => {number => 666, project => 'SUSE:Maintenance:666'}},
         id      => 3
       }
     )->status_is(200);
@@ -245,7 +218,7 @@ subtest 'MCP Tool: get_submission_details (found)' => sub {
   like $t->tx->res->json('/result/content/0/text'), qr/\*\*Channels:\*\* N\/A/, 'N/A for undef channels in details';
 
   # Seed data for jobs
-  my $inc_id = $t->app->incidents->id_for_number(12345);
+  my $inc_id = $t->app->incidents->ids_for({number => 12345, project => 'SUSE:Maintenance:12345'})->[0];
   $t->app->pg->db->query(
     'INSERT INTO update_openqa_settings (product, arch, build, repohash, settings) VALUES (?, ?, ?, ?, ?) ON CONFLICT DO NOTHING',
     'SLES', 'x86_64', '1234', 'hash2', '{}'
@@ -264,8 +237,9 @@ subtest 'MCP Tool: get_submission_details (found)' => sub {
       '/mcp' => {'Mcp-Session-Id' => $session_id} => json => {
         jsonrpc => "2.0",
         method  => "tools/call",
-        params  => {name => 'get_submission_details', arguments => {number => 12345}},
-        id      => 3
+        params  =>
+          {name => 'get_submission_details', arguments => {number => 12345, project => 'SUSE:Maintenance:12345'}},
+        id => 3
       }
     )->status_is(200);
   }
@@ -279,10 +253,14 @@ subtest 'MCP Tool: get_submission_details (not found)' => sub {
       '/mcp' => {'Mcp-Session-Id' => $session_id} => json => {
         jsonrpc => "2.0",
         method  => "tools/call",
-        params  => {name => 'get_submission_details', arguments => {number => 99999}},
-        id      => 3
+        params  =>
+          {name => 'get_submission_details', arguments => {number => 99999, project => 'SUSE:Maintenance:99999'}},
+        id => 3
       }
-    )->status_is(200)->json_is('/result/content/0/text', "```\nError: Incident 99999 not found\n```");
+      )
+      ->status_is(200)
+      ->json_is('/result/content/0/text',
+      "```\nError: Incident 99999 not found in project SUSE:Maintenance:99999\n```");
   }
   $access_log->(), 'access log caught';
 };
@@ -365,15 +343,16 @@ subtest 'Coverage for missing keys' => sub {
   $t->post_ok('/mcp' => {'Mcp-Session-Id' => $session_id} => json =>
       {jsonrpc => "2.0", method => "tools/call", params => {name => 'list_submissions', arguments => {}}, id => 6})
     ->status_is(200);
-  like $t->tx->res->json('/result/content/0/text'), qr/Incident 0/, 'handles missing keys';
+  like $t->tx->res->json('/result/content/0/text'), qr/\*\*Incident 0\*\*/, 'handles missing keys';
 
-  $mock->redefine(incident_for_number   => sub { {id => 1} });    # Missing number, project, packages, etc.
+  $mock->redefine(ids_for               => sub { [1] });
+  $mock->redefine(incident_for          => sub { {id => 1} });    # Missing number, project, packages, etc.
   $mock->redefine(channels_for_incident => sub {undef});          # Missing channels
   $t->post_ok(
     '/mcp' => {'Mcp-Session-Id' => $session_id} => json => {
       jsonrpc => "2.0",
       method  => "tools/call",
-      params  => {name => 'get_submission_details', arguments => {number => 1}},
+      params  => {name => 'get_submission_details', arguments => {number => 1, project => 'SUSE:Maintenance:1'}},
       id      => 7
     }
   )->status_is(200);

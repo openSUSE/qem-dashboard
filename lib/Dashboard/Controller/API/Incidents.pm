@@ -24,14 +24,8 @@ sub list ($self) {
 
 sub show ($self) {
   $self = $self->openapi->valid_input or return;
-  my $number   = $self->param('incident');
-  my $incident = $self->incidents->incident_for_number($number);
-  return $self->render(json => {error => 'Incident not found'}, status => 404) unless $incident;
-
-  $incident->{channels} = $self->incidents->channels_for_incident($incident->{id});
-  delete $incident->{id};
-  ($incident) = @{_fix_booleans([$incident])};
-  $self->render(json => $incident);
+  return unless my $incident = $self->_find_one;
+  $self->render(json => _fix_booleans([$incident])->[0]);
 }
 
 sub update ($self) {
@@ -43,15 +37,30 @@ sub update ($self) {
 
 sub update_rejection_reason ($self) {
   $self = $self->openapi->valid_input or return;
-  my $incident_number = $self->param('incident');
-
-  return $self->render(json => {error => 'Incident not found'}, status => 404)
-    unless $self->incidents->find({number => $incident_number})->[0];
+  return unless my $incident = $self->_find_one;
+  my $incident_id = $self->incidents->ids_for($incident)->[0];
 
   my $payload = $self->req->json;
-  $self->incidents->update_rejection_reason($incident_number, $payload->{rejection_reason});
+  $self->incidents->update_rejection_reason($incident_id, $payload->{rejection_reason});
 
   $self->render(json => {message => 'Ok'});
+}
+
+# Only active incidents can be found, type is optional and required only to tell apart incidents with the same number
+# in one project
+sub _find_one ($self) {
+  my ($number, $project) = ($self->param('incident'), $self->param('project'));
+  my $incidents = $self->incidents->find({number => $number, project => $project, type => $self->param('type')});
+  return $incidents->[0] if @$incidents == 1;
+
+  if (@$incidents) {
+    $self->render(
+      json   => {error => "Incident ($number) is ambiguous in project ($project), type is required"},
+      status => 400
+    );
+  }
+  else { $self->render(json => {error => 'Incident not found'}, status => 404) }
+  return undef;
 }
 
 sub _fix_booleans ($incidents) {
