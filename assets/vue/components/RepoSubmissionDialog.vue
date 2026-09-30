@@ -22,7 +22,10 @@ const modalStore = useModalStore();
         </div>
         <div class="modal-body">
           <ul>
-            <li v-for="submission in modalStore.submissions" :key="submission.number">
+            <li
+              v-for="submission in modalStore.submissions"
+              :key="`${submission.number}:${submission.project}:${submission.type}`"
+            >
               <SubmissionLink :incident="submission" />
             </li>
           </ul>

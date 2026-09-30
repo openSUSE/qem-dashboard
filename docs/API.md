@@ -81,6 +81,13 @@ Content-Encoding: gzip
 
 ### Incidents
 
+An incident is uniquely identified by the combination of its `number`, `project` and `type`. The same number may be
+used by several incidents as long as they belong to different projects or types (e.g. a git PR number reused across
+repositories). Every incident must have a non-empty `project`.
+
+Endpoints addressing a single incident by number therefore require the `project` and accept an optional `type`. When
+the number and project match more than one incident, a `400` response asks for the `type`.
+
 `GET /api/incidents`
 
 All active incidents in JSON format.
@@ -126,7 +133,9 @@ Get a specific active incident in JSON format.
 
 **Request parameters:**
 
-None
+- `project` (required): The project of the incident.
+
+- `type` (optional): The type of the incident, needed when the number and project are ambiguous.
 
 **Request body:**
 
@@ -243,7 +252,9 @@ Get incident openQA settings.
 
 **Request parameters:**
 
-None
+- `project` (required): The project of the incident.
+
+- `type` (optional): The type of the incident, needed when the number and project are ambiguous.
 
 **Request body:**
 
@@ -256,6 +267,8 @@ None
   {
     "id": 7,
     "incident": 16860,
+    "project": "SUSE:Maintenance:16860",
+    "type": "smelt",
     "version": "12-SP2",
     "flavor": "Server-DVD-HA-Incidents-Install",
     "arch": "x86_64",
@@ -285,6 +298,8 @@ None
 ```
 {
   "incident": 16860,
+  "project": "SUSE:Maintenance:16860",
+  "type": "smelt",
   "version": "12-SP2",
   "flavor": "Server-DVD-HA-Incidents-Install",
   "arch": "x86_64",
@@ -317,7 +332,9 @@ Get update openQA settings.
 
 **Request parameters:**
 
-None
+- `project` (required): The project of the incident.
+
+- `type` (optional): The type of the incident, needed when the number and project are ambiguous.
 
 **Request body:**
 
@@ -329,7 +346,7 @@ None
 [
   {
     "id": 23,
-    "incidents": [16861],
+    "incidents": [{"number": 16861, "project": "SUSE:Maintenance:16861", "type": "smelt"}],
     "product": "SLES-15-GA",
     "arch": "x86_64",
     "build": "20201107-1",
@@ -374,7 +391,7 @@ None
 [
   {
     "id": 1,
-    "incidents": [16861],
+    "incidents": [{"number": 16861, "project": "SUSE:Maintenance:16861", "type": "smelt"}],
     "product": "SLES-15-GA",
     "arch": "x86_64",
     "build": "20201107-1",
@@ -393,7 +410,8 @@ None
 
 `PUT /api/update_settings`
 
-Add update openQA settings. Returns the internal dashboard id required for the creation of jobs.
+Add update openQA settings. Returns the internal dashboard id required for the creation of jobs. Each entry of
+`incidents` requires `number` and `project`; `type` is optional unless needed to disambiguate.
 
 **Request parameters:**
 
@@ -403,7 +421,7 @@ None
 
 ```
 {
-  "incidents": [16861],
+  "incidents": [{"number": 16861, "project": "SUSE:Maintenance:16861", "type": "smelt"}],
   "product": "SLES-15-GA",
   "arch": "x86_64",
   "build": "20201107-1",
@@ -625,11 +643,15 @@ None
   "remarks": [
     {
       "text": "foo",
-      "incident": 1234
+      "incident": 1234,
+      "project": "SUSE:Maintenance:1234",
+      "type": "smelt"
     },
     {
       "text": "bar",
-      "incident": 5678
+      "incident": 5678,
+      "project": "products/SLFO",
+      "type": "git"
     }
     ...
   ]
@@ -648,11 +670,15 @@ Only one remark can exist per incident.
 
 - `incident_number` (optional): The incident number if the remark is incident-specific.
 
+- `project` (required with `incident_number`): The project of the incident.
+
+- `type` (optional): The type of the incident, needed when the number and project are ambiguous.
+
 - `text` (optional): The remark text, defaults to an empty text.
 
 **Request body:**
 
-None
+The same fields may alternatively be sent as a JSON object; request parameters take precedence.
 
 **Response:**
 
