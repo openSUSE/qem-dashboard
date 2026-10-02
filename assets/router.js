@@ -28,7 +28,7 @@ const routes = [
   {
     path: '/incident/:id',
     redirect: to => {
-      return {name: 'submission', params: {id: to.params.id}};
+      return {name: 'submission', params: {id: to.params.id}, query: to.query};
     }
   }
 ];

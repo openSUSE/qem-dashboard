@@ -15,7 +15,7 @@ const route = useRoute();
 const submissionDetailStore = useSubmissionDetailStore();
 const configStore = useConfigStore();
 
-usePolling(() => submissionDetailStore.fetchSubmission(route.params.id));
+usePolling(() => submissionDetailStore.fetchSubmission(route.params.id, route.query));
 
 const hasSmeltLink = computed(() => {
   const sub = submissionDetailStore.submission;

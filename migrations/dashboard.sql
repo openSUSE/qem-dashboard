@@ -128,3 +128,15 @@ ALTER TABLE incidents ADD COLUMN rejection_reason TEXT;
 
 -- 10 down
 ALTER TABLE incidents DROP COLUMN rejection_reason;
+
+-- 11 up
+UPDATE incidents SET project = 'smelt' WHERE project IS NULL OR project = '';
+ALTER TABLE incidents ALTER COLUMN project SET NOT NULL;
+DROP INDEX IF EXISTS incidents_number_idx;
+CREATE UNIQUE INDEX incidents_number_type_project_idx ON incidents(number, type, project);
+
+-- 11 down
+-- Note: fails if incidents sharing a number in different projects/types exist.
+DROP INDEX IF EXISTS incidents_number_type_project_idx;
+CREATE UNIQUE INDEX incidents_number_idx ON incidents(number);
+ALTER TABLE incidents ALTER COLUMN project DROP NOT NULL;
