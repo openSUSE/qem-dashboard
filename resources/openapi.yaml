@@ -35,7 +35,7 @@ x-anchors:
     project_query: &project_query_param
       name: project
       in: query
-      required: true
+      required: false
       description: Project of the incident, incidents are unique by number, project and type
       schema:
         type: string
@@ -478,7 +478,6 @@ components:
       type: object
       required:
         - incident
-        - project
         - version
         - flavor
         - arch
@@ -533,7 +532,6 @@ components:
       type: object
       required:
         - number
-        - project
       properties:
         number:
           type: integer

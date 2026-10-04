@@ -53,16 +53,28 @@ sub new ($class, %args) {
         project => {type => 'string',  description => 'Project of the incident'},
         type    => {type => 'string',  description => 'Incident type, only needed if the number is ambiguous'}
       },
-      required => ['number', 'project']
+      required => ['number']
     },
     code => sub ($tool, $args) {
       my $incidents = $self->incidents;
       my $key       = {number => $args->{number}, project => $args->{project}, type => $args->{type}};
       my $ids       = $incidents->ids_for($key);
 
-      return "```\nError: Incident $args->{number} not found in project $args->{project}\n```" unless @$ids;
-      return "```\nError: Incident $args->{number} is ambiguous in project $args->{project}, type is required\n```"
-        if @$ids > 1;
+      unless (@$ids) {
+        my $msg = "Error: Incident $args->{number} not found";
+        $msg .= " in project $args->{project}" if $args->{project};
+        return "```\n$msg\n```";
+      }
+      if (@$ids > 1) {
+        my $msg = "Error: Incident $args->{number} is ambiguous";
+        if ($args->{project}) {
+          $msg .= " in project $args->{project}, type is required";
+        }
+        else {
+          $msg .= ", project is required";
+        }
+        return "```\n$msg\n```";
+      }
       my $incident = $incidents->incident_for($key);
 
       my @lines = (

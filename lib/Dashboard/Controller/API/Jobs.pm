@@ -68,8 +68,6 @@ sub update_remark ($self) {
 
   my ($incident_number, $project, $text) = @remark{qw(incident_number project text)};
   return $self->render(json => {error => "Missing remark text"}, status => 400) unless defined $text;
-  return $self->render(json => {error => "Missing project for incident ($incident_number)"}, status => 400)
-    if defined $incident_number && !(defined $project && length $project);
 
   my $openqa_job_id   = $self->param('job_id');
   my $internal_job_id = $self->jobs->internal_job_id($openqa_job_id);
@@ -79,7 +77,8 @@ sub update_remark ($self) {
   my $incident_id;
   if (defined $incident_number) {
     my $key = {number => $incident_number, project => $project, type => $remark{type}};
-    my $msg = "Incident ($incident_number) does not exist in project ($project)";
+    my $msg = "Incident ($incident_number) does not exist"
+      . (defined $project && length $project ? " in project ($project)" : "");
     return unless defined($incident_id = $self->incident_id($key, status => 404, error => $msg));
   }
 

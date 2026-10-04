@@ -111,8 +111,9 @@ sub key_for_id ($self, $id) {
 # Type is optional, so several ids are returned when the same number exists with different types in one project
 sub ids_for ($self, $key) {
   return $self->pg->db->query(
-    'SELECT id FROM incidents WHERE number = ? AND project = ? AND type = COALESCE(?, type) ORDER BY id',
-    @{$key}{qw(number project type)})->arrays->flatten->to_array;
+    'SELECT id FROM incidents WHERE number = ? AND project = COALESCE(?, project) AND type = COALESCE(?, type) ORDER BY id',
+    @{$key}{qw(number project type)}
+  )->arrays->flatten->to_array;
 }
 
 sub name ($self, $inc) {

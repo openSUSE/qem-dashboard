@@ -46,18 +46,21 @@ sub update_rejection_reason ($self) {
   $self->render(json => {message => 'Ok'});
 }
 
-# Only active incidents can be found, type is optional and required only to tell apart incidents with the same number
-# in one project
+# Only active incidents can be found, project and type are optional and required only to tell apart incidents with the same number
 sub _find_one ($self) {
   my ($number, $project) = ($self->param('incident'), $self->param('project'));
   my $incidents = $self->incidents->find({number => $number, project => $project, type => $self->param('type')});
   return $incidents->[0] if @$incidents == 1;
 
   if (@$incidents) {
-    $self->render(
-      json   => {error => "Incident ($number) is ambiguous in project ($project), type is required"},
-      status => 400
-    );
+    my $msg = "Incident ($number) is ambiguous";
+    if (defined $project && length $project) {
+      $msg .= " in project ($project), type is required";
+    }
+    else {
+      $msg .= ", project is required";
+    }
+    $self->render(json => {error => $msg}, status => 400);
   }
   else { $self->render(json => {error => 'Incident not found'}, status => 404) }
   return undef;

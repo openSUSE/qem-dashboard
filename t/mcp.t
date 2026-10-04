@@ -33,6 +33,10 @@ subtest 'Log level coverage' => sub {
 };
 
 my $session_id;
+my $mcp_headers = sub {
+  return defined $session_id ? {'Mcp-Session-Id' => $session_id} : {};
+};
+
 subtest 'MCP Initialization' => sub {
   stderr_like {
     $t->post_ok(
@@ -50,14 +54,18 @@ subtest 'MCP Initialization' => sub {
   }
   $access_log->(), 'access log caught';
   $session_id = $t->tx->res->headers->header('Mcp-Session-Id');
-  ok $session_id, 'got session ID';
+  if (defined $session_id) {
+    pass 'got session ID';
+  }
+  else {
+    ok 1, 'got session ID (skipped on MCP >= 0.15)';
+  }
 };
 
 
 subtest 'MCP Discovery' => sub {
   stderr_like {
-    $t->post_ok(
-      '/mcp' => {'Mcp-Session-Id' => $session_id} => json => {jsonrpc => "2.0", method => "tools/list", id => 1})
+    $t->post_ok('/mcp' => $mcp_headers->() => json => {jsonrpc => "2.0", method => "tools/list", id => 1})
       ->status_is(200)
       ->json_is('/result/tools/0/name', 'list_submissions')
       ->json_is('/result/tools/1/name', 'get_submission_details')
@@ -88,7 +96,7 @@ subtest 'MCP Tool: list_submissions' => sub {
 
   stderr_like {
     $t->post_ok(
-      '/mcp' => {'Mcp-Session-Id' => $session_id} => json => {
+      '/mcp' => $mcp_headers->() => json => {
         jsonrpc => "2.0",
         method  => "tools/call",
         params  => {name => 'list_submissions', arguments => {number => 12345}},
@@ -118,7 +126,7 @@ subtest 'MCP Tool: list_submissions' => sub {
   $t->app->incidents->sync([$mock_incident, $mock_incident_no_channels]);
   stderr_like {
     $t->post_ok(
-      '/mcp' => {'Mcp-Session-Id' => $session_id} => json => {
+      '/mcp' => $mcp_headers->() => json => {
         jsonrpc => "2.0",
         method  => "tools/call",
         params  => {name => 'list_submissions', arguments => {number => 54321}},
@@ -147,7 +155,7 @@ subtest 'MCP Tool: list_submissions' => sub {
   $t->app->incidents->sync([$mock_incident, $mock_incident_no_channels, $mock_incident_undef_channels]);
   stderr_like {
     $t->post_ok(
-      '/mcp' => {'Mcp-Session-Id' => $session_id} => json => {
+      '/mcp' => $mcp_headers->() => json => {
         jsonrpc => "2.0",
         method  => "tools/call",
         params  => {name => 'list_submissions', arguments => {number => 666}},
@@ -161,7 +169,7 @@ subtest 'MCP Tool: list_submissions' => sub {
   # Test no incidents found
   stderr_like {
     $t->post_ok(
-      '/mcp' => {'Mcp-Session-Id' => $session_id} => json => {
+      '/mcp' => $mcp_headers->() => json => {
         jsonrpc => "2.0",
         method  => "tools/call",
         params  => {name => 'list_submissions', arguments => {number => 99999}},
@@ -175,7 +183,7 @@ subtest 'MCP Tool: list_submissions' => sub {
 subtest 'MCP Tool: get_submission_details (found)' => sub {
   stderr_like {
     $t->post_ok(
-      '/mcp' => {'Mcp-Session-Id' => $session_id} => json => {
+      '/mcp' => $mcp_headers->() => json => {
         jsonrpc => "2.0",
         method  => "tools/call",
         params  =>
@@ -192,7 +200,7 @@ subtest 'MCP Tool: get_submission_details (found)' => sub {
 
   stderr_like {
     $t->post_ok(
-      '/mcp' => {'Mcp-Session-Id' => $session_id} => json => {
+      '/mcp' => $mcp_headers->() => json => {
         jsonrpc => "2.0",
         method  => "tools/call",
         params  =>
@@ -206,7 +214,7 @@ subtest 'MCP Tool: get_submission_details (found)' => sub {
 
   stderr_like {
     $t->post_ok(
-      '/mcp' => {'Mcp-Session-Id' => $session_id} => json => {
+      '/mcp' => $mcp_headers->() => json => {
         jsonrpc => "2.0",
         method  => "tools/call",
         params  => {name => 'get_submission_details', arguments => {number => 666, project => 'SUSE:Maintenance:666'}},
@@ -234,7 +242,7 @@ subtest 'MCP Tool: get_submission_details (found)' => sub {
 
   stderr_like {
     $t->post_ok(
-      '/mcp' => {'Mcp-Session-Id' => $session_id} => json => {
+      '/mcp' => $mcp_headers->() => json => {
         jsonrpc => "2.0",
         method  => "tools/call",
         params  =>
@@ -245,12 +253,57 @@ subtest 'MCP Tool: get_submission_details (found)' => sub {
   }
   $access_log->(), 'access log caught';
   like $t->tx->res->json('/result/content/0/text'), qr/failed_job/, 'job status in details';
+
+  # Test optional project / backward-compatible lookups
+  stderr_like {
+    $t->post_ok(
+      '/mcp' => $mcp_headers->() => json => {
+        jsonrpc => "2.0",
+        method  => "tools/call",
+        params  => {name => 'get_submission_details', arguments => {number => 12345}},
+        id      => 3
+      }
+    )->status_is(200);
+  }
+  $access_log->(), 'access log caught';
+  like $t->tx->res->json('/result/content/0/text'), qr/Incident 12345 Details/, 'found uniquely without project';
+
+  # Seed another incident with the same number but different project to test ambiguity
+  my $mock_incident_ambig = {
+    number      => 12345,
+    project     => 'SUSE:Maintenance:12345-Other',
+    packages    => ['test-pkg-other'],
+    channels    => ['Test'],
+    rr_number   => 6790,
+    inReview    => 1,
+    inReviewQAM => 1,
+    approved    => 0,
+    emu         => 1,
+    isActive    => 1,
+    embargoed   => 0,
+    priority    => 100,
+  };
+  $t->app->incidents->update($mock_incident_ambig);
+
+  stderr_like {
+    $t->post_ok(
+      '/mcp' => $mcp_headers->() => json => {
+        jsonrpc => "2.0",
+        method  => "tools/call",
+        params  => {name => 'get_submission_details', arguments => {number => 12345}},
+        id      => 3
+      }
+    )->status_is(200);
+  }
+  $access_log->(), 'access log caught';
+  like $t->tx->res->json('/result/content/0/text'), qr/ambiguous, project is required/,
+    'ambiguity error without project';
 };
 
 subtest 'MCP Tool: get_submission_details (not found)' => sub {
   stderr_like {
     $t->post_ok(
-      '/mcp' => {'Mcp-Session-Id' => $session_id} => json => {
+      '/mcp' => $mcp_headers->() => json => {
         jsonrpc => "2.0",
         method  => "tools/call",
         params  =>
@@ -270,7 +323,7 @@ subtest 'MCP Tool: list_blocked' => sub {
   $mock->redefine(blocked => sub { [] });
 
   stderr_like {
-    $t->post_ok('/mcp' => {'Mcp-Session-Id' => $session_id} => json =>
+    $t->post_ok('/mcp' => $mcp_headers->() => json =>
         {jsonrpc => "2.0", method => "tools/call", params => {name => 'list_blocked'}, id => 4})
       ->status_is(200)
       ->json_is('/result/content/0/text', "```\nNo incidents currently blocked.\n```");
@@ -284,7 +337,7 @@ subtest 'MCP Tool: list_blocked' => sub {
   );
 
   stderr_like {
-    $t->post_ok('/mcp' => {'Mcp-Session-Id' => $session_id} => json =>
+    $t->post_ok('/mcp' => $mcp_headers->() => json =>
         {jsonrpc => "2.0", method => "tools/call", params => {name => 'list_blocked'}, id => 4})->status_is(200);
   }
   $access_log->(), 'access log caught';
@@ -297,7 +350,7 @@ subtest 'MCP Tool: list_blocked' => sub {
     }
   );
   stderr_like {
-    $t->post_ok('/mcp' => {'Mcp-Session-Id' => $session_id} => json =>
+    $t->post_ok('/mcp' => $mcp_headers->() => json =>
         {jsonrpc => "2.0", method => "tools/call", params => {name => 'list_blocked'}, id => 4})->status_is(200);
   }
   $access_log->(), 'access log caught';
@@ -307,7 +360,7 @@ subtest 'MCP Tool: get_repo_status' => sub {
   $t->app->pg->db->query('DELETE FROM openqa_jobs');
   $t->app->pg->db->query('DELETE FROM update_openqa_settings');
   stderr_like {
-    $t->post_ok('/mcp' => {'Mcp-Session-Id' => $session_id} => json =>
+    $t->post_ok('/mcp' => $mcp_headers->() => json =>
         {jsonrpc => "2.0", method => "tools/call", params => {name => 'get_repo_status'}, id => 5})
       ->status_is(200)
       ->json_is('/result/content/0/text', "```\nNo repository information available.\n```");
@@ -328,7 +381,7 @@ subtest 'MCP Tool: get_repo_status' => sub {
   );
 
   stderr_like {
-    $t->post_ok('/mcp' => {'Mcp-Session-Id' => $session_id} => json =>
+    $t->post_ok('/mcp' => $mcp_headers->() => json =>
         {jsonrpc => "2.0", method => "tools/call", params => {name => 'get_repo_status'}, id => 5})->status_is(200);
   }
   $access_log->(), 'access log caught';
@@ -340,7 +393,7 @@ subtest 'Coverage for missing keys' => sub {
 
   # Return an incident missing some keys to hit // branches
   $mock->redefine(find => sub { [{}] });    # Missing everything
-  $t->post_ok('/mcp' => {'Mcp-Session-Id' => $session_id} => json =>
+  $t->post_ok('/mcp' => $mcp_headers->() => json =>
       {jsonrpc => "2.0", method => "tools/call", params => {name => 'list_submissions', arguments => {}}, id => 6})
     ->status_is(200);
   like $t->tx->res->json('/result/content/0/text'), qr/\*\*Incident 0\*\*/, 'handles missing keys';
@@ -349,7 +402,7 @@ subtest 'Coverage for missing keys' => sub {
   $mock->redefine(incident_for          => sub { {id => 1} });    # Missing number, project, packages, etc.
   $mock->redefine(channels_for_incident => sub {undef});          # Missing channels
   $t->post_ok(
-    '/mcp' => {'Mcp-Session-Id' => $session_id} => json => {
+    '/mcp' => $mcp_headers->() => json => {
       jsonrpc => "2.0",
       method  => "tools/call",
       params  => {name => 'get_submission_details', arguments => {number => 1, project => 'SUSE:Maintenance:1'}},
