@@ -169,6 +169,10 @@ export default {
 .col-groups {
   width: auto;
 }
+.table-fixed :deep(.submission-link) {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
 th label {
   display: block;
   width: 100%;
