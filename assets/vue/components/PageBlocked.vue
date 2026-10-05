@@ -138,7 +138,7 @@ watch(
       <tbody>
         <BlockedSubmission
           v-for="submission in matchedSubmissions"
-          :key="submission.incident.number"
+          :key="`${submission.incident.number}:${submission.incident.project}:${submission.incident.type}`"
           :submission="submission.incident"
           :submission-results="submission.incident_results"
           :update-results="submission.update_results"
