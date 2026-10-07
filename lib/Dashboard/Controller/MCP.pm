@@ -41,12 +41,26 @@ sub new ($class, %args) {
     description  => 'Get details for a specific submission including openQA results.',
     input_schema => {
       type       => 'object',
-      properties => {number => {type => 'integer', description => 'Incident number'}},
-      required   => ['number']
+      properties => {
+        number  => {type => 'integer', description => 'Incident number'},
+        project => {type => 'string',  description => 'Incident project'},
+        type    => {type => 'string',  description => 'Incident type'},
+      },
+      required => ['number']
     },
     code => sub ($tool, $args) {
       my $incidents = $self->incidents;
-      my $incident  = $incidents->incident_for_number($args->{number});
+      my $incident;
+      if ($args->{project} && $args->{type}) {
+        $incident = $incidents->submission_for($args->{number}, $args->{project}, $args->{type});
+      }
+      else {
+        my $ids = $incidents->ids_for_number($args->{number});
+        if (@$ids > 1) {
+          return "```\nError: Incident $args->{number} is ambiguous. Please provide project and type.\n```";
+        }
+        $incident = $incidents->incident_for_number($args->{number});
+      }
 
       return "```\nError: Incident $args->{number} not found\n```" unless $incident;
 

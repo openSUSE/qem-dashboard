@@ -43,8 +43,8 @@ sub run_api_tests ($t, $prefix) {
   };
 
   subtest 'Migrations' => sub {
-    is $t->app->pg->migrations->latest, 10, 'latest version';
-    is $t->app->pg->migrations->active, 10, 'active version';
+    is $t->app->pg->migrations->latest, 11, 'latest version';
+    is $t->app->pg->migrations->active, 11, 'active version';
   };
 
   subtest 'Unknown endpoint' => sub {
@@ -220,7 +220,7 @@ sub run_api_tests ($t, $prefix) {
 
         # Test missing branch in Settings.pm (incident not found)
         $t->get_ok("$prefix/incident_settings/99999" => $auth_headers)
-          ->status_is(400)
+          ->status_is(404)
           ->json_is('/error', 'Incident not found', 'error for non-existent incident settings');
 
         # Validation failure: incident settings with invalid number
@@ -311,7 +311,7 @@ sub run_api_tests ($t, $prefix) {
 
         # Verify Get update settings for non-existent incident
         $t->get_ok("$prefix/update_settings/99999" => $auth_headers)
-          ->status_is(400)
+          ->status_is(404)
           ->json_is('/error', 'Incident not found');
 
         # Validation failure: get update settings with invalid incident id
@@ -390,7 +390,7 @@ sub run_api_tests ($t, $prefix) {
     # Missing branch: non-existent incident
     $t->patch_ok("$prefix/jobs/4953193/remarks?incident_number=99999&text=foo" => $auth_headers)
       ->status_is(404)
-      ->json_is('/error', 'Incident (99999) does not exist');
+      ->json_is('/error', 'Incident not found');
 
     # Validation failure: invalid incident_number in JSON
     $t->patch_ok("$prefix/jobs/4953193/remarks" => $auth_headers => json => {incident_number => 'abc', text => 'foo'})
@@ -425,13 +425,13 @@ sub run_api_tests ($t, $prefix) {
         # add_incident_settings: incident not found
         $t->put_ok("$prefix/incident_settings" => $auth_headers => json =>
             {incident => 99999, version => 'v', flavor => 'f', arch => 'a', withAggregate => true, settings => {}})
-          ->status_is(400)
+          ->status_is(404)
           ->json_is('/error', 'Incident not found', 'error for adding incident_settings with non-existent incident');
 
         # add_update_settings: one of incidents not found
         $t->put_ok("$prefix/update_settings" => $auth_headers => json =>
             {incidents => [16860, 99999], product => 'p', arch => 'a', build => 'b', repohash => 'h', settings => {}})
-          ->status_is(400)
+          ->status_is(404)
           ->json_is('/error', 'Incident not found', 'error for adding update_settings with non-existent incident');
 
         # _fix_booleans: withAggregate is false

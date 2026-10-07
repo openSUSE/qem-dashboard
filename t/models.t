@@ -38,11 +38,11 @@ subtest 'Dashboard::Model::Incidents' => sub {
     priority    => 123,
   };
 
-  subtest 'id_for_number and number_for_id' => sub {
-    is $incidents->id_for_number(16860), 1,     'correct id for 16860';
-    is $incidents->number_for_id(1),     16860, 'correct number for id 1';
-    is $incidents->id_for_number(99999), undef, 'undef for non-existent number';
-    is $incidents->number_for_id(99999), undef, 'undef for non-existent id';
+  subtest 'ids_for_number and number_for_id' => sub {
+    is $incidents->ids_for_number(16860)->[0], 1,     'correct id for 16860';
+    is $incidents->number_for_id(1),           16860, 'correct number for id 1';
+    is $incidents->ids_for_number(99999)->[0], undef, 'undef for non-existent number';
+    is $incidents->number_for_id(99999),       undef, 'undef for non-existent id';
   };
 
   subtest 'name' => sub {
@@ -67,8 +67,8 @@ subtest 'Dashboard::Model::Incidents' => sub {
       ]
     );
 
-    my $inc1001_id = $incs->id_for_number(1001);
-    my $inc1002_id = $incs->id_for_number(1002);
+    my $inc1001_id = $incs->ids_for_number(1001)->[0];
+    my $inc1002_id = $incs->ids_for_number(1002)->[0];
 
     # Both incidents in the same update
     my $update_settings_id = $settings->add_update_settings(
@@ -143,9 +143,9 @@ subtest 'Dashboard::Model::Incidents' => sub {
     is $res1002->{"100 f v"}{passed}, 1,     'Incident 1002 sees generic job';
 
     # rr_number change
-    $incs->update({%$mock_incident, number => 1001, rr_number => 100});
+    $incs->update({%$mock_incident, number => 1001, project => 'P1001', rr_number => 100});
     is $incs->incident_for_number(1001)->{rr_number}, 100, 'rr_number updated';
-    $incs->update({%$mock_incident, number => 1001, rr_number => 200});
+    $incs->update({%$mock_incident, number => 1001, project => 'P1001', rr_number => 200});
     is $incs->incident_for_number(1001)->{rr_number}, 200, 'rr_number changed again';
 
     # Map undef
@@ -157,7 +157,7 @@ subtest 'Dashboard::Model::Incidents' => sub {
 
     # Sync WITH types
     $incs->sync([{%$mock_incident, type => 'ibs'}], ['ibs', 'obs']);
-    is $incs->incident_for_number(16860)->{type}, 'ibs', 'sync works with types';
+    is $incs->submission_for(16860, $mock_incident->{project}, 'ibs')->{type}, 'ibs', 'sync works with types';
 
     # Channel removal
     $incs->update({%$mock_incident, number => 16860, channels => ['Test', 'NewChannel']});
@@ -181,11 +181,11 @@ subtest 'Dashboard::Model::Incidents' => sub {
     # rr_number NOT changed
     $incs->update({%$mock_incident, number => 16860, rr_number => 100});
     $incs->update({%$mock_incident, number => 16860, rr_number => 100});
-    is $incs->incident_for_number(16860)->{rr_number}, 100, 'rr_number unchanged';
+    is $incs->submission_for(16860, $mock_incident->{project}, '')->{rr_number}, 100, 'rr_number unchanged';
 
     # rr_number undef
     $incs->update({%$mock_incident, number => 16860, rr_number => undef});
-    is $incs->incident_for_number(16860)->{rr_number}, undef, 'rr_number undef works';
+    is $incs->submission_for(16860, $mock_incident->{project}, '')->{rr_number}, undef, 'rr_number undef works';
   };
 
   subtest '_incident_openqa_jobs branch coverage' => sub {

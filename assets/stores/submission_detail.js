@@ -8,9 +8,15 @@ export const useSubmissionDetailStore = defineStore('submission_detail', {
     exists: null
   }),
   actions: {
-    async fetchSubmission(id) {
+    async fetchSubmission(id, query = {}) {
       try {
-        const data = await fetch(`/app/api/submission/${id}`).then(res => res.json());
+        const params = new URLSearchParams();
+        for (const name of ['project', 'type']) {
+          if (query[name]) params.set(name, query[name]);
+        }
+        const search = params.toString();
+        const url = `/app/api/submission/${id}${search ? `?${search}` : ''}`;
+        const data = await fetch(url).then(res => res.json());
         this.submission = data.details.incident;
         this.submission.buildNr = data.details.build_nr;
         this.jobs = data.details.jobs;
