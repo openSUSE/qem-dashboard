@@ -42,9 +42,11 @@ sub modify ($self) {
   $self->render(json => {message => 'Ok'});
 }
 
-sub _incident ($incidents, $remark) {
-  return undef unless my $incident_id = $remark->{incident_id};
-  return $incidents->number_for_id($incident_id);
+sub _remark ($incidents, $remark) {
+  my $res = {text => $remark->{text}, incident => undef, project => undef, type => undef};
+  return $res unless my $incident_id = $remark->{incident_id};
+  return $res unless my $key         = $incidents->key_for_id($incident_id);
+  return {%$res, incident => $key->{number}, project => $key->{project}, type => $key->{type}};
 }
 
 sub show_remarks ($self) {
@@ -56,29 +58,31 @@ sub show_remarks ($self) {
 
   my $incidents = $self->app->incidents;
   my $remarks   = $self->jobs->remarks($internal_job_id);
-  my $res       = {remarks => [map { {text => $_->{text}, incident => _incident($incidents, $_)} } $remarks->each]};
-  $self->render(json => $res);
+  $self->render(json => {remarks => [map { _remark($incidents, $_) } $remarks->each]});
 }
 
 sub update_remark ($self) {
   $self = $self->openapi->valid_input or return;
-  my $incident_number = $self->param('incident_number');
-  my $text            = $self->param('text');
+  my %remark = map { $_ => $self->param($_) } qw(incident_number project type text);
+  if (my $json = $self->req->json) { $remark{$_} //= $json->{$_} for keys %remark }
 
-  if (my $json = $self->req->json) {
-    $incident_number //= $json->{incident_number};
-    $text            //= $json->{text};
-  }
-
+  my ($incident_number, $project, $text) = @remark{qw(incident_number project text)};
   return $self->render(json => {error => "Missing remark text"}, status => 400) unless defined $text;
 
-  my $incident_id     = defined $incident_number ? $self->app->incidents->id_for_number($incident_number) : undef;
   my $openqa_job_id   = $self->param('job_id');
   my $internal_job_id = $self->jobs->internal_job_id($openqa_job_id);
   return $self->render(json => {error => "openQA job ($openqa_job_id) does not exist"}, status => 404)
     unless $internal_job_id;
-  return $self->render(json => {error => "Incident ($incident_number) does not exist"}, status => 404)
-    if defined $incident_number && !$incident_id;
+
+  my $incident_id;
+  if (defined $incident_number) {
+    if (defined $project && length $project) {
+      return unless defined($incident_id = $self->resolve_submission_id($incident_number, $project, $remark{type}));
+    }
+    else {
+      return unless defined($incident_id = $self->resolve_incident_id($incident_number));
+    }
+  }
 
   $self->jobs->add_remark($internal_job_id, $incident_id, $text);
   $self->render(json => {message => 'Ok'});

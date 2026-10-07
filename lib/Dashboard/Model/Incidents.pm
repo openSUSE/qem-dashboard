@@ -53,9 +53,9 @@ sub find ($self, $options = {}) {
     'SELECT number, project, packages, rr_number, review, review_qam, approved, emu, active, embargoed, priority, ARRAY_AGG(c.name) as channels,
             scminfo, url, type, rejection_reason
      FROM incidents i LEFT JOIN incident_channels ic ON ic.incident = i.id LEFT JOIN channels c ON ic.channel = c.id
-     WHERE number = COALESCE(?, number) AND active = TRUE
+     WHERE active = TRUE
      GROUP BY number, project, packages, rr_number, review, review_qam, approved, emu, active, embargoed, priority, scminfo, url, type, rejection_reason
-     ORDER BY number', $options->{number}
+     ORDER BY number'
   )->hashes->to_array;
   $self->_map($_) for @$incidents;
 
@@ -95,7 +95,14 @@ sub openqa_summary_only_incident ($self, $inc) {
 }
 
 sub incident_for_number ($self, $number) {
-  my $incident = $self->pg->db->query('select * from incidents where number = ? limit 1', $number)->hash;
+  my $incidents = $self->pg->db->query('select * from incidents where number = ?', $number)->hashes;
+  return undef if $incidents->size > 1;
+  return $self->_map($incidents->first);
+}
+
+sub submission_for ($self, $number, $project, $type) {
+  my $incident = $self->pg->db->query('select * from incidents where number = ? and project = ? and type = ?',
+    $number, $project, $type)->hash;
   return $self->_map($incident);
 }
 
@@ -104,9 +111,19 @@ sub number_for_id ($self, $id) {
   return $array->[0];
 }
 
-sub id_for_number ($self, $number) {
+sub key_for_id ($self, $id) {
+  return $self->pg->db->query('select number, project, type from incidents where id = ?', $id)->hash;
+}
+
+sub ids_for_number ($self, $number) {
+  return $self->pg->db->query('select id from incidents where number = ? order by id', $number)
+    ->arrays->flatten->to_array;
+}
+
+sub id_for_submission ($self, $number, $project, $type) {
   return undef
-    unless my $array = $self->pg->db->query('select id from incidents where number = ? limit 1', $number)->array;
+    unless my $array = $self->pg->db->query('select id from incidents where number = ? and project = ? and type = ?',
+    $number, $project, $type)->array;
   return $array->[0];
 }
 
@@ -319,18 +336,29 @@ sub update_rejection_reason ($self, $number, $reason) {
   $db->query('UPDATE incidents SET rejection_reason = ? WHERE number = ?', $reason, $number);
 }
 
+sub update_rejection_reason_by_id ($self, $id, $reason) {
+  my $db = $self->pg->db;
+  $db->query('UPDATE incidents SET rejection_reason = ? WHERE id = ?', $reason, $id);
+}
+
 sub _update ($self, $db, $incident) {
-  $db->query('INSERT INTO incidents (number, project) VALUES (?, ?) ON CONFLICT DO NOTHING',
-    $incident->{number}, $incident->{project});
-  my $row = $db->query('SELECT id, rr_number FROM incidents WHERE number = ? LIMIT 1', $incident->{number})->hash;
+  my $project = $incident->{project} // 'smelt';
+  my $type    = $incident->{type}    // '';
+
+  $db->query('INSERT INTO incidents (number, project, type) VALUES (?, ?, ?) ON CONFLICT DO NOTHING',
+    $incident->{number}, $project, $type);
+
+  # For old API clients, if they don't send project/type, they just update the smelt incident.
+  my $row = $db->query('SELECT id, rr_number FROM incidents WHERE number = ? AND project = ? AND type = ?',
+    $incident->{number}, $project, $type)->hash;
+  return unless $row;    # Should always exist due to INSERT above
   my ($id, $rr_number) = ($row->{id}, $row->{rr_number} // 0);
 
   $db->query(
     'UPDATE incidents SET packages = ?, rr_number = ?, review = ?, review_qam = ?, approved = ?, emu = ?, active = ?,
-       embargoed = ?, priority = ?, scminfo = ?, url = ?, type = ? WHERE id = ?', $incident->{packages},
-    $incident->{rr_number}, $incident->{inReview}, $incident->{inReviewQAM}, $incident->{approved}, $incident->{emu},
-    $incident->{isActive}, $incident->{embargoed}, $incident->{priority}, $incident->{scminfo} // '',
-    $incident->{url} // '', $incident->{type} // '', $id
+       embargoed = ?, priority = ?, scminfo = ?, url = ? WHERE id = ?', $incident->{packages}, $incident->{rr_number},
+    $incident->{inReview},  $incident->{inReviewQAM}, $incident->{approved}, $incident->{emu}, $incident->{isActive},
+    $incident->{embargoed}, $incident->{priority},    $incident->{scminfo} // '', $incident->{url} // '', $id
   );
 
   # Remove old jobs after release request number changed (because incidents might be reused)

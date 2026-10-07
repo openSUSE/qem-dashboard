@@ -16,14 +16,24 @@ sub incident ($self) {
   my $number = $self->param('incident');
 
   my $incidents = $self->incidents;
-  my $incident  = $incidents->incident_for_number($number);
+  my $incident;
+  my $project = $self->param('project');
+  my $type    = $self->param('type');
+
+  if ($project && $type) {
+    $incident = $incidents->submission_for($number, $project, $type);
+  }
+  else {
+    $incident = $incidents->incident_for_number($number);
+  }
+
   $self->_render_api_response(
     {
       details => {
-        jobs             => $incidents->openqa_summary_only_aggregates($incident),
+        jobs             => $incident ? $incidents->openqa_summary_only_aggregates($incident) : {},
         incident         => $incident,
-        build_nr         => $incidents->build_nr($incident),
-        incident_summary => $incidents->openqa_summary_only_incident($incident)
+        build_nr         => $incident ? $incidents->build_nr($incident)                     : undef,
+        incident_summary => $incident ? $incidents->openqa_summary_only_incident($incident) : {}
       }
     }
   );

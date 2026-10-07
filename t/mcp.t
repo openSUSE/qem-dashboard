@@ -245,7 +245,7 @@ subtest 'MCP Tool: get_submission_details (found)' => sub {
   like $t->tx->res->json('/result/content/0/text'), qr/\*\*Channels:\*\* N\/A/, 'N/A for undef channels in details';
 
   # Seed data for jobs
-  my $inc_id = $t->app->incidents->id_for_number(12345);
+  my $inc_id = $t->app->incidents->ids_for_number(12345)->[0];
   $t->app->pg->db->query(
     'INSERT INTO update_openqa_settings (product, arch, build, repohash, settings) VALUES (?, ?, ?, ?, ?) ON CONFLICT DO NOTHING',
     'SLES', 'x86_64', '1234', 'hash2', '{}'
