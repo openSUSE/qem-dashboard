@@ -5,6 +5,7 @@ package Dashboard::Model::Incidents;
 use Mojo::Base -base, -signatures;
 
 has [qw(log pg)];
+has blocked_cache_ttl => 10;
 
 # Jobs remarked "acceptable_for" a given incident are reported as this synthetic status instead of their real
 # openqa_jobs.status so /blocked can render them distinctly (orange) rather than as a genuine pass or failure.
@@ -17,21 +18,38 @@ use constant _ACCEPTABLE_FOR_STATUS_CASE_SQL => q{
   END AS incident_status
 };
 
+sub clear_blocked_cache ($self) {
+  delete $self->{_blocked_cache};
+  delete $self->{_blocked_cache_time};
+  return $self;
+}
+
 sub blocked ($self) {
+  my $now = time;
+  if ($self->{_blocked_cache} && ($now - $self->{_blocked_cache_time} < $self->blocked_cache_ttl)) {
+    return $self->{_blocked_cache};
+  }
+
   my $incidents = $self->pg->db->query(
     "SELECT * FROM incidents
      WHERE active = TRUE AND approved = FALSE AND review_qam = TRUE AND (rr_number IS NOT NULL OR type = 'git')
      ORDER BY number"
   )->hashes->to_array;
 
-  return [] unless @$incidents;
+  if (!@$incidents) {
+    if ($self->blocked_cache_ttl > 0) {
+      $self->{_blocked_cache_time} = $now;
+      return $self->{_blocked_cache} = [];
+    }
+    return [];
+  }
 
   $self->_map($_) for @$incidents;
 
   my $incident_jobs = $self->_incident_openqa_jobs($incidents);
   my $update_jobs   = $self->_update_openqa_jobs($incidents);
 
-  return [
+  my $result = [
     map {
       {
         incident         => $_,
@@ -40,6 +58,13 @@ sub blocked ($self) {
       }
     } @$incidents
   ];
+
+  if ($self->blocked_cache_ttl > 0) {
+    $self->{_blocked_cache}      = $result;
+    $self->{_blocked_cache_time} = $now;
+  }
+
+  return $result;
 }
 
 sub build_nr ($self, $inc) {
@@ -179,6 +204,7 @@ sub channels_for_incident ($self, $incident_id) {
 }
 
 sub sync ($self, $incidents, $types = []) {
+  $self->clear_blocked_cache;
   push @$types, '', 'smelt' unless @$types;
   my $db = $self->pg->db;
   my $tx = $db->begin;
@@ -190,6 +216,7 @@ sub sync ($self, $incidents, $types = []) {
 }
 
 sub update ($self, $incident) {
+  $self->clear_blocked_cache;
   my $db = $self->pg->db;
   my $tx = $db->begin;
 
@@ -335,6 +362,7 @@ sub _update_openqa_jobs ($self, $inc) {
 }
 
 sub update_rejection_reason ($self, $number, $reason) {
+  $self->clear_blocked_cache;
   my $db = $self->pg->db;
   $db->query('UPDATE incidents SET rejection_reason = ? WHERE number = ?', $reason, $number);
 }

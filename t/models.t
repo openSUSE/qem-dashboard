@@ -324,11 +324,59 @@ subtest 'Dashboard::Model::Incidents' => sub {
     is $batch_res->{$inc->{id}}{7777}, undef, 'obsolete jobs are excluded from batch incident results';
   };
 
-  subtest 'blocked with no active incidents' => sub {
+  subtest 'blocked caching and invalidation' => sub {
+    my $incs = $t->app->incidents;
+    $incs->clear_blocked_cache;
+    is $incs->{_blocked_cache}, undef, 'cache is undef after clearing';
+
+    my $first_res = $incs->blocked;
+    ok scalar(@$first_res),     'blocked returns active blocked incidents';
+    ok $incs->{_blocked_cache}, 'blocked caches result on first call';
+
+    my $cached_res = $incs->blocked;
+    is $cached_res, $first_res, 'blocked returns exact memoized array ref on subsequent call within TTL';
+
+    $incs->clear_blocked_cache;
+    is $incs->{_blocked_cache}, undef, 'clear_blocked_cache removes cached response';
+
+    $incs->blocked;
+    $incs->update({number => 16860, project => 'SUSE:Maintenance:16860', packages => ['pkg1']});
+    is $incs->{_blocked_cache}, undef, 'update invalidates blocked cache';
+
+    $incs->blocked;
+    $incs->sync([{number => 16860, project => 'SUSE:Maintenance:16860', packages => ['pkg1'], isActive => 1}]);
+    is $incs->{_blocked_cache}, undef, 'sync invalidates blocked cache';
+
+    $incs->blocked;
+    $incs->update_rejection_reason(16860, 'Needs investigation');
+    is $incs->{_blocked_cache}, undef, 'update_rejection_reason invalidates blocked cache';
+    is $incs->incident_for_number(16860)->{rejection_reason}, 'Needs investigation', 'rejection reason was updated';
+
+    $incs->clear_blocked_cache;
+    $incs->blocked_cache_ttl(0);
+    my $no_cache_res = $incs->blocked;
+    ok scalar(@$no_cache_res), 'blocked succeeds with blocked_cache_ttl disabled';
+    is $incs->{_blocked_cache}, undef, 'blocked does not memoize when blocked_cache_ttl is zero';
+
     my $empty_test = Dashboard::Test->new(online => $ENV{TEST_ONLINE}, schema => 'models_empty_blocked_test');
     my $empty_app  = Test::Mojo->new(Dashboard => $empty_test->default_config)->app;
     $empty_test->no_fixtures($empty_app);
-    is_deeply $empty_app->incidents->blocked, [], 'blocked returns empty array ref when no active incidents exist';
+    my $empty_incs = $empty_app->incidents;
+
+    $empty_incs->blocked_cache_ttl(10);
+    my $empty_res = $empty_incs->blocked;
+    is_deeply $empty_res,                    [], 'blocked returns empty array ref when no active incidents exist';
+    is_deeply $empty_incs->{_blocked_cache}, [], 'empty result is memoized when cache TTL is positive';
+    my $empty_cached = $empty_incs->blocked;
+    is $empty_cached, $empty_res, 'subsequent blocked call returns memoized empty result';
+
+    $empty_incs->clear_blocked_cache;
+    $empty_incs->blocked_cache_ttl(0);
+    my $empty_uncached = $empty_incs->blocked;
+    is_deeply $empty_uncached, [], 'blocked returns empty array ref when TTL is zero and no incidents exist';
+    is $empty_incs->{_blocked_cache}, undef, 'empty result is not memoized when TTL is zero';
+
+    $incs->blocked_cache_ttl(10);
   };
 };
 

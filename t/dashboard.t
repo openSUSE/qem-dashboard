@@ -253,6 +253,11 @@ subtest 'Blocked status' => sub {
     # Coverage for string error without path
     is $t->app->openapi->build_response_body({errors => ['plain string error']}),
       '{"error":"Validation failed","errors":[{"message":"plain string error","path":""}]}', 'handles string error';
+
+    is $t->app->incidents->blocked_cache_ttl, 10, 'default blocked_cache_ttl is 10';
+    my $app_custom
+      = Test::Mojo->new(Dashboard => {%{$dashboard_test_blocked->default_config}, blocked_cache_ttl => 5})->app;
+    is $app_custom->incidents->blocked_cache_ttl, 5, 'custom blocked_cache_ttl is applied from configuration';
   };
 };
 

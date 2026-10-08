@@ -168,7 +168,14 @@ EOF
   # Model
   my $log = $self->log;
   $self->helper(
-    incidents => sub ($c) { state $incidents = Dashboard::Model::Incidents->new(log => $log, pg => $c->pg) });
+    incidents => sub ($c) {
+      state $incidents = Dashboard::Model::Incidents->new(
+        log               => $log,
+        pg                => $c->pg,
+        blocked_cache_ttl => $config->{blocked_cache_ttl} // 10
+      );
+    }
+  );
   $self->helper(
     jobs => sub ($c) {
       state $jobs = Dashboard::Model::Jobs->new(
