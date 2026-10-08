@@ -11,7 +11,7 @@ has [qw(log pg)];
 # The ELSE branch is cast to text because openqa_jobs.status is the qa_status enum, which has no 'accepted' member.
 use constant _ACCEPTABLE_FOR_STATUS_CASE_SQL => q{
   CASE
-      WHEN (SELECT COUNT(jr.id) FROM job_remarks jr WHERE jr.openqa_job_id = oj.id AND jr.incident_id = ? AND jr.text = 'acceptable_for' LIMIT 1) > 0
+      WHEN jr.id IS NOT NULL
       THEN 'accepted'
       ELSE oj.status::text
   END AS incident_status
@@ -24,14 +24,19 @@ sub blocked ($self) {
      ORDER BY number"
   )->hashes->to_array;
 
+  return [] unless @$incidents;
+
   $self->_map($_) for @$incidents;
+
+  my $incident_jobs = $self->_incident_openqa_jobs($incidents);
+  my $update_jobs   = $self->_update_openqa_jobs($incidents);
 
   return [
     map {
       {
         incident         => $_,
-        incident_results => $self->_incident_openqa_jobs($_),
-        update_results   => $self->_update_openqa_jobs($_)
+        incident_results => $incident_jobs->{$_->{id}} // {},
+        update_results   => $update_jobs->{$_->{id}}   // {}
       }
     } @$incidents
   ];
@@ -201,67 +206,73 @@ sub _group_nick ($group) {
 }
 
 sub _incident_openqa_jobs ($self, $inc) {
+  my $is_batch = ref $inc eq 'ARRAY';
+  my @incs     = $is_batch ? @$inc : ($inc);
+  my @ids      = grep {defined} map { $_->{id} } @incs;
+  return {} unless @ids;
+
   my $db      = $self->pg->db;
-  my $inc_id  = $inc->{id};
-  my $inc_nr  = $inc->{number};
   my $results = $db->query(
-    "WITH openqa_status_for_incident AS (
-     SELECT
-         oj.id AS openqa_job_id,
-         " . _ACCEPTABLE_FOR_STATUS_CASE_SQL . "
-     FROM openqa_jobs oj
-     )
-     SELECT
+    "SELECT
+         os.incident AS incident_id,
          oj.job_group,
          oj.group_id,
-         osfi.incident_status,
-         COUNT(osfi.incident_status) AS incident_status_job_count
+         " . _ACCEPTABLE_FOR_STATUS_CASE_SQL . ",
+         COUNT(*) AS incident_status_job_count
      FROM
          incident_openqa_settings os
+         JOIN incidents i ON i.id = os.incident
          JOIN openqa_jobs oj ON oj.incident_settings = os.id
-         JOIN openqa_status_for_incident osfi ON oj.id = osfi.openqa_job_id
+         LEFT JOIN job_remarks jr ON jr.openqa_job_id = oj.id AND jr.incident_id = os.incident AND jr.text = 'acceptable_for'
      WHERE
-         os.incident = ? AND oj.obsolete = false
-         AND (oj.build !~ ':[0-9]+:' OR oj.build ~ (':' || ? || ':'))
+         os.incident = ANY(?) AND oj.obsolete = false
+         AND (oj.build !~ ':[0-9]+:' OR oj.build ~ (':' || i.number || ':'))
      GROUP BY
+         os.incident,
          oj.job_group,
          oj.group_id,
-         osfi.incident_status", $inc_id, $inc_id, $inc_nr
+         incident_status", \@ids
   )->hashes;
   my %ret;
   for my $result ($results->each) {
-    my $id = $result->{group_id};
-    $ret{$id} ||= {linkinfo => $result->{group_id}, name => _group_nick($result->{job_group})};
-    $ret{$id}{$result->{incident_status}} = $result->{incident_status_job_count};
+    my $inc_id = $result->{incident_id};
+    my $id     = $result->{group_id};
+    $ret{$inc_id}{$id} ||= {linkinfo => $result->{group_id}, name => _group_nick($result->{job_group})};
+    $ret{$inc_id}{$id}{$result->{incident_status}} = $result->{incident_status_job_count};
   }
 
-  for my $id (keys %ret) {
-    my $settings = $db->query(
-      'SELECT settings
-       FROM openqa_jobs oj JOIN incident_openqa_settings os ON oj.incident_settings = os.id
-       WHERE oj.group_id = ? AND os.incident = ? ORDER BY oj.job_id DESC LIMIT 1', $id, $inc_id
-    )->expand->hash->{settings};
-    $ret{$id}{linkinfo} = {distri => 'sle', groupid => $id, build => $settings->{BUILD}};
+  my $settings_res = $db->query(
+    'SELECT DISTINCT ON (os.incident, oj.group_id)
+         os.incident AS incident_id,
+         oj.group_id,
+         os.settings
+     FROM openqa_jobs oj
+     JOIN incident_openqa_settings os ON oj.incident_settings = os.id
+     WHERE os.incident = ANY(?)
+     ORDER BY os.incident, oj.group_id, oj.job_id DESC', \@ids
+  )->expand->hashes;
+
+  for my $row ($settings_res->each) {
+    my $inc_id = $row->{incident_id};
+    my $id     = $row->{group_id};
+    if (my $entry = $ret{$inc_id}{$id}) {
+      $entry->{linkinfo} = {distri => 'sle', groupid => $id, build => $row->{settings}{BUILD}};
+    }
   }
 
-  return \%ret;
+  return $is_batch ? \%ret : ($ret{$inc->{id}} // {});
 }
 
 sub _update_openqa_jobs ($self, $inc) {
-  my $db     = $self->pg->db;
-  my $inc_id = $inc->{id};
-  my $inc_nr = $inc->{number};
-  my $ids
-    = $db->query('SELECT settings FROM incident_in_update WHERE incident = ?', $inc_id)->arrays->flatten->to_array;
+  my $is_batch = ref $inc eq 'ARRAY';
+  my @incs     = $is_batch ? @$inc : ($inc);
+  my @ids      = grep {defined} map { $_->{id} } @incs;
+  return {} unless @ids;
 
+  my $db      = $self->pg->db;
   my $results = $db->query(
-    "WITH openqa_status_for_incident AS (
-     SELECT
-         oj.id AS openqa_job_id,
-         " . _ACCEPTABLE_FOR_STATUS_CASE_SQL . "
-     FROM openqa_jobs oj
-     )
-     SELECT
+    "SELECT
+         iu.incident AS incident_id,
          oj.job_group,
          oj.group_id,
          us.build,
@@ -269,16 +280,22 @@ sub _update_openqa_jobs ($self, $inc) {
          oj.flavor,
          oj.arch,
          oj.version,
-         osfi.incident_status,
-         COUNT(osfi.incident_status) AS incident_status_job_count
-     FROM
-         update_openqa_settings us
-         JOIN openqa_jobs oj ON oj.update_settings = us.id
-         JOIN openqa_status_for_incident osfi ON oj.id = osfi.openqa_job_id
+         " . _ACCEPTABLE_FOR_STATUS_CASE_SQL . ",
+         COUNT(*) AS incident_status_job_count
+     FROM (
+         SELECT DISTINCT incident, settings
+         FROM incident_in_update
+         WHERE incident = ANY(?)
+     ) iu
+     JOIN incidents i ON i.id = iu.incident
+     JOIN update_openqa_settings us ON us.id = iu.settings
+     JOIN openqa_jobs oj ON oj.update_settings = us.id
+     LEFT JOIN job_remarks jr ON jr.openqa_job_id = oj.id AND jr.incident_id = iu.incident AND jr.text = 'acceptable_for'
      WHERE
-         us.id = ANY (?) AND oj.obsolete = false
-         AND (oj.build !~ ':[0-9]+:' OR oj.build ~ (':' || ? || ':'))
+         oj.obsolete = false
+         AND (oj.build !~ ':[0-9]+:' OR oj.build ~ (':' || i.number || ':'))
      GROUP BY
+         iu.incident,
          oj.job_group,
          oj.group_id,
          us.build,
@@ -286,12 +303,13 @@ sub _update_openqa_jobs ($self, $inc) {
          oj.flavor,
          oj.arch,
          oj.version,
-         osfi.incident_status", $inc_id, $ids, $inc_nr
+         incident_status", \@ids
   )->hashes;
   my %ret;
   for my $result ($results->each) {
-    my $id = "$result->{group_id} $result->{flavor} $result->{version}";
-    $ret{$id} ||= {
+    my $inc_id = $result->{incident_id};
+    my $id     = "$result->{group_id} $result->{flavor} $result->{version}";
+    $ret{$inc_id}{$id} ||= {
       linkinfo => {
         distri  => $result->{distri},
         groupid => $result->{group_id},
@@ -300,18 +318,20 @@ sub _update_openqa_jobs ($self, $inc) {
       },
       name => _group_nick($result->{job_group})
     };
-    $ret{$id}{builds}{$result->{build}}{$result->{incident_status}} = $result->{incident_status_job_count};
+    $ret{$inc_id}{$id}{builds}{$result->{build}}{$result->{incident_status}} = $result->{incident_status_job_count};
   }
 
-  for my $id (keys %ret) {
-    my $result = $ret{$id};
-    my $builds = delete $result->{builds};
-    $result->{linkinfo}{build} = my $latest = (sort keys %$builds)[-1];
-    my $build = $builds->{$latest};
-    @{$result}{keys %$build} = values %$build;
+  for my $inc_id (keys %ret) {
+    for my $id (keys %{$ret{$inc_id}}) {
+      my $result = $ret{$inc_id}{$id};
+      my $builds = delete $result->{builds};
+      $result->{linkinfo}{build} = my $latest = (sort keys %$builds)[-1];
+      my $build = $builds->{$latest};
+      @{$result}{keys %$build} = values %$build;
+    }
   }
 
-  return \%ret;
+  return $is_batch ? \%ret : ($ret{$inc->{id}} // {});
 }
 
 sub update_rejection_reason ($self, $number, $reason) {

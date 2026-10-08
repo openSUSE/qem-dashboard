@@ -186,6 +186,9 @@ subtest 'Dashboard::Model::Incidents' => sub {
     # rr_number undef
     $incs->update({%$mock_incident, number => 16860, rr_number => undef});
     is $incs->incident_for_number(16860)->{rr_number}, undef, 'rr_number undef works';
+
+    $incs->update_rejection_reason(16860, 'Needs investigation');
+    is $incs->incident_for_number(16860)->{rejection_reason}, 'Needs investigation', 'rejection reason was updated';
   };
 
   subtest '_incident_openqa_jobs branch coverage' => sub {
@@ -280,6 +283,52 @@ subtest 'Dashboard::Model::Incidents' => sub {
     $settings->add_update_settings([1],
       {product => 'NoJobsProduct', arch => 'x86_64', build => '123', repohash => 'h', settings => {}});
     ok $incs->repos, 'repos works even with a repo having no jobs';
+  };
+
+  subtest 'channels_for_incident' => sub {
+    my $incs = $t->app->incidents;
+    my $inc  = $incs->incident_for_number(16860);
+    is scalar(@{$incs->channels_for_incident($inc->{id})}), 1, 'returns channels for existing incident';
+  };
+
+  subtest 'batch openqa job queries' => sub {
+    my $incs = $t->app->incidents;
+    is_deeply $incs->_incident_openqa_jobs([]), {}, 'batch incident openqa jobs returns empty hash for empty list';
+    is_deeply $incs->_update_openqa_jobs([]),   {}, 'batch update openqa jobs returns empty hash for empty list';
+    is_deeply $incs->_incident_openqa_jobs({}), {}, 'single incident openqa jobs returns empty hash for empty incident';
+    is_deeply $incs->_update_openqa_jobs({}),   {}, 'single update openqa jobs returns empty hash for empty incident';
+    is_deeply $incs->_incident_openqa_jobs({id => 99999, number => 99999}), {},
+      'single incident with no jobs returns empty hash';
+    is_deeply $incs->_update_openqa_jobs({id => 99999, number => 99999}), {},
+      'single update with no jobs returns empty hash';
+
+    my $jobs = $t->app->jobs;
+    my $inc  = $incs->incident_for_number(16860);
+    $jobs->add(
+      {
+        incident_settings => 1,
+        name              => 'obsolete-group-job',
+        job_group         => 'Maintenance: Obsolete Group Incidents',
+        status            => 'failed',
+        job_id            => 999901,
+        group_id          => 7777,
+        distri            => 'd',
+        flavor            => 'f',
+        version           => 'v',
+        arch              => 'a',
+        build             => 'b'
+      }
+    );
+    $jobs->modify(999901, {obsolete => 1});
+    my $batch_res = $incs->_incident_openqa_jobs([$inc]);
+    is $batch_res->{$inc->{id}}{7777}, undef, 'obsolete jobs are excluded from batch incident results';
+  };
+
+  subtest 'blocked with no active incidents' => sub {
+    my $empty_test = Dashboard::Test->new(online => $ENV{TEST_ONLINE}, schema => 'models_empty_blocked_test');
+    my $empty_app  = Test::Mojo->new(Dashboard => $empty_test->default_config)->app;
+    $empty_test->no_fixtures($empty_app);
+    is_deeply $empty_app->incidents->blocked, [], 'blocked returns empty array ref when no active incidents exist';
   };
 };
 
