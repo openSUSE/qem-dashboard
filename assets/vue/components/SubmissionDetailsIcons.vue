@@ -91,7 +91,7 @@ const priorityBadgeClass = computed(() => {
       role="img"
     >
       <i :class="incident.type === 'git' ? 'fas fa-code-branch' : 'fas fa-database'" aria-hidden="true"></i>
-      <span class="badge bg-info ms-1" aria-hidden="true">{{ incident.type }}</span>
+      <span class="badge bg-info text-dark ms-1" aria-hidden="true">{{ incident.type }}</span>
     </span>
     <i
       v-if="incident.project"

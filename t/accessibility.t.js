@@ -8,11 +8,11 @@ import AxeBuilder from '@axe-core/playwright';
 import t from 'tap';
 
 const env = process.env;
-const skip = env.TEST_ONLINE === undefined ? {skip: 'set TEST_ONLINE to enable this test'} : {};
+const skip = env.TEST_ONLINE === undefined ? 'set TEST_ONLINE to enable this test' : false;
 
 t.test('Accessibility audits', {skip, timeout: 60000}, async t => {
   const server = await ServerStarter.newServer();
-  await server.launch('perl', ['t/wrappers/ui.pl']);
+  await server.launch('perl', ['t/wrappers/ui.pl'], {env: {...process.env, UI_TEST_SCHEMA: 'js_ui_test_a11y'}});
   const browser = await chromium.launch(env.TEST_HEADLESS === '0' ? {headless: false} : {});
   const context = await browser.newContext();
   const page = await context.newPage();
@@ -49,15 +49,17 @@ t.test('Accessibility audits', {skip, timeout: 60000}, async t => {
     await checkAccessibility('Active Incidents (Home)');
 
     await page.click('text=Blocked');
-    await page.waitForSelector('tbody tr', {timeout: 5000});
+    await page.locator('h1', {hasText: 'Blocked by Tests'}).waitFor();
+    await page.getByPlaceholder('Search for submission/package').waitFor();
     await checkAccessibility('Blocked by Tests');
 
     await page.click('text=Repos');
-    await page.waitForSelector('tbody', {timeout: 5000});
+    await page.locator('h1', {hasText: 'Test Repos'}).waitFor();
+    await page.locator('tr:has-text("Submissions")').first().waitFor();
     await checkAccessibility('Test Repos');
 
     await page.goto(`${url}/incident/16860`, {waitUntil: 'networkidle'});
-    await page.waitForSelector('.details', {timeout: 5000});
+    await page.waitForSelector('.packages ul', {timeout: 5000});
     await checkAccessibility('Incident Details');
   } catch (error) {
     t.fail(`Navigation or selection failed: ${error.message}`);
