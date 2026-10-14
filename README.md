@@ -98,7 +98,7 @@ For development and manual testing of the UI without a full production environme
 ### Model Context Protocol (MCP)
 
 The dashboard provides a native [MCP server](https://modelcontextprotocol.io) for interaction with AI agents.
-It supports both HTTP/SSE (`/mcp`) and Stdio (`script/mcp-stdio`) transports.
+It supports both HTTP (`/mcp`) and Stdio (`script/mcp-stdio`) transports, using MCP protocol revision 2026-07-28.
 See **[docs/MCP.md](docs/MCP.md)** for more details.
 
 ### REST API

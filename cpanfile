@@ -7,7 +7,7 @@ requires 'Devel::Cover';
 requires 'JSON::Validator';
 requires 'YAML::XS', '>= 0.903.0';
 requires 'IO::Socket::SSL', '>= 2.009';
-requires 'MCP', '< 0.15';
+requires 'MCP', '>= 0.15';
 
 # The following are only indirect dependencies to satisfy cpan-audit:
 requires 'Compress::Raw::Zlib', '>= 2.220';

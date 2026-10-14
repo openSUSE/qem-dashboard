@@ -2,6 +2,8 @@
 
 The QEM Dashboard supports the [Model Context Protocol](https://modelcontextprotocol.io), allowing AI agents to interact with the dashboard data directly.
 
+Only protocol revision `2026-07-28` (stateless) is supported. The `initialize` handshake and `Mcp-Session-Id` are not part of this revision and must not be relied upon. Every request must send the protocol version and client capabilities in `_meta`, and the `MCP-Protocol-Version` and `Mcp-Method` headers (`Mcp-Name` for `tools/call`).
+
 ## Available Tools
 
 - `list_submissions`: List active incidents/submissions.
