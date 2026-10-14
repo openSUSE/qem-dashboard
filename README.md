@@ -16,7 +16,11 @@ To install all required dependencies, run
     sudo zypper in -C postgresql-server postgresql-contrib
     sudo zypper in -C perl-Mojolicious perl-Mojolicious-Plugin-Webpack \
       perl-Mojo-Pg perl-Cpanel-JSON-XS perl-JSON-Validator perl-IO-Socket-SSL \
-      perl-MCP perl-Mojolicious-Plugin-OpenAPI nodejs-default npm
+      perl-Mojolicious-Plugin-OpenAPI nodejs-default npm
+    # Install the remaining Perl modules from cpanfile. Do not install `perl-MCP`
+    # via zypper: cpanfile pins `MCP < 0.15` (MCP 0.15+ changed the server API),
+    # and cpanfile also requires `Mojo::RabbitMQ::Client`.
+    make install-deps-cpanm
     npm clean-install --ignore-scripts
 
 if you are on an apt-based system, run
