@@ -32,6 +32,22 @@ x-anchors:
       schema:
         type: string
         pattern: ^[0-9]+$
+    project_query: &project_query_param
+      name: project
+      in: query
+      required: true
+      description: Project of the incident, incidents are unique by number, project and type
+      schema:
+        type: string
+        minLength: 1
+    type_query: &type_query_param
+      name: type
+      in: query
+      required: true
+      description: Type of the incident, together with number and project it identifies the incident
+      schema:
+        type: string
+        minLength: 1
     job_id_path: &job_id_path_param
       name: job_id
       in: path
@@ -77,6 +93,8 @@ paths:
       description: Show a specific incident
       parameters:
         - *incident_path_param
+        - *project_query_param
+        - *type_query_param
       responses:
         "200":
           description: Incident details
@@ -84,6 +102,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/incident'
+        "400": *error_response
         "404": *error_response
     patch:
       x-mojo-to: API::Incidents#update
@@ -107,6 +126,8 @@ paths:
       description: Update the rejection reason for a specific incident
       parameters:
         - *incident_path_param
+        - *project_query_param
+        - *type_query_param
       requestBody:
         required: true
         content:
@@ -152,6 +173,8 @@ paths:
       description: Get settings for a specific incident
       parameters:
         - *incident_path_param
+        - *project_query_param
+        - *type_query_param
       responses:
         "200":
           description: Incident settings
@@ -222,6 +245,8 @@ paths:
       description: Get update settings for a specific incident
       parameters:
         - *incident_path_param
+        - *project_query_param
+        - *type_query_param
       responses:
         "200":
           description: Update settings
@@ -303,6 +328,13 @@ paths:
                           type: string
                         incident:
                           type: integer
+                          nullable: true
+                        project:
+                          type: string
+                          nullable: true
+                        type:
+                          type: string
+                          nullable: true
         "404": *error_response
     patch:
       x-mojo-to: API::Jobs#update_remark
@@ -310,6 +342,25 @@ paths:
       description: Update job remark
       parameters:
         - *job_id_path_param
+        - name: incident_number
+          in: query
+          schema:
+            type: string
+            pattern: ^[0-9]+$
+        - name: project
+          in: query
+          description: Project of the incident, required when incident_number is given
+          schema:
+            type: string
+        - name: type
+          in: query
+          description: Type of the incident, required when incident_number is given
+          schema:
+            type: string
+        - name: text
+          in: query
+          schema:
+            type: string
       requestBody:
         content:
           application/json:
@@ -320,6 +371,7 @@ paths:
               $ref: '#/components/schemas/job_remark_update'
       responses:
         "200": *success_message_response
+        "400": *error_response
         "404": *error_response
   /jobs/incident/{incident_settings}:
     get:
@@ -370,6 +422,7 @@ components:
       required:
         - number
         - project
+        - type
         - packages
         - channels
         - rr_number
@@ -385,6 +438,7 @@ components:
           minimum: 1
         project:
           type: string
+          minLength: 1
         packages:
           type: array
           items:
@@ -418,6 +472,8 @@ components:
           type: string
         type:
           type: string
+          minLength: 1
+          description: Incident type, together with number and project it identifies the incident
         rejection_reason:
           type: string
           nullable: true
@@ -426,6 +482,8 @@ components:
       type: object
       required:
         - incident
+        - project
+        - type
         - version
         - flavor
         - arch
@@ -435,6 +493,13 @@ components:
         incident:
           type: integer
           minimum: 1
+        project:
+          type: string
+          minLength: 1
+        type:
+          type: string
+          minLength: 1
+          description: Incident type, together with incident and project it identifies the incident
         version:
           type: string
         flavor:
@@ -459,8 +524,7 @@ components:
           type: array
           minItems: 1
           items:
-            type: integer
-            minimum: 1
+            $ref: '#/components/schemas/incident_key'
         product:
           type: string
         arch:
@@ -471,6 +535,23 @@ components:
           type: string
         settings:
           type: object
+    incident_key:
+      type: object
+      required:
+        - number
+        - project
+        - type
+      properties:
+        number:
+          type: integer
+          minimum: 1
+        project:
+          type: string
+          minLength: 1
+        type:
+          type: string
+          minLength: 1
+          description: Incident type, together with number and project it identifies the incident
     job:
       type: object
       required:
@@ -527,6 +608,12 @@ components:
         incident_number:
           type: string
           pattern: ^[0-9]+$
+        project:
+          type: string
+          description: Project of the incident, required when incident_number is given
+        type:
+          type: string
+          description: Type of the incident, required when incident_number is given
         text:
           type: string
       required:

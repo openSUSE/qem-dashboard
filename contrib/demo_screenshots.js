@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 // Copyright SUSE LLC
 // SPDX-License-Identifier: GPL-2.0-or-later
-/* global process */
 import ServerStarter from '@mojolicious/server-starter';
 import {chromium} from 'playwright';
 import path from 'path';
@@ -40,7 +39,7 @@ async function run() {
   console.log('Saved demo_blocked.png');
 
   // Screenshot of Incident details page (16860:perl-Mojolicious)
-  await page.goto(`${url}/incident/16860`);
+  await page.goto(`${url}/incident/16860?project=SUSE:Maintenance:16860&type=smelt`);
   await page.waitForSelector('.details');
   await page.waitForTimeout(1000);
   await page.screenshot({path: 'demo_incident.png', fullPage: true});

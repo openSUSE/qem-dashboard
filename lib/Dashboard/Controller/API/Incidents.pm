@@ -24,11 +24,11 @@ sub list ($self) {
 
 sub show ($self) {
   $self = $self->openapi->valid_input or return;
-  my $number   = $self->param('incident');
-  my $incident = $self->incidents->incident_for_number($number);
-  return $self->render(json => {error => 'Incident not found'}, status => 404) unless $incident;
+  my $key = {number => $self->param('incident'), project => $self->param('project'), type => $self->param('type')};
+  return unless defined(my $id = $self->incident_id($key, status => 404, error => 'Incident not found'));
 
-  $incident->{channels} = $self->incidents->channels_for_incident($incident->{id});
+  my $incident = $self->incidents->incident_for($key);
+  $incident->{channels} = $self->incidents->channels_for_incident($id);
   delete $incident->{id};
   ($incident) = @{_fix_booleans([$incident])};
   $self->render(json => $incident);
@@ -43,13 +43,11 @@ sub update ($self) {
 
 sub update_rejection_reason ($self) {
   $self = $self->openapi->valid_input or return;
-  my $incident_number = $self->param('incident');
-
-  return $self->render(json => {error => 'Incident not found'}, status => 404)
-    unless $self->incidents->find({number => $incident_number})->[0];
+  my $key = {number => $self->param('incident'), project => $self->param('project'), type => $self->param('type')};
+  return unless defined(my $incident_id = $self->incident_id($key, status => 404, error => 'Incident not found'));
 
   my $payload = $self->req->json;
-  $self->incidents->update_rejection_reason($incident_number, $payload->{rejection_reason});
+  $self->incidents->update_rejection_reason($incident_id, $payload->{rejection_reason});
 
   $self->render(json => {message => 'Ok'});
 }
