@@ -10,7 +10,7 @@ use Mojo::File qw(curfile);
 use Test::Mojo;
 use Dashboard::Test;
 
-my $dashboard_test = Dashboard::Test->new(online => $ENV{TEST_ONLINE}, schema => 'js_ui_test');
+my $dashboard_test = Dashboard::Test->new(online => $ENV{TEST_ONLINE}, schema => $ENV{UI_TEST_SCHEMA} // 'js_ui_test');
 my $daemon         = Mojo::Server::Daemon->new(listen => ['http://*?fd=3'], silent => 1);
 
 my $app = Test::Mojo->new(Dashboard => $dashboard_test->default_config)->app;
