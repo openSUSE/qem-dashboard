@@ -50,7 +50,7 @@
   "devDependencies": {
     "@axe-core/playwright": "^4.14.0",
     "@eslint/js": "^10.0.1",
-    "@mojojs/core": "^1.26.18",
+    "@mojojs/core": "^2.0.0",
     "@mojolicious/server-starter": "^2.2.0",
     "@types/node": "^26.6.5",
     "@vue/test-utils": "^2.5.1",
