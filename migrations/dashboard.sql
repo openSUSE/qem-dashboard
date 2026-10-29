@@ -144,3 +144,15 @@ DROP INDEX IF EXISTS incidents_number_type_project_idx;
 CREATE UNIQUE INDEX incidents_number_idx ON incidents(number);
 ALTER TABLE incidents ALTER COLUMN project DROP NOT NULL;
 ALTER TABLE incidents ALTER COLUMN type SET DEFAULT '';
+
+-- 12 up
+DELETE FROM incident_in_update a
+ USING incident_in_update b
+ WHERE a.incident = b.incident AND a.settings = b.settings AND a.id > b.id;
+CREATE UNIQUE INDEX incident_in_update_incident_settings_idx ON incident_in_update(incident, settings);
+-- Redundant with the composite index above, whose leading column is incident
+DROP INDEX IF EXISTS incident_in_update_incident_idx;
+
+-- 12 down
+CREATE INDEX IF NOT EXISTS incident_in_update_incident_idx ON incident_in_update(incident);
+DROP INDEX IF EXISTS incident_in_update_incident_settings_idx;

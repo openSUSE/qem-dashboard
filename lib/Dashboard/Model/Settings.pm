@@ -37,7 +37,8 @@ sub add_update_settings ($self, $incident_ids, $settings) {
   );
   my $id = $db->query('SELECT id FROM update_openqa_settings WHERE product = ? AND arch = ? AND build = ? LIMIT 1',
     $settings->{product}, $settings->{arch}, $settings->{build})->hash->{id};
-  $db->query('INSERT INTO incident_in_update (incident, settings) VALUES (?, ?)', $_, $id) for @$incident_ids;
+  $db->query('INSERT INTO incident_in_update (incident, settings) VALUES (?, ?) ON CONFLICT DO NOTHING', $_, $id)
+    for @$incident_ids;
   $tx->commit;
 
   return $id;

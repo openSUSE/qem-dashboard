@@ -44,8 +44,8 @@ sub run_api_tests ($t, $prefix) {
   };
 
   subtest 'Migrations' => sub {
-    is $t->app->pg->migrations->latest, 11, 'latest version';
-    is $t->app->pg->migrations->active, 11, 'active version';
+    is $t->app->pg->migrations->latest, 12, 'latest version';
+    is $t->app->pg->migrations->active, 12, 'active version';
   };
 
   subtest 'Unknown endpoint' => sub {
