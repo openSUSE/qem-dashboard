@@ -95,19 +95,21 @@ sub find ($self, $options = {}) {
 sub openqa_summary_only_aggregates ($self, $inc) {
   my $res = $self->pg->db->query(
     'SELECT uos.id, uos.build, uos.settings
-     FROM update_openqa_settings uos JOIN incident_in_update iu 
-     ON uos.id=iu.settings WHERE incident=?', $inc->{id}
+     FROM update_openqa_settings uos
+     JOIN incident_in_update iu ON uos.id = iu.settings
+     WHERE iu.incident = ?', $inc->{id}
   )->expand->hashes;
   my %jobs;
 
   for my $settings (@$res) {
-    if (!$jobs{$settings->{build}}) {
-      $jobs{$settings->{build}} = [];
-    }
+    $jobs{$settings->{build}} //= [];
 
     my $jobs_results = $self->pg->db->query(
-      'SELECT arch,build,distri,flavor,group_id,job_group,job_id,name,status,version 
-       FROM openqa_jobs WHERE update_settings=?', $settings->{id}
+      'SELECT arch,build,distri,flavor,group_id,job_group,job_id,name,status,version
+       FROM openqa_jobs
+       WHERE update_settings = ? AND obsolete = false
+         AND (build !~ \':[0-9]+:\' OR build ~ (\':\' || ? || \':\'))
+       ORDER BY job_id DESC', $settings->{id}, $inc->{number}
     )->hashes->to_array;
     push(@{$jobs{$settings->{build}}}, @$jobs_results);
   }
@@ -117,9 +119,11 @@ sub openqa_summary_only_aggregates ($self, $inc) {
 sub openqa_summary_only_incident ($self, $inc) {
   my $res = $self->pg->db->query(
     'SELECT oj.status, count(oj.id)
-     FROM incident_openqa_settings ios JOIN openqa_jobs oj ON oj.incident_settings=ios.id
-     WHERE incident = ? AND oj.obsolete = false
-     GROUP BY oj.status', $inc->{id}
+     FROM incident_openqa_settings ios
+     JOIN openqa_jobs oj ON oj.incident_settings = ios.id
+     WHERE ios.incident = ? AND oj.obsolete = false
+       AND (oj.build !~ \':[0-9]+:\' OR oj.build ~ (\':\' || ? || \':\'))
+     GROUP BY oj.status', $inc->{id}, $inc->{number}
   )->hashes;
   return {map { $_->{status} => $_->{count} } $res->each};
 }
@@ -322,17 +326,14 @@ sub _update_openqa_jobs ($self, $inc) {
          oj.version,
          " . _ACCEPTABLE_FOR_STATUS_CASE_SQL . ",
          COUNT(*) AS incident_status_job_count
-     FROM (
-         SELECT DISTINCT incident, settings
-         FROM incident_in_update
-         WHERE incident = ANY(?)
-     ) iu
+     FROM incident_in_update iu
      JOIN incidents i ON i.id = iu.incident
      JOIN update_openqa_settings us ON us.id = iu.settings
      JOIN openqa_jobs oj ON oj.update_settings = us.id
      LEFT JOIN job_remarks jr ON jr.openqa_job_id = oj.id AND jr.incident_id = iu.incident AND jr.text = 'acceptable_for'
      WHERE
-         oj.obsolete = false
+         iu.incident = ANY(?)
+         AND oj.obsolete = false
          AND (oj.build !~ ':[0-9]+:' OR oj.build ~ (':' || i.number || ':'))
      GROUP BY
          iu.incident,

@@ -441,9 +441,9 @@ subtest 'Incident Details' => sub {
               "flavor"    => "Server-DVD-Incidents",
               "group_id"  => 55,
               "job_group" => "Server-DVD-Incidents 12-SP6",
-              "job_id"    => 4953600,
-              "name"      => "acceptable_for_16860_despite_failing\@64bit",
-              "status"    => "failed",
+              "job_id"    => 4953601,
+              "name"      => "acceptable_for_16860_but_passing_anyway\@64bit",
+              "status"    => "passed",
               "version"   => "12-SP6"
             },
             {
@@ -453,9 +453,9 @@ subtest 'Incident Details' => sub {
               "flavor"    => "Server-DVD-Incidents",
               "group_id"  => 55,
               "job_group" => "Server-DVD-Incidents 12-SP6",
-              "job_id"    => 4953601,
-              "name"      => "acceptable_for_16860_but_passing_anyway\@64bit",
-              "status"    => "passed",
+              "job_id"    => 4953600,
+              "name"      => "acceptable_for_16860_despite_failing\@64bit",
+              "status"    => "failed",
               "version"   => "12-SP6"
             }
           ],
