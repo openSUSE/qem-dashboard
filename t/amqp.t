@@ -120,6 +120,27 @@ subtest 'Handle restart job' => sub {
   _is_field('job_id', 7764022);
 };
 
+subtest 'Handle restart job without a new job id' => sub {
+  my %results = (%$msg, "auto" => 0, "bugref" => undef, "group_id" => 328, "remaining" => 1);
+
+  subtest 'job is left untouched' => sub {
+    _set_default();
+    $db->query("UPDATE openqa_jobs SET status = 'failed' WHERE id = $job_id");
+    $t->app->amqp->handle('suse.openqa.job.restart', {%results, "result" => {"4953203" => undef}});
+    _is_field('status', 'failed');
+    _is_field('job_id', 4953203);
+  };
+
+  subtest 'other restarts are still handled' => sub {
+    _set_default();
+    my $restart_map = {"4953203" => 7764022, "4953204" => undef};
+    stderr_like { $t->app->amqp->handle('suse.openqa.job.restart', {%results, "result" => $restart_map}) }
+    $log_msg->(qr/job_restart/), 'amqp log message';
+    _is_field('status', 'waiting');
+    _is_field('job_id', 7764022);
+  };
+};
+
 subtest 'Handle delete job' => sub {
   _set_default();
   _is_count(1);

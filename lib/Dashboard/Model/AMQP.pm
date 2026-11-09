@@ -26,7 +26,8 @@ sub handle ($self, $key, $data) {
     return unless defined $data->{result};
     my $restart_map = $data->{result};
     for my $old_id (keys %$restart_map) {
-      $self->jobs->restart_job($old_id, $restart_map->{$old_id});
+      next unless defined(my $new_id = $restart_map->{$old_id});
+      $self->jobs->restart_job($old_id, $new_id);
     }
   }
 }
