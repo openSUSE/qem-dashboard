@@ -2,7 +2,7 @@ requires 'Mojolicious', '>= 9.48';
 requires 'Mojolicious::Plugin::OpenAPI';
 requires 'Mojo::Pg', '>= 4.25';
 requires 'Mojo::RabbitMQ::Client';
-requires 'Cpanel::JSON::XS', '>= 4.41';
+requires 'Cpanel::JSON::XS', '>= 4.80';
 requires 'Devel::Cover';
 requires 'JSON::Validator';
 requires 'YAML::XS', '>= 0.903.0';
