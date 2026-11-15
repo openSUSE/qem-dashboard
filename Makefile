@@ -98,17 +98,33 @@ test-ui: public/asset ## Run Playwright UI tests
 test-js-unit: ## Run JS unit tests
 	npm run test:unit
 
+.PHONY: audit-report-cpan
+audit-report-cpan: ## Write the Perl advisory report of this checkout to cpan-audit.json
+	PERL5LIB=~/perl5/lib/perl5:$$PERL5LIB PATH=~/perl5/bin:$$PATH cpan-audit deps . --json --no-color --exit-zero > cpan-audit.json
+
+.PHONY: audit-report-npm
+audit-report-npm: ## Write the npm advisory report of this checkout to npm-audit.json
+	npm audit --json > npm-audit.json || true
+
 .PHONY: check-audits-cpan
-check-audits-cpan: ## Report Perl advisories not covered by .audit-waivers
-	PERL5LIB=~/perl5/lib/perl5:$$PERL5LIB PATH=~/perl5/bin:$$PATH cpan-audit deps . --json --no-color --exit-zero > cpan-audit-head.json
-	script/audit-diff --ecosystem perl --head cpan-audit-head.json --waivers .audit-waivers
+check-audits-cpan: audit-report-cpan ## Fail on Perl advisories that are not waived
+	script/audit-diff --ecosystem perl --head cpan-audit.json --waivers .audit-waivers
 
 .PHONY: check-audits-npm
-check-audits-npm: ## Report npm advisories not covered by .audit-waivers
-	npm audit --json > npm-audit-head.json || true
-	script/audit-diff --ecosystem npm --head npm-audit-head.json --waivers .audit-waivers
+check-audits-npm: audit-report-npm ## Fail on npm advisories that are not waived
+	script/audit-diff --ecosystem npm --head npm-audit.json --waivers .audit-waivers
 
-.PHONY: check-audits
+
+.PHONY: check-audit-diff-cpan
+check-audit-diff-cpan: ## Fail on Perl advisories this checkout adds relative to BASE_DIR (reports must exist)
+	$(if $(BASE_DIR),,$(error BASE_DIR must point to the base checkout))
+	$(BASE_DIR)/script/audit-diff --ecosystem perl --base $(BASE_DIR)/cpan-audit.json --head cpan-audit.json --waivers $(BASE_DIR)/.audit-waivers
+
+.PHONY: check-audit-diff-npm
+check-audit-diff-npm: ## Fail on npm advisories this checkout adds relative to BASE_DIR (reports must exist)
+	$(if $(BASE_DIR),,$(error BASE_DIR must point to the base checkout))
+	$(BASE_DIR)/script/audit-diff --ecosystem npm --base $(BASE_DIR)/npm-audit.json --head npm-audit.json --waivers $(BASE_DIR)/.audit-waivers
+
 check-audits: check-audits-cpan check-audits-npm ## Run all security audits
 
 .PHONY: lint-npm

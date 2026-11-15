@@ -3,5 +3,5 @@ assets/cache
 public/asset
 node_modules
 cover_db/
-cpan-audit-head.json
-npm-audit-head.json
+cpan-audit.json
+npm-audit.json
