@@ -59,6 +59,8 @@ JSON
     'advisories are keyed by GHSA id, deduplicated, and string via entries are skipped'
   );
   is_deeply(Dashboard::Audit::npm_advisories('{}'), {}, 'report without vulnerabilities yields no findings');
+  eval { Dashboard::Audit::npm_advisories('') };
+  like($@, qr/Audit report is not valid JSON/, 'empty report is fatal with a clear message');
   eval { Dashboard::Audit::npm_advisories('{"error":{"summary":"registry down"}}') };
   like($@, qr/npm audit failed: registry down/, 'npm error is fatal');
   eval { Dashboard::Audit::npm_advisories('{"vulnerabilities":{"x":{"name":"x","via":[{"severity":"low"}]}}}') };
