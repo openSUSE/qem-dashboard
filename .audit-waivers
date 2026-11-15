@@ -1,0 +1,19 @@
+# Accepted security advisories. Format: <advisory-id> <expiry YYYY-MM-DD> <reason>
+# An advisory listed here is not reported by `script/audit-diff` until the expiry date.
+# Add a waiver only with a reason that states why the advisory does not apply.
+CPANSA-Mojolicious-2024-58134 2027-11-15 session secrets handled in config, https://github.com/mojolicious/mojo/pull/2200
+CPANSA-Mojolicious-2024-58135 2027-11-15 session secrets handled in config, https://github.com/mojolicious/mojo/pull/2200
+CPANSA-File-Temp-2011-4116 2027-11-15 CVE-2011-4116, https://github.com/Perl-Toolchain-Gang/File-Temp/issues/14
+CPANSA-perl-2026-4176 2027-11-15 bundled Compress::Raw::Zlib, same issue as CPANSA-Compress-Raw-Zlib-2026-3381
+CPANSA-perl-2026-8376 2027-11-15 CVE-2026-8376 heap overflow on 32-bit builds (not applicable)
+CPANSA-Archive-Tar-2026-42496 2027-11-15 transitive, not extracting untrusted archives, https://github.com/jib/archive-tar-new/commit/17c873492a05eddc0de18c1485e0b2cccd5a9158.patch
+CPANSA-Archive-Tar-2026-9538 2027-11-15 transitive, not extracting untrusted archives, https://github.com/jib/archive-tar-new/commit/17c873492a05eddc0de18c1485e0b2cccd5a9158.patch
+CPANSA-Archive-Tar-2026-42497 2027-11-15 transitive, not extracting untrusted archives, https://github.com/jib/archive-tar-new/commit/17c873492a05eddc0de18c1485e0b2cccd5a9158.patch
+CPANSA-Socket-2026-12087 2027-11-15 out-of-bounds heap read, not used, https://github.com/Perl/perl5/commit/de19a0b0ad1900fef976c5c1400bd8f11ec6c6cb.patch
+CPANSA-Storable-2026-57433 2027-11-15 not deserializing untrusted data with Storable, https://github.com/Perl/perl5/commit/e4f681784bcdeaa91ff02a2fa4cdcae5c46779d7.patch
+CPANSA-perl-2026-13221 2027-11-15 regex alternation trie overflow, not applicable, https://github.com/Perl/perl5/commit/03f74bbbd3a68350d926ee93d56ee4808c28c4c7.patch
+CPANSA-perl-2026-57432 2027-11-15 pack template overflow, not applicable, https://github.com/Perl/perl5/commit/40754edc72dd3e513d758153c0e2f0215897740e.patch
+CPANSA-perl-2026-15534 2027-11-15 regex superlinear cache, not matching attacker-controlled subjects, https://github.com/Perl/perl5/commit/54cf3d44cbbedd17d774e9a37921963e8fd5d0cb.patch
+CPANSA-podlators-2026-82560 2027-11-15 Pod::Text DoS, not formatting untrusted POD, https://github.com/rra/podlators/commit/70510174f69eb54aa6d617bde4e1402cd9b7c61f.patch
+GHSA-3g3m-2fjr-6pw4 2027-11-15 glob via @vue/test-utils (dev dependency), not shipped to clients
+GHSA-g3hv-75wg-m249 2027-11-15 glob via @vue/test-utils (dev dependency), not shipped to clients

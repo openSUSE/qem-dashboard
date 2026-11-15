@@ -65,7 +65,9 @@ sub _waived ($waiver, $today) {
 }
 
 sub _decode ($json) {
-  return JSON::PP->new->decode($json);
+  my $report = eval { JSON::PP->new->decode($json) };
+  die "Audit report is not valid JSON: $@" if $@;
+  return $report;
 }
 
 1;
