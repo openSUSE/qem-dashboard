@@ -77,7 +77,7 @@ const link = computed(() => {
         +{{ acceptedWhileFailing }} accepted
       </span>
     </span>
-    <small class="opacity-75 subtitle" :class="{invisible: !$slots.subtitle}">
+    <small class="subtitle" :class="{invisible: !$slots.subtitle}">
       <slot name="subtitle">&nbsp;</slot>
     </small>
     <span class="visually-hidden">{{ currentConfig.label }}</span>
