@@ -9,13 +9,6 @@ on:
       - 'package-lock.json'
       - 'Makefile'
       - '.github/workflows/audits.yml'
-  pull_request:
-    paths:
-      - 'cpanfile'
-      - 'package.json'
-      - 'package-lock.json'
-      - 'Makefile'
-      - '.github/workflows/audits.yml'
   schedule:
     - cron: '0 3 * * *' # Every day at 3 AM UTC
 
