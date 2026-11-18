@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+# Copyright SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
+#
+# Usage: audit-issue <ecosystem> <status: clean|findings> <report-file> <run-url>
+# Opens or updates the single open issue for an ecosystem; closes it when clean.
+set -euo pipefail
+
+ecosystem=$1
+status=$2
+report=$3
+run_url=$4
+repo=${GH_REPO:?GH_REPO must be set}
+title="Security audit: unwaived $ecosystem advisories on main"
+
+existing=$(gh issue list --repo "$repo" --state open --label security --json number,title | jq --arg t "$title" -r 'map(select(.title == $t)) | .[0].number // empty')
+
+if [ "$status" = clean ]; then
+  if [ -n "$existing" ]; then
+    gh issue close "$existing" --repo "$repo" \
+      --comment "Clean on $(date -u +%F) with no unwaived $ecosystem advisories: $run_url"
+  fi
+  exit 0
+fi
+
+body=$(mktemp)
+trap 'rm -f "$body"' EXIT
+{
+  echo "The nightly audit found unwaived $ecosystem advisories at moderate or above."
+  echo
+  echo '```'
+  cat "$report"
+  echo '```'
+  echo
+  echo "Last run: $run_url"
+  echo "Triage: docs/security-audits.md"
+} > "$body"
+
+if [ -n "$existing" ]; then
+  gh issue edit "$existing" --repo "$repo" --body-file "$body"
+  gh issue comment "$existing" --repo "$repo" --body "Still unwaived on $(date -u +%F): $run_url"
+else
+  gh issue create --repo "$repo" --title "$title" --body-file "$body" --label dependencies --label security
+fi
