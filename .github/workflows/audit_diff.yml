@@ -1,0 +1,57 @@
+---
+name: audit-diff
+# yamllint disable-line rule:truthy
+on:
+  pull_request:
+    paths:
+      - 'cpanfile'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'Makefile'
+      - '.audit-waivers'
+      - 'script/audit-diff'
+      - 'lib/Dashboard/Audit.pm'
+      - '.github/workflows/audit_diff.yml'
+jobs:
+  audit-diff-npm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+        with:
+          path: head
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+        with:
+          ref: ${{ github.base_ref }}
+          path: base
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22'
+      - name: Install JS dependencies
+        run: |
+          (cd base && npm clean-install --ignore-scripts)
+          (cd head && npm clean-install --ignore-scripts)
+      - name: Compare npm advisories with base
+        run: |
+          make -C base audit-report-npm
+          make -C head audit-report-npm
+          make -C head BASE_DIR=../base check-audit-diff-npm
+
+  audit-diff-perl:
+    runs-on: ubuntu-latest
+    container:
+      image: perl:5.42
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+        with:
+          path: head
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+        with:
+          ref: ${{ github.base_ref }}
+          path: base
+      - name: Install CPAN::Audit
+        run: cpanm -n CPAN::Audit
+      - name: Compare Perl advisories with base
+        run: |
+          make -C base audit-report-cpan
+          make -C head audit-report-cpan
+          make -C head BASE_DIR=../base check-audit-diff-cpan
