@@ -98,55 +98,33 @@ test-ui: public/asset ## Run Playwright UI tests
 test-js-unit: ## Run JS unit tests
 	npm run test:unit
 
+.PHONY: audit-report-cpan
+audit-report-cpan: ## Write the Perl advisory report of this checkout to cpan-audit.json
+	PERL5LIB=~/perl5/lib/perl5:$$PERL5LIB PATH=~/perl5/bin:$$PATH cpan-audit deps . --json --no-color --exit-zero > cpan-audit.json
+
+.PHONY: audit-report-npm
+audit-report-npm: ## Write the npm advisory report of this checkout to npm-audit.json
+	npm audit --json > npm-audit.json || true
+
 .PHONY: check-audits-cpan
-check-audits-cpan: ## Run security audits for Perl dependencies
-	# CPANSA-Mojolicious-2024-58134, CPANSA-Mojolicious-2024-58135: session secrets handled in config
-	#   See https://github.com/mojolicious/mojo/pull/2200
-	# CPANSA-File-Temp-2011-4116: CVE-2011-4116
-	#   See https://github.com/Perl-Toolchain-Gang/File-Temp/issues/14
-	# CPANSA-perl-2026-8376: CVE-2026-8376 heap buffer overflow on 32-bit builds (not applicable)
-	#   See https://github.com/Perl/perl5/commit/5e7f119eb2bb1181be908701f22bf7068e722f1c.patch
-	# CPANSA-Archive-Tar-2026-42496, CPANSA-Archive-Tar-2026-9538, CPANSA-Archive-Tar-2026-42497:
-	#   CVE-2026-42496, CVE-2026-9538, CVE-2026-42497 (transitive / not extracting untrusted archives)
-	#   See https://github.com/jib/archive-tar-new/commit/17c873492a05eddc0de18c1485e0b2cccd5a9158.patch
-	# CPANSA-Socket-2026-12087:
-	#   CVE-2026-12087 (out-of-bounds heap read / not used)
-	#   See https://github.com/Perl/perl5/commit/de19a0b0ad1900fef976c5c1400bd8f11ec6c6cb.patch
-	# CPANSA-Storable-2026-57433:
-	#   CVE-2026-57433 (signed integer overflow wrap / not deserializing untrusted data with Storable)
-	#   See https://github.com/Perl/perl5/commit/e4f681784bcdeaa91ff02a2fa4cdcae5c46779d7.patch
-	# CPANSA-perl-2026-13221, CPANSA-perl-2026-57432:
-	#   CVE-2026-13221, CVE-2026-57432 (regex alternation trie overflow, pack template overflow / not applicable)
-	#   See https://github.com/Perl/perl5/commit/03f74bbbd3a68350d926ee93d56ee4808c28c4c7.patch
-	#   See https://github.com/Perl/perl5/commit/40754edc72dd3e513d758153c0e2f0215897740e.patch
-	# CPANSA-perl-2026-15534:
-	#   CVE-2026-15534 (regex superlinear cache OOB read/write / not matching attacker-controlled ~286MB subjects)
-	#   See https://github.com/Perl/perl5/commit/54cf3d44cbbedd17d774e9a37921963e8fd5d0cb.patch
-	#   See https://github.com/Perl/perl5/commit/568e6fd238867bb9e99fa3f47cba3169009239e0.patch
-	# CPANSA-podlators-2026-82560:
-	#   CVE-2026-82560 (Pod::Text CPU/memory exhaustion formatting attacker-supplied POD / not formatting untrusted POD)
-	#   See https://github.com/rra/podlators/commit/70510174f69eb54aa6d617bde4e1402cd9b7c61f.patch
-	PERL5LIB=~/perl5/lib/perl5:$$PERL5LIB PATH=~/perl5/bin:$$PATH cpan-audit deps . \
-		--exclude CPANSA-Mojolicious-2024-58134 \
-		--exclude CPANSA-Mojolicious-2024-58135 \
-		--exclude CPANSA-File-Temp-2011-4116 \
-		--exclude CPANSA-perl-2026-4176 \
-		--exclude CPANSA-perl-2026-8376 \
-		--exclude CPANSA-Archive-Tar-2026-42496 \
-		--exclude CPANSA-Archive-Tar-2026-9538 \
-		--exclude CPANSA-Archive-Tar-2026-42497 \
-		--exclude CPANSA-Socket-2026-12087 \
-		--exclude CPANSA-Storable-2026-57433 \
-		--exclude CPANSA-perl-2026-13221 \
-		--exclude CPANSA-perl-2026-57432 \
-		--exclude CPANSA-perl-2026-15534 \
-		--exclude CPANSA-podlators-2026-82560
+check-audits-cpan: audit-report-cpan ## Fail on Perl advisories that are not waived
+	script/audit-diff --ecosystem perl --head cpan-audit.json --waivers .audit-waivers
 
 .PHONY: check-audits-npm
-check-audits-npm: ## Run security audits for JS dependencies
-	npm audit --audit-level=high
+check-audits-npm: audit-report-npm ## Fail on npm advisories that are not waived
+	script/audit-diff --ecosystem npm --head npm-audit.json --waivers .audit-waivers
 
-.PHONY: check-audits
+
+.PHONY: check-audit-diff-cpan
+check-audit-diff-cpan: ## Fail on Perl advisories this checkout adds relative to BASE_DIR (reports must exist)
+	$(if $(BASE_DIR),,$(error BASE_DIR must point to the base checkout))
+	$(BASE_DIR)/script/audit-diff --ecosystem perl --base $(BASE_DIR)/cpan-audit.json --head cpan-audit.json --waivers $(BASE_DIR)/.audit-waivers
+
+.PHONY: check-audit-diff-npm
+check-audit-diff-npm: ## Fail on npm advisories this checkout adds relative to BASE_DIR (reports must exist)
+	$(if $(BASE_DIR),,$(error BASE_DIR must point to the base checkout))
+	$(BASE_DIR)/script/audit-diff --ecosystem npm --base $(BASE_DIR)/npm-audit.json --head npm-audit.json --waivers $(BASE_DIR)/.audit-waivers
+
 check-audits: check-audits-cpan check-audits-npm ## Run all security audits
 
 .PHONY: lint-npm

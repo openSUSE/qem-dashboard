@@ -1,0 +1,41 @@
+#!/usr/bin/env perl
+# Copyright SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
+
+use v5.36;
+use FindBin;
+use lib "$FindBin::Bin/../lib";
+use Dashboard::Audit;
+use Getopt::Long;
+use POSIX 'strftime';
+
+my %parsers = (perl    => \&Dashboard::Audit::perl_advisories, npm => \&Dashboard::Audit::npm_advisories);
+my %opt     = (waivers => '.audit-waivers', threshold => 'moderate', today => strftime('%Y-%m-%d', localtime));
+GetOptions(\%opt, 'ecosystem=s', 'head=s', 'base=s', 'waivers=s', 'threshold=s', 'today=s')
+  or die "Usage: audit-diff --ecosystem perl|npm --head FILE|- [--base FILE] [--waivers FILE] [--threshold LEVEL]\n";
+my $parse = $parsers{$opt{ecosystem} // ''} or die "Unknown --ecosystem, use perl or npm\n";
+
+sub slurp ($path) {
+  open my $fh, '<', ($path eq '-' ? \*STDIN : $path) or die "Cannot read $path: $!\n";
+  local $/;
+  return scalar <$fh>;
+}
+
+my $head     = $parse->(slurp($opt{head}));
+my $base     = defined $opt{base} ? $parse->(slurp($opt{base})) : undef;
+my $waivers  = Dashboard::Audit::parse_waivers(slurp($opt{waivers}));
+my @findings = Dashboard::Audit::findings(
+  $head,
+  base      => $base,
+  waivers   => $waivers,
+  threshold => $opt{threshold},
+  today     => $opt{today},
+);
+
+if (@findings) {
+  say $base
+    ? "Advisories at $opt{threshold} or above introduced by this change:"
+    : "Unwaived advisories at $opt{threshold} or above:";
+  say "  $head->{$_}{severity} $_ ($head->{$_}{source})" for @findings;
+}
+exit(@findings ? 1 : 0);
