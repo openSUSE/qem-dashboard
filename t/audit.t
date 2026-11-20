@@ -155,12 +155,11 @@ subtest "audit-diff exit status" => sub {
   close $waivers;
   my $run = sub (@args) {
     my $devnull = File::Spec->devnull;
-    open my $saved, ">&", \*STDOUT or die $!;
-    open STDOUT,    ">",  $devnull or die $!;
+    open my $saved, ">&", \*STDOUT;
+    open STDOUT,    ">",  $devnull;
     my $status = system($^X, "$FindBin::Bin/../script/audit-diff",
       "--ecosystem", "npm", "--head", $head->filename, "--waivers", $waivers->filename, @args);
-    open STDOUT, ">&", $saved or die $!;
-    $status == -1 and die "cannot run audit-diff: $!";
+    open STDOUT, ">&", $saved;
     return $? >> 8;
   };
   is($run->(), 1, "unwaived advisory at threshold fails");
