@@ -156,3 +156,16 @@ DROP INDEX IF EXISTS incident_in_update_incident_idx;
 -- 12 down
 CREATE INDEX IF NOT EXISTS incident_in_update_incident_idx ON incident_in_update(incident);
 DROP INDEX IF EXISTS incident_in_update_incident_settings_idx;
+
+-- 13 up
+ALTER SEQUENCE openqa_jobs_id_seq AS BIGINT;
+ALTER TABLE openqa_jobs ALTER COLUMN id SET DATA TYPE BIGINT;
+ALTER TABLE job_remarks ALTER COLUMN openqa_job_id SET DATA TYPE BIGINT;
+SELECT setval(pg_get_serial_sequence('openqa_jobs', 'id'),
+              (SELECT COALESCE(max(id), 0) + 1 FROM openqa_jobs), false);
+
+-- 13 down
+-- Fails safely if any id already exceeds the int4 range.
+ALTER SEQUENCE openqa_jobs_id_seq AS INTEGER;
+ALTER TABLE job_remarks ALTER COLUMN openqa_job_id SET DATA TYPE INTEGER;
+ALTER TABLE openqa_jobs ALTER COLUMN id SET DATA TYPE INTEGER;
