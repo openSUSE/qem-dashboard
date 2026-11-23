@@ -254,6 +254,20 @@ subtest 'Blocked status' => sub {
     is $t->app->openapi->build_response_body({errors => ['plain string error']}),
       '{"error":"Validation failed","errors":[{"message":"plain string error","path":""}]}', 'handles string error';
 
+    # Coverage for plain {message, path} hashes reported by Mojolicious::Plugin::OpenAPI
+    is $t->app->openapi->build_response_body({errors => [{message => 'baz', path => '/qux'}]}),
+      '{"error":"Validation failed","errors":[{"message":"baz","path":"\/qux"}]}', 'handles plain hash error';
+    is $t->app->openapi->build_response_body({errors => [{}]}),
+      '{"error":"Validation failed","errors":[{"message":"Unknown error","path":""}]}',
+      'handles plain hash error without message and path';
+
+    is $t->app->openapi->build_response_body({errors => [MockError->new], status => 404}),
+      '{"error":"Resource not found"}', 'hides details of 404 errors';
+    is $t->app->openapi->build_response_body({errors => [{message => 'secret', path => '/'}], status => 500}),
+      '{"error":"Internal Server Error"}', 'hides details of 5xx errors';
+    is $t->app->openapi->build_response_body({errors => ['secret'], status => 503}),
+      '{"error":"Internal Server Error"}', 'hides details of other 5xx errors';
+
     is $t->app->incidents->blocked_cache_ttl, 10, 'default blocked_cache_ttl is 10';
     my $app_custom
       = Test::Mojo->new(Dashboard => {%{$dashboard_test_blocked->default_config}, blocked_cache_ttl => 5})->app;

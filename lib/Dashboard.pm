@@ -261,12 +261,11 @@ sub _register_routes ($self, $config) {
     'openapi.build_response_body' => sub ($c, $data) {
       if (ref $data eq 'HASH' && $data->{errors}) {
         my $status = $data->{status} // 400;
-        if ($status == 404) { return Mojo::JSON::encode_json({error => 'Resource not found'}) }
+        return Mojo::JSON::encode_json({error => 'Resource not found'})    if $status == 404;
+        return Mojo::JSON::encode_json({error => 'Internal Server Error'}) if $status >= 500;
         my @errors = map {
-          blessed($_)
-            && $_->can('path')
-            ? {message => $_->message, path => ($_->path // "") . ""}
-            : {message => "$_", path => ""}
+          my ($message, $path) = _error_fields($_);
+          +{message => ($message // 'Unknown error') . '', path => ($path // '') . ''}
         } @{$data->{errors}};
         return Mojo::JSON::encode_json({error => "Validation failed", errors => \@errors});
       }
@@ -281,6 +280,12 @@ sub _register_routes ($self, $config) {
   $public->get('/swagger' => {template => 'swagger'});
 }
 
+# Mojolicious::Plugin::OpenAPI reports internal errors as plain {message, path} hashes instead of objects
+sub _error_fields ($error) {
+  return ($error->{message}, $error->{path}) if ref $error eq 'HASH';
+  return ($error->message,   $error->path)   if blessed($error) && $error->can('path');
+  return ("$error",          undef);
+}
 
 1;
 
