@@ -8,7 +8,28 @@ has [qw(days_to_keep_aggregates pg log)];
 
 sub add ($self, $job) {
   my $new_job_id = $job->{job_id};
-  my $res        = $self->pg->db->query(
+  my $db         = $self->pg->db;
+
+  # Plain INSERT ... ON CONFLICT would call nextval() for every re-post of a known job and burn an id
+  my $row = $db->query(
+    'SELECT id, job_id FROM openqa_jobs
+      WHERE distri = ? AND flavor = ? AND arch = ? AND version = ? AND build = ? AND name = ?',
+    @{$job}{qw(distri flavor arch version build name)}
+  )->hash;
+  if ($row) {
+    my @values = ($job->{job_group}, $new_job_id, $job->{group_id}, $job->{status});
+    $db->query(
+      'UPDATE openqa_jobs
+          SET job_group = ?, job_id = ?, group_id = ?, status = ?, updated = NOW()
+        WHERE id = ?
+          AND (job_group IS DISTINCT FROM ? OR job_id IS DISTINCT FROM ? OR group_id IS DISTINCT FROM ?
+            OR status IS DISTINCT FROM ?)', @values, $row->{id}, @values
+    );
+    $self->remove_remarks($row->{id}) if $row->{job_id} != $new_job_id;
+    return $row->{id};
+  }
+
+  my $res = $db->query(
     'INSERT INTO openqa_jobs (incident_settings, update_settings, name, job_group, job_id, group_id, status, distri,
       flavor, version, arch, build) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
      ON CONFLICT (distri, flavor, arch, version, build, name)
@@ -23,6 +44,9 @@ sub add ($self, $job) {
   )->hash;
   my $internal_id = $res->{id};
   my $old_job_id  = $res->{old_job_id};
+
+  # Only reached when the row shows up between the SELECT above and this INSERT (concurrent writer)
+  # uncoverable branch true
   $self->remove_remarks($internal_id) if defined($old_job_id) && ($old_job_id != $new_job_id);
   return $internal_id;
 }

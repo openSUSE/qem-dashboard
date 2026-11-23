@@ -572,6 +572,11 @@ subtest 'Dashboard::Model::Jobs' => sub {
     $job_data->{job_id} = 888002;
     $jobs->add($job_data);
     is scalar($jobs->remarks($id)->each), 0, 'remark removed after job_id update';
+
+    $jobs->add_remark($id, 1, 'kept remark');
+    is $jobs->add({%$job_data, status => 'failed'}), $id, 're-posting a known job with the same job_id keeps its id';
+    is scalar($jobs->remarks($id)->each),            1,   'remark kept when the job_id stays the same';
+    is $jobs->get(888002)->{status},                 'failed', 'status updated on re-post';
   };
 
   subtest 'get_update_settings' => sub {
