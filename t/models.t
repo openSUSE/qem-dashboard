@@ -21,6 +21,8 @@ my $config         = $dashboard_test->default_config;
 my $t              = Test::Mojo->new(Dashboard => $config);
 $dashboard_test->minimal_fixtures($t->app);
 
+my $sequence_value = sub ($name) { $t->app->pg->db->query("SELECT last_value FROM ${name}_id_seq")->array->[0] };
+
 subtest 'Dashboard::Model::Incidents' => sub {
   my $incidents     = $t->app->incidents;
   my $mock_incident = {
@@ -216,6 +218,16 @@ subtest 'Dashboard::Model::Incidents' => sub {
       'Needs investigation', 'rejection reason was updated';
     is $incs->incident_for({number => 16860, project => 'SUSE:Maintenance:16860', type => 'smelt'})->{rr_number},
       undef, 'rr_number undef works';
+  };
+
+  subtest 'repeated updates do not advance id sequences' => sub {
+    my $incs      = $t->app->incidents;
+    my $unchanged = {%$mock_incident, number => 16860, channels => ['Test', 'NewChannel']};
+    $incs->update($unchanged);
+    my %before = map { $_ => $sequence_value->($_) } qw(incidents channels incident_channels);
+    $incs->update($unchanged);
+    is $sequence_value->($_), $before{$_}, "$_ id sequence unchanged on repeated update" for sort keys %before;
+    $incs->update({%$mock_incident, number => 16860, channels => ['Test']});
   };
 
   subtest 'git sync only deactivates incidents of projects in the batch' => sub {
@@ -522,6 +534,35 @@ subtest 'Dashboard::Model::Settings' => sub {
     ok $settings->update_settings_exist(1),        'update settings 1 exists';
     ok !$settings->update_settings_exist(99999),   'update settings 99999 does not exist';
   };
+
+  subtest 'repeated upserts do not advance id sequences' => sub {
+    my $incident_id
+      = $t->app->incidents->ids_for({number => 16860, project => 'SUSE:Maintenance:16860', type => 'smelt'})->[0];
+    my $incident_settings = {
+      version       => '12-SP5',
+      flavor        => 'Server-DVD-HA-Incidents-Install',
+      arch          => 's390x',
+      withAggregate => false,
+      settings      => {DISTRI => 'sle'}
+    };
+    my $update_settings = {
+      product  => 'RepeatedProduct',
+      arch     => 's390x',
+      build    => 'RepeatedBuild',
+      repohash => 'h',
+      settings => {S => 1}
+    };
+
+    my $incident_settings_id = $settings->add_incident_settings($incident_id, $incident_settings);
+    my $update_settings_id   = $settings->add_update_settings([$incident_id], $update_settings);
+    my %before
+      = map { $_ => $sequence_value->($_) } qw(incident_openqa_settings update_openqa_settings incident_in_update);
+    is $settings->add_incident_settings($incident_id, $incident_settings), $incident_settings_id,
+      'repeated incident settings upsert reuses the id';
+    is $settings->add_update_settings([$incident_id], $update_settings), $update_settings_id,
+      'repeated update settings upsert reuses the id';
+    is $sequence_value->($_), $before{$_}, "$_ id sequence unchanged on repeated upsert" for sort keys %before;
+  };
 };
 
 subtest 'Dashboard::Model::Jobs' => sub {
@@ -577,6 +618,30 @@ subtest 'Dashboard::Model::Jobs' => sub {
     is $jobs->add({%$job_data, status => 'failed'}), $id, 're-posting a known job with the same job_id keeps its id';
     is scalar($jobs->remarks($id)->each),            1,   'remark kept when the job_id stays the same';
     is $jobs->get(888002)->{status},                 'failed', 'status updated on re-post';
+  };
+
+  subtest 'repeated remarks do not advance the id sequence' => sub {
+    my $id = $jobs->add(
+      {
+        incident_settings => 1,
+        name              => 'remark-sequence-job',
+        job_group         => 'G',
+        status            => 'passed',
+        job_id            => 888003,
+        group_id          => 1,
+        distri            => 'd',
+        flavor            => 'f',
+        version           => 'v',
+        arch              => 'a',
+        build             => 'b'
+      }
+    );
+
+    my $remark_id = $jobs->add_remark($id, 1, 'first');
+    my $before    = $sequence_value->('job_remarks');
+    is $jobs->add_remark($id, 1, 'second'), $remark_id, 'repeated remark for the same incident reuses the id';
+    is $sequence_value->('job_remarks'),    $before,    'job_remarks id sequence unchanged on repeated remark';
+    is $jobs->remarks($id)->first->{text},  'second',   'remark text updated in place';
   };
 
   subtest 'get_update_settings' => sub {
