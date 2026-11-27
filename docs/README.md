@@ -22,6 +22,10 @@ Information about the project directory structure
 
 Architecture & Data Flow diagrams
 
+- [Database id types](DatabaseIdTypes.md)
+
+Review of the `int4` id types and sequences, and when to widen them
+
 - [Containers](Containers.md)
 
 Information how to deploy the project inside containers with Podman and quadlets

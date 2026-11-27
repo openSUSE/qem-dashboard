@@ -63,10 +63,14 @@ sub remarks ($self, $job_id) {
 }
 
 sub add_remark ($self, $job_id, $incident_id, $text) {
-  $self->pg->db->query(
+  my $db = $self->pg->db;
+
+  my $res = $db->query('UPDATE job_remarks SET text = ? WHERE openqa_job_id = ? AND incident_id = ? RETURNING id',
+    $text, $job_id, $incident_id);
+  return $res->array->[0] if $res->rows;
+  return $db->query(
     'INSERT INTO job_remarks (openqa_job_id, incident_id, text) VALUES (?, ?, ?)
-     ON CONFLICT (openqa_job_id, incident_id)
-     DO UPDATE SET text = EXCLUDED.text
+     ON CONFLICT (openqa_job_id, incident_id) DO UPDATE SET text = EXCLUDED.text
      RETURNING id', $job_id, $incident_id, $text
   )->array->[0];
 }
