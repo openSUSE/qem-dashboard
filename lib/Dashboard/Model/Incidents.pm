@@ -382,7 +382,13 @@ sub update_rejection_reason ($self, $id, $reason) {
 
 sub _update ($self, $db, $incident) {
   my @key = ($incident->{number}, $incident->{project}, $incident->{type});
-  $db->query('INSERT INTO incidents (number, project, type) VALUES (?, ?, ?) ON CONFLICT DO NOTHING', @key);
+
+  # ON CONFLICT alone would call nextval() for every known incident and burn an id
+  $db->query(
+    'INSERT INTO incidents (number, project, type)
+     SELECT ?, ?, ? WHERE NOT EXISTS (SELECT 1 FROM incidents WHERE number = ? AND project = ? AND type = ?)
+     ON CONFLICT DO NOTHING', @key, @key
+  );
   my $row = $db->query('SELECT id, rr_number FROM incidents WHERE number = ? AND project = ? AND type = ?', @key)->hash;
   my ($id, $rr_number) = ($row->{id}, $row->{rr_number} // 0);
 
@@ -418,9 +424,16 @@ sub _update ($self, $db, $incident) {
     = $db->query('SELECT name FROM channels c JOIN incident_channels ic ON ic.channel = c.id WHERE ic.incident = ?',
     $id)->arrays->map(sub { $_->[0] })->to_array;
   for my $channel (@{$incident->{channels}}) {
-    $db->query('INSERT INTO channels (name) VALUES (?) ON CONFLICT DO NOTHING', $channel);
+    $db->query(
+      'INSERT INTO channels (name) SELECT ? WHERE NOT EXISTS (SELECT 1 FROM channels WHERE name = ?)
+       ON CONFLICT DO NOTHING', $channel, $channel
+    );
     my $cid = $db->query('SELECT id FROM channels WHERE name = ? LIMIT 1', $channel)->hash->{id};
-    $db->query('INSERT INTO incident_channels (incident, channel) VALUES (?, ?) ON CONFLICT DO NOTHING', $id, $cid);
+    $db->query(
+      'INSERT INTO incident_channels (incident, channel)
+       SELECT ?, ? WHERE NOT EXISTS (SELECT 1 FROM incident_channels WHERE incident = ? AND channel = ?)
+       ON CONFLICT DO NOTHING', $id, $cid, $id, $cid
+    );
 
     @$old_channels = grep { $_ ne $channel } @$old_channels;
   }

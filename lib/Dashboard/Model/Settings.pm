@@ -8,17 +8,22 @@ has 'pg';
 
 sub add_incident_settings ($self, $incident_id, $settings) {
   my $db = $self->pg->db;
+  my ($version, $flavor, $arch) = @{$settings}{qw(version flavor arch)};
 
   my $tx = $db->begin;
+
+  # Deriving the row from the conflict target keeps nextval() out of the repeated upsert path
   $db->query(
-    'INSERT INTO incident_openqa_settings (incident, version, flavor, arch, with_aggregate) VALUES (?, ?, ?, ?, ?)
-     ON CONFLICT DO NOTHING', $incident_id, $settings->{version}, $settings->{flavor}, $settings->{arch},
-    $settings->{withAggregate}
+    'INSERT INTO incident_openqa_settings (incident, version, flavor, arch, with_aggregate)
+     SELECT ?, ?, ?, ?, ?
+      WHERE NOT EXISTS (SELECT 1 FROM incident_openqa_settings
+                         WHERE incident = ? AND version = ? AND flavor = ? AND arch = ?)
+     ON CONFLICT DO NOTHING', $incident_id, $version, $flavor, $arch, $settings->{withAggregate}, $incident_id,
+    $version, $flavor, $arch
   );
   my $id = $db->query(
     'SELECT id FROM incident_openqa_settings
-     WHERE incident = ? AND version = ? AND flavor = ? AND arch = ? LIMIT 1', $incident_id, $settings->{version},
-    $settings->{flavor}, $settings->{arch}
+     WHERE incident = ? AND version = ? AND flavor = ? AND arch = ? LIMIT 1', $incident_id, $version, $flavor, $arch
   )->hash->{id};
   $db->query('UPDATE incident_openqa_settings SET settings = ? WHERE id = ?', {json => $settings->{settings}}, $id);
   $tx->commit;
@@ -28,17 +33,23 @@ sub add_incident_settings ($self, $incident_id, $settings) {
 
 sub add_update_settings ($self, $incident_ids, $settings) {
   my $db = $self->pg->db;
+  my ($product, $arch, $build) = @{$settings}{qw(product arch build)};
 
   my $tx = $db->begin;
   $db->query(
-    'INSERT INTO update_openqa_settings (product, arch, build, repohash, settings) VALUES (?, ?, ?, ?, ?)
-     ON CONFLICT DO NOTHING', $settings->{product}, $settings->{arch}, $settings->{build}, $settings->{repohash},
-    {json => $settings->{settings}}
+    'INSERT INTO update_openqa_settings (product, arch, build, repohash, settings)
+     SELECT ?, ?, ?, ?, ?
+      WHERE NOT EXISTS (SELECT 1 FROM update_openqa_settings WHERE product = ? AND arch = ? AND build = ?)
+     ON CONFLICT DO NOTHING', $product, $arch, $build, $settings->{repohash}, {json => $settings->{settings}},
+    $product, $arch, $build
   );
   my $id = $db->query('SELECT id FROM update_openqa_settings WHERE product = ? AND arch = ? AND build = ? LIMIT 1',
-    $settings->{product}, $settings->{arch}, $settings->{build})->hash->{id};
-  $db->query('INSERT INTO incident_in_update (incident, settings) VALUES (?, ?) ON CONFLICT DO NOTHING', $_, $id)
-    for @$incident_ids;
+    $product, $arch, $build)->hash->{id};
+  $db->query(
+    'INSERT INTO incident_in_update (incident, settings)
+     SELECT ?, ? WHERE NOT EXISTS (SELECT 1 FROM incident_in_update WHERE incident = ? AND settings = ?)
+     ON CONFLICT DO NOTHING', $_, $id, $_, $id
+  ) for @$incident_ids;
   $tx->commit;
 
   return $id;
